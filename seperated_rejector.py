@@ -76,7 +76,7 @@ print("test set:")
 from models.evaluator import categorize, categorize_pred
 
 test_set_prob = pd.concat([test_t, test_y_t1_prob, test_y_t0_prob, test_ite_prob, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
-test_set = pd.concat([test_t, test_y_t1_pred, test_y_t0_pred, test_ite_prob, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
+test_set = pd.concat([test_t, test_y_t1_pred, test_y_t1_prob, test_y_t0_pred, test_y_t0_prob, test_ite_prob, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
 
 
 # Apply the categorization function to create the 'Category' column
@@ -99,18 +99,42 @@ test_set['cost_ite'] = test_set.apply(calculate_cost_ite, axis=1)
 # test_set['cost_cb'] = test_set.apply(calculate_cost_cb, axis=1)
 print(test_set)
 
+
+
+# Rejection ood
+
+from models.rejector import distance_test_to_train, is_out_of_distribution, nbrs_train
+
+# Create a new column 'ood' in test_set based on the calculated distances
+model = nbrs_train(train_x)
+d = distance_test_to_train(model, test_x)
+test_set['ood'] = d.apply(is_out_of_distribution, threshold_distance=6)
+
+
+
+# Rejection probabilities
+test_set['y_t1_reject_prob'] = test_set.apply(lambda row: True if row['y_t1_prob'] < 0.55 and row['y_t1_prob'] > 0.45 else False, axis=1)
+test_set['y_t0_reject_prob'] = test_set.apply(lambda row: True if row['y_t0_prob'] < 0.55 and row['y_t0_prob'] > 0.45 else False, axis=1)
+test_set['y_reject_prob'] = test_set.apply(lambda row: True if row['y_t0_reject_prob'] and row['y_t1_reject_prob'] else False, axis=1)
+
+test_set['cost_ite_reject_prob'] = test_set.apply(lambda row: 0 if y_reject_prob else row['cost_ite'], axis=1)
+
+
+print(test_set)
+
+# Calculate total misclassification cost
 total_cost = test_set['cost_ite'].sum()
 print(f'Total Misclassification Cost: {total_cost}')
 
-
-# Rejection
-
-from models.rejector import distance_test_to_train, is_out_of_distribution
-
-# Create a new column 'ood' in test_set based on the calculated distances
-test_set['ood'] = distance_test_to_train(test_x, train_x).apply(is_out_of_distribution, threshold_distance=2)
-
-print(test_set)
 # Print the count of occurrences where 'ood' is true
 print("Count of 'ood' being true:", test_set['ood'].sum())
 
+# Calculate total misclassification cost
+test_set['cost_ite_reject_ood'] = test_set.apply(lambda row: 0 if row['ood'] else row['cost_ite'], axis=1)
+total_cost = test_set['cost_ite_reject_ood'].sum()
+print(f'Total Misclassification Cost after ood rejection: {total_cost}')
+
+# Print the count of occurrences where 'ood' is true
+print("Count of 'probability rejection' being true:", test_set['y_reject_prob'].sum())
+total_cost = test_set['cost_ite_reject_prob'].sum()
+print(f'Total Misclassification Cost after probability rejection: {total_cost}')
