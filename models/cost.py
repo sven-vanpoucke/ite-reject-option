@@ -1,8 +1,7 @@
-treatment_cost = 10
-potential_improvement = 10
 correct = 0
 same_action_taken = 0
-wasted_treatment = 5
+wasted_treatment = 5 # Giving treatment when it shouldn't have been given
+potential_improvement = 10 # Not giving treatment when it should have been given
 
 cost_matrix = {
     'Lost Cause': {

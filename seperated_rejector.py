@@ -117,7 +117,7 @@ test_set['y_t1_reject_prob'] = test_set.apply(lambda row: True if row['y_t1_prob
 test_set['y_t0_reject_prob'] = test_set.apply(lambda row: True if row['y_t0_prob'] < 0.55 and row['y_t0_prob'] > 0.45 else False, axis=1)
 test_set['y_reject_prob'] = test_set.apply(lambda row: True if row['y_t0_reject_prob'] and row['y_t1_reject_prob'] else False, axis=1)
 
-test_set['cost_ite_reject_prob'] = test_set.apply(lambda row: 0 if y_reject_prob else row['cost_ite'], axis=1)
+test_set['cost_ite_reject_prob'] = test_set.apply(lambda row: 0 if row['y_reject_prob'] else row['cost_ite'], axis=1)
 
 
 print(test_set)
