@@ -71,18 +71,17 @@ print("training set:")
 print("test set:")
 #evaluation_binary(test_treated_y, test_treated_y_pred, test_treated_y_prob, test_control_y, test_control_y_pred, test_control_y_prob)
 
-
 # EVALUATE ITE
+
 from models.evaluator import categorize, categorize_pred
 
 test_set_prob = pd.concat([test_t, test_y_t1_prob, test_y_t0_prob, test_ite_prob, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
 test_set = pd.concat([test_t, test_y_t1_pred, test_y_t0_pred, test_ite_prob, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
 
+
 # Apply the categorization function to create the 'Category' column
 test_set['category'] = test_set.apply(categorize, axis=1)
 test_set['category_pred'] = test_set.apply(categorize_pred, axis=1)
-
-
 
 #count_matrix = pd.crosstab(test_set['y_t0'], test_set['y_t1'], margins=True, margins_name='Total')
 count_matrix = pd.crosstab(test_set['y_t0'], test_set['y_t1'], margins=False)
@@ -91,7 +90,6 @@ print(count_matrix)
 count_matrix = pd.crosstab(test_y_t0_pred, test_y_t1_pred, margins=False)
 print(count_matrix)
 
-
 # COSTS
 from models.cost import calculate_cost_ite
 
@@ -99,5 +97,20 @@ from models.cost import calculate_cost_ite
 test_set['cost_ite'] = test_set.apply(calculate_cost_ite, axis=1)
 
 # test_set['cost_cb'] = test_set.apply(calculate_cost_cb, axis=1)
+print(test_set)
+
+total_cost = test_set['cost_ite'].sum()
+print(f'Total Misclassification Cost: {total_cost}')
+
+
+# Rejection
+
+from models.rejector import distance_test_to_train, is_out_of_distribution
+
+# Create a new column 'ood' in test_set based on the calculated distances
+test_set['ood'] = distance_test_to_train(test_x, train_x).apply(is_out_of_distribution, threshold_distance=2)
 
 print(test_set)
+# Print the count of occurrences where 'ood' is true
+print("Count of 'ood' being true:", test_set['ood'].sum())
+
