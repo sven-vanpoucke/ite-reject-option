@@ -18,8 +18,6 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 from tabulate import tabulate
 
-# Message will be shown if executed succesfully.
-print("Finished imports")
 from scipy.special import expit
 
 def preprocessing_get_data_twin(train_rate=0.8):
@@ -92,7 +90,8 @@ def preprocessing_transform_data_twin(train_x, train_t, train_y, train_potential
     # Specify column names
     columns_x = [f"feature_{i}" for i in range(train_x.shape[1])]
     columns_y = ["observed_outcome"]
-    columns_potential_y = [f"potential_outcome_{i}" for i in range(train_potential_y.shape[1])]
+    #columns_potential_y = [f"potential_outcome_{i}" for i in range(test_potential_y.shape[1])]
+    columns_potential_y = ["y_t0", "y_t1"]
     columns_t = ["treatment"]
 
     # Convert NumPy arrays to pandas DataFrames
@@ -103,10 +102,13 @@ def preprocessing_transform_data_twin(train_x, train_t, train_y, train_potential
     
     test_x = pd.DataFrame(test_x, columns=columns_x)
     test_y = pd.DataFrame(test_y, columns=columns_y)
-    test_potential_y = pd.DataFrame(test_y, columns=columns_potential_y)
+    test_potential_y = pd.DataFrame(test_potential_y, columns=columns_potential_y)
     test_t = pd.DataFrame(test_t, columns=columns_t)
 
     return train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y
+
+"""
+
 
 # Now you can call the function to load the data
 train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y = preprocessing_get_data_twin()
@@ -141,3 +143,5 @@ print(tabulate(test_y.head(), headers='keys', tablefmt='psql'))
 
 print("\n test_t")
 print(tabulate(test_t.head(), headers='keys', tablefmt='psql'))
+
+"""

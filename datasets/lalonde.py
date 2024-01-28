@@ -32,6 +32,9 @@ def processing_transform_data_lalonde(all_data):
     train_x, test_x, train_y, test_y, train_t, test_t = train_test_split(x, y, t, test_size=0.2, random_state=42)
     return train_x, test_x, train_y, test_y, train_t, test_t
 
+
+
+"""
 all_data = processing_get_data_lalonde()
 train_x, test_x, train_y, test_y, train_t, test_t = processing_transform_data_lalonde(all_data)
 
@@ -56,3 +59,5 @@ print("\n test_y")
 print(test_y)
 print("\n test_t")
 print(test_t)
+
+"""
