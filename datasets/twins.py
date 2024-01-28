@@ -89,14 +89,23 @@ def preprocessing_get_data_twin(train_rate=0.8):
     return train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y
 
 def preprocessing_transform_data_twin(train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y):
+    # Specify column names
+    columns_x = [f"feature_{i}" for i in range(train_x.shape[1])]
+    columns_y = ["observed_outcome"]
+    columns_potential_y = [f"potential_outcome_{i}" for i in range(train_potential_y.shape[1])]
+    columns_t = ["treatment"]
+
     # Convert NumPy arrays to pandas DataFrames
-    train_x = pd.DataFrame(train_x)
-    train_y = pd.DataFrame(train_y)
-    train_potential_y = pd.DataFrame(train_potential_y)
-    train_t = pd.DataFrame(train_t)
-    test_x = pd.DataFrame(test_x)
-    test_y = pd.DataFrame(test_y)
-    test_t = pd.DataFrame(test_t)
+    train_x = pd.DataFrame(train_x, columns=columns_x)
+    train_y = pd.DataFrame(train_y, columns=columns_y)
+    train_potential_y = pd.DataFrame(train_potential_y, columns=columns_potential_y)
+    train_t = pd.DataFrame(train_t, columns=columns_t)
+    
+    test_x = pd.DataFrame(test_x, columns=columns_x)
+    test_y = pd.DataFrame(test_y, columns=columns_y)
+    test_potential_y = pd.DataFrame(test_y, columns=columns_potential_y)
+    test_t = pd.DataFrame(test_t, columns=columns_t)
+
     return train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y
 
 # Now you can call the function to load the data
@@ -132,30 +141,3 @@ print(tabulate(test_y.head(), headers='keys', tablefmt='psql'))
 
 print("\n test_t")
 print(tabulate(test_t.head(), headers='keys', tablefmt='psql'))
-
-
-import numpy as np
-
-# Calculate the ATE for the training set
-N_treated_train = np.sum(train_t == 1)  # Number of treated individuals in training set
-N_control_train = np.sum(train_t == 0)  # Number of control individuals in training set
-
-# Calculate the average outcomes for treated and control groups in the training set
-ATE_train = (np.mean(train_y[train_t == 1]) - np.mean(train_y[train_t == 0]))
-
-# Calculate the ATE for the test set
-N_treated_test = np.sum(test_t == 1)  # Number of treated individuals in test set
-N_control_test = np.sum(test_t == 0)  # Number of control individuals in test set
-
-# Calculate the average outcomes for treated and control groups in the test set
-ATE_test = (np.mean(test_y[test_t == 1]) - np.mean(test_y[test_t == 0]))
-
-# Display the calculated ATEs for training and test sets
-print("ATE for training set:", ATE_train)
-print("ATE for test set:", ATE_test)
-
-
-# 3,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,0,0,20,1,31,25,13,1,2,1,12,1,9999,9999
-# train_x: |  0 |   3 |   1 |   2 |   2 |   2 |   2 |   2 |   2 |   2 |   2 |    2 |    2 |    2 |    2 |    2 |    2 |    2 |    1 |    0 |    0 |   20 |    1 |   31 |   25 |   13 |    1 |    2 |    1 |   12 |    1 |
-# train_y: |  0 |   0 |
-# train_t: |  0 |   1 |
