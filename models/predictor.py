@@ -14,4 +14,3 @@ def predictor_t_model(train_treated_x, train_treated_y, train_control_x, train_c
 
 # Using RandomForestClassifier
 #treated_model_rf, control_model_rf = predictor_t_model(model_class=RandomForestClassifier, n_estimators=100)
-

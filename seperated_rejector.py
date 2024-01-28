@@ -25,8 +25,20 @@ from models.predictor import predictor_t_model
 # Training separate models for treated and control groups
 treated_model, control_model = predictor_t_model(train_treated_x, train_treated_y, train_control_x, train_control_y, model_class=LogisticRegression, max_iter=10000, solver='saga', random_state=42)
 
+# REJECT
+
+# Here should come the code to reject certain predictions in the test_set...
+
 # PREDICT
 
 # Predictions for treated and control groups
-treated_y_pred = treated_model.predict(train_treated_x)
-control_y_pred = control_model.predict(train_control_x)
+train_treated_y_pred = treated_model.predict(train_treated_x)
+train_control_y_pred = control_model.predict(train_control_x)
+
+test_treated_y_pred = treated_model.predict(test_treated_x)
+test_control_y_pred = control_model.predict(test_control_x)
+
+# EVALUATE
+from models.evaluator import evaluation_binary
+evaluation_binary(train_treated_y, train_treated_y_pred, train_control_y, train_control_y_pred)
+evaluation_binary(test_treated_y, test_treated_y_pred, test_control_y, test_control_y_pred)
