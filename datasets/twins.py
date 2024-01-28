@@ -22,7 +22,7 @@ from tabulate import tabulate
 print("Finished imports")
 from scipy.special import expit
 
-def data_loading_twin(train_rate=0.8):
+def preprocessing_get_data_twin(train_rate=0.8):
     """Load twins data.
 
     Args:
@@ -88,48 +88,50 @@ def data_loading_twin(train_rate=0.8):
 
     return train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y
 
-# Now you can call the function to load the data
-train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y = data_loading_twin()
+def preprocessing_transform_data_twin(train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y):
+    # Convert NumPy arrays to pandas DataFrames
+    train_x = pd.DataFrame(train_x)
+    train_y = pd.DataFrame(train_y)
+    train_potential_y = pd.DataFrame(train_potential_y)
+    train_t = pd.DataFrame(train_t)
+    test_x = pd.DataFrame(test_x)
+    test_y = pd.DataFrame(test_y)
+    test_t = pd.DataFrame(test_t)
+    return train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y
 
-print(train_potential_y)
-# Convert NumPy arrays to pandas DataFrames
-train_x_df = pd.DataFrame(train_x)
-train_y_df = pd.DataFrame(train_y)
-train_potential_y_df = pd.DataFrame(train_potential_y)
-train_t_df = pd.DataFrame(train_t)
-test_x_df = pd.DataFrame(test_x)
-test_y_df = pd.DataFrame(test_y)
-test_t_df = pd.DataFrame(test_t)
+# Now you can call the function to load the data
+train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y = preprocessing_get_data_twin()
+train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y = preprocessing_transform_data_twin(train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y)
+
 
 # Display the heads of DataFrames using tabulate
 print("\n train_x")
-print(tabulate(train_x_df.head(), headers='keys', tablefmt='psql'))
+print(tabulate(train_x.head(), headers='keys', tablefmt='psql'))
 
 print("\n train_y")
-print(tabulate(train_y_df.head(), headers='keys', tablefmt='psql'))
+print(tabulate(train_y.head(), headers='keys', tablefmt='psql'))
 
 print("\n train__potential_y")
-print(tabulate(train_potential_y_df.head(), headers='keys', tablefmt='psql'))
+print(tabulate(train_potential_y.head(), headers='keys', tablefmt='psql'))
 
 # Filtering rows where column 1 is not equal to column 2
-unequal_rows = train_potential_y_df[train_potential_y_df.iloc[:, 0] != train_potential_y_df.iloc[:, 1]]
+unequal_rows = train_potential_y[train_potential_y.iloc[:, 0] != train_potential_y.iloc[:, 1]]
 
 # Displaying the filtered DataFrame
 print(unequal_rows)
 
 
 print("\n train_t")
-print(tabulate(train_t_df.head(), headers='keys', tablefmt='psql'))
+print(tabulate(train_t.head(), headers='keys', tablefmt='psql'))
 
 print("\n test_x")
-print(tabulate(test_x_df.head(), headers='keys', tablefmt='psql'))
+print(tabulate(test_x.head(), headers='keys', tablefmt='psql'))
 
 print("\n test_y")
-print(tabulate(test_y_df.head(), headers='keys', tablefmt='psql'))
+print(tabulate(test_y.head(), headers='keys', tablefmt='psql'))
 
 print("\n test_t")
-print(tabulate(test_t_df.head(), headers='keys', tablefmt='psql'))
-
+print(tabulate(test_t.head(), headers='keys', tablefmt='psql'))
 
 
 import numpy as np
@@ -157,4 +159,3 @@ print("ATE for test set:", ATE_test)
 # train_x: |  0 |   3 |   1 |   2 |   2 |   2 |   2 |   2 |   2 |   2 |   2 |    2 |    2 |    2 |    2 |    2 |    2 |    2 |    1 |    0 |    0 |   20 |    1 |   31 |   25 |   13 |    1 |    2 |    1 |   12 |    1 |
 # train_y: |  0 |   0 |
 # train_t: |  0 |   1 |
-
