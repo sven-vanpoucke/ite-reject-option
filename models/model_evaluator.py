@@ -3,13 +3,14 @@ from tabulate import tabulate
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve
+from contextlib import redirect_stdout
 
-def evaluation_binary(treated_y, treated_y_pred, treated_y_prob, control_y, control_y_pred, control_y_prob):
-    evaluation_binary_metrics(treated_y, treated_y_pred, control_y, control_y_pred)
-    evaluation_binary_confusion_table(treated_y, treated_y_pred, control_y, control_y_pred)
-    evaluation_binary_roc(treated_y, treated_y_prob, control_y, control_y_prob)
+def evaluation_binary(treated_y, treated_y_pred, treated_y_prob, control_y, control_y_pred, control_y_prob, file_path):
+    evaluation_binary_metrics(treated_y, treated_y_pred, control_y, control_y_pred, file_path)
+    evaluation_binary_confusion_table(treated_y, treated_y_pred, control_y, control_y_pred, file_path)
+    evaluation_binary_roc(treated_y, treated_y_prob, control_y, control_y_prob, file_path)
 
-def evaluation_binary_metrics(treated_y_test, treated_y_pred, control_y_test, control_y_pred):
+def evaluation_binary_metrics(treated_y_test, treated_y_pred, control_y_test, control_y_pred, file_path):
     digits= int(2)
     # Calculate evaluation metrics
     
@@ -43,11 +44,19 @@ def evaluation_binary_metrics(treated_y_test, treated_y_pred, control_y_test, co
         table.append([metric, values[0], values[1]])
     
     # Display the table
-    print(tabulate(table, headers=["Metric", "Treated Group", "Control Group"], tablefmt="pretty"))
+        
+    with open(file_path, 'a') as file:
+        file.write("Metrics:\n")
+
+        # Redirecting stdout to the file
+        with redirect_stdout(file):
+            print(tabulate(table, headers=["Metric", "Treated Group", "Control Group"], tablefmt="pretty"))
+        file.write("\n")
+
 
     return treated_auc, control_auc, treated_f1, control_f1, treated_precision, control_precision, treated_recall, control_recall, treated_accuracy, control_accuracy
 
-def evaluation_binary_confusion_table(treated_y_test, treated_y_pred, control_y_test, control_y_pred):
+def evaluation_binary_confusion_table(treated_y_test, treated_y_pred, control_y_test, control_y_pred, file_path):
     # Calculate confusion matrices for treated and control groups
     treated_confusion_matrix = confusion_matrix(treated_y_test, treated_y_pred)
     control_confusion_matrix = confusion_matrix(control_y_test, control_y_pred)
@@ -65,9 +74,19 @@ def evaluation_binary_confusion_table(treated_y_test, treated_y_pred, control_y_
     ]
     
     # Display data in a table
-    print(tabulate(data, headers=["Metric", "Treated Group", "Control Group"], tablefmt="pretty"))
+    #print(tabulate(data, headers=["Metric", "Treated Group", "Control Group"], tablefmt="pretty"))
 
-def evaluation_binary_roc(treated_y_test, treated_y_prob, control_y_test, control_y_prob):
+    # Open the file in append mode and write data to it
+    with open(file_path, 'a') as file:
+        file.write("Confusion Matrix:\n")
+        # Redirecting stdout to the file
+        with redirect_stdout(file):
+            # Print the table to the file
+            print(tabulate(data, headers=["Metric", "Treated Group", "Control Group"], tablefmt="pretty"))
+        file.write("\n")
+
+
+def evaluation_binary_roc(treated_y_test, treated_y_prob, control_y_test, control_y_prob, file_path):
     # Calculate ROC curve for treated and control groups
     treated_fpr, treated_tpr, _ = roc_curve(treated_y_test, treated_y_prob)
     control_fpr, control_tpr, _ = roc_curve(control_y_test, control_y_prob)
@@ -81,4 +100,6 @@ def evaluation_binary_roc(treated_y_test, treated_y_prob, control_y_test, contro
     plt.ylabel('True Positive Rate')
     plt.title('ROC Curve')
     plt.legend()
-    plt.show()
+    file_path = "output/roc_curve_plot.png"
+    # Save the plot as a PNG image
+    plt.savefig(file_path, format='png')
