@@ -13,3 +13,7 @@ def helper_output():
 
     return timestamp, filename, file_path
 
+
+def improvement(old_value, new_value):
+    improvement = ((new_value-old_value)/new_value*100).round(2)
+    return improvement

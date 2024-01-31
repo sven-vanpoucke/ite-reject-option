@@ -52,5 +52,14 @@ def predictor_ite_predictions(treated_model, control_model, test_x):
     test_y_t0_prob = test_y_t0_prob.round(4)
     test_ite_prob = test_ite_prob.round(4)
 
+    # Create binary ITE predictions based on a cutoff of 0.5. IS 0 if under 0.5, is 1 if above 0.5
+    #test_ite_bin = (test_ite_prob > 0.5).astype(int)
+    #test_ite_pred = pd.Series(test_ite_bin, name='ite_bin')
 
-    return test_y_t1_pred, test_y_t0_pred, test_y_t1_prob, test_y_t0_prob, test_ite_prob
+    # Create binary ITE predictions based on proximity to -1, 0, or 1
+    #test_ite_pred = (test_ite_prob > 0.5).astype(int) - (test_ite_prob < -0.5).astype(int)
+    test_ite_pred = test_y_t1_pred - test_y_t0_pred
+    test_ite_pred = pd.Series(test_ite_pred, name='ite_pred')
+
+    
+    return test_y_t1_pred, test_y_t0_pred, test_y_t1_prob, test_y_t0_prob, test_ite_prob, test_ite_pred

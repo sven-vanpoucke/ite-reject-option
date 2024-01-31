@@ -1,0 +1,186 @@
+CHAPTER 1: INIT
+
+This file has been generated on: 20240131_224116
+
+CHAPTER 2: PREPROCESSING
+
+The used dataset is: twins
+
+CHAPTER 3: MODEL T-LEARNER
+
+The used model is: LogisticRegression
+
+CHAPTER 4: PREDICT
+
+CHAPTER 5: EVALUATE INDIVIDUAL LOGISTIC REGRESSION MODELS 
+
+Performance measurement: 
+
+ - Confusion Matrix 
+ - Accuracy: overal correctness of the model ((TP + TN) / (TP + TN + FP + FN)) 
+ - Precision: It measures the accuracy of positive predictions (TP / (TP + FP)) 
+ - Recall: ability of the model to capture all the relevant cases (TP / (TP + FN)) 
+ - F1 Score It balances precision and recall, providing a single metric for model evaluation (2 * (Precision * Recall) / (Precision + Recall)) 
+ - ROC 
+
+Evaluation of the individual models based on the **training data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |     3687      |     3657      |
+| False Positives |      129      |      112      |
+| False Negatives |      362      |      394      |
+| True Negatives  |      386      |      393      |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |     0.89      |     0.89      |
+| Precision |     0.75      |     0.78      |
+|  Recall   |     0.52      |      0.5      |
+|    F1     |     0.61      |     0.61      |
+|    AUC    |     0.74      |     0.73      |
++-----------+---------------+---------------+
+
+
+Evaluation of the individual models based on the **test data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |      892      |      929      |
+| False Positives |      33       |      35       |
+| False Negatives |      85       |      113      |
+| True Negatives  |      79       |      114      |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |     0.89      |     0.88      |
+| Precision |     0.71      |     0.77      |
+|  Recall   |     0.48      |      0.5      |
+|    F1     |     0.57      |     0.61      |
+|    AUC    |     0.72      |     0.73      |
++-----------+---------------+---------------+
+
+CHAPTER 6: EVALUATE OVERALL ITE MODEL: PERFORMANCE 
+
+Performance measurement: 
+ - Root Mean Squared Error (RMSE) of the ITE 
+ - Accurate estimate of the ATE 
+ - Accurancy of ITE 
+
+
+Crosstab for ite and ite_pred:
+┌───────┬────────┬───────┬───────┐
+│   ite │   -1.0 │   0.0 │   1.0 │
+├───────┼────────┼───────┼───────┤
+│    -1 │      1 │   128 │     4 │
+├───────┼────────┼───────┼───────┤
+│     0 │     20 │  2006 │    17 │
+├───────┼────────┼───────┼───────┤
+│     1 │      4 │    91 │     9 │
+└───────┴────────┴───────┴───────┘Sum of the main diagonal: 2016
+Sum above the main diagonal: 149
+Sum below the main diagonal: 115
+
+Accurancy: 88.42%
+
+Root Mean Squared Error (RMSE) between the ite and ite_prob: 0.3237
+
+The Actual Average Treatment Effect (ATE): -0.0127
+The Predicted Average Treatment Effect (ATE): 0.0022
+Accuracy of Average Treatment Effect (ATE): 0.0149
+
+
+CHAPTER 7: EVALUATE OVERALL ITE MODEL: COST 
+
+We make the matrix: Lost Cause, Sleeping Dog, Persuadable, Sure Thing 
+Comment: 
+ - Upper left cell: amount of cases that have outcome 0: no matter if you would treat or not 
+   If treat, they stay alive, if no treat they also stay alive. 
+ - Under right cell: amount of cases that have outcome 1: no matter if you would treat or not 
+   If treat, they die, if no treat they also die. 
+ - Upper right cell: amount of cases that have outcome 1 if treated, but outcome 0 if not treated 
+   If treat, they die, if no treat they stay alive. 
+ - Under left cell: amount of cases that have outcome 0 if treated, but outcome 1 if not treated 
+   If treat, they stay alive, if no treat they die. 
+
+
+Crosstab for y_t0 and y_t1:
+┌────────┬───────┬───────┐
+│   y_t0 │   0.0 │   1.0 │
+├────────┼───────┼───────┤
+│      0 │  1783 │   104 │
+├────────┼───────┼───────┤
+│      1 │   133 │   260 │
+└────────┴───────┴───────┘
+
+Crosstab for y_t0_pred and y_t1_pred:
+┌─────────────┬───────┬───────┐
+│   y_t0_pred │   0.0 │   1.0 │
+├─────────────┼───────┼───────┤
+│           0 │  1991 │    30 │
+├─────────────┼───────┼───────┤
+│           1 │    25 │   234 │
+└─────────────┴───────┴───────┘
+
+Total Misclassification Cost: 2185
+
+CHAPTER 8: REJECTION 
+
+The used type of rejection is: ood
+
+
+Crosstab for ite and ite_rej:
+┌───────┬────────┬───────┬───────┬─────┐
+│   ite │   -1.0 │   0.0 │   1.0 │   R │
+├───────┼────────┼───────┼───────┼─────┤
+│    -1 │      1 │   105 │     3 │  24 │
+├───────┼────────┼───────┼───────┼─────┤
+│     0 │     15 │  1664 │    11 │ 353 │
+├───────┼────────┼───────┼───────┼─────┤
+│     1 │      4 │    79 │     8 │  13 │
+└───────┴────────┴───────┴───────┴─────┘Sum of the main diagonal: 1673
+Sum above the main diagonal: 119
+Sum below the main diagonal: 98
+
+Accurancy: 88.52%
+
+Count of 'ood' being true: 390
+Total Misclassification Cost after ood rejection: 1820
+Change of the misclassification cost after ood rejection: -20.05%
+Change of the ITE Accurancy: 0.11%
+Rejection rate: 17.11%
+
+
+Table of test_set (First 20 rows)
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+-----+-------------+---------------+----------+-------+---------------------+---------+
+| treatment | y_t1_pred | y_t1_prob | y_t0_pred | y_t0_prob | ite_pred | ite_prob | y_t0 | y_t1 | ite |  category   | category_pred | cost_ite |  ood  | cost_ite_reject_ood | ite_rej |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+-----+-------------+---------------+----------+-------+---------------------+---------+
+|     1     |    1.0    |   0.636   |    1.0    |  0.6536   |   0.0    | -0.0176  | 0.0  | 1.0  | 1.0 | Persuadable |  Sure Thing   |    10    | False |         10          |   0.0   |
+|     1     |    0.0    |  0.0477   |    0.0    |  0.0396   |   0.0    |  0.0081  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     | False |          0          |   0.0   |
+|     0     |    0.0    |  0.1682   |    0.0    |  0.2814   |   0.0    | -0.1132  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     | False |          0          |   0.0   |
+|     0     |    1.0    |   0.832   |    1.0    |  0.8769   |   0.0    | -0.0449  | 1.0  | 1.0  | 0.0 | Sure Thing  |  Sure Thing   |    0     | True  |          0          |    R    |
+|     1     |    0.0    |  0.0199   |    0.0    |  0.0382   |   0.0    | -0.0184  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     | False |          0          |   0.0   |
+|     1     |    0.0    |  0.0189   |    0.0    |  0.0277   |   0.0    | -0.0088  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     | False |          0          |   0.0   |
+|     1     |    0.0    |  0.0064   |    0.0    |  0.0127   |   0.0    | -0.0062  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     | False |          0          |   0.0   |
+|     1     |    0.0    |  0.0083   |    0.0    |  0.0199   |   0.0    | -0.0116  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     | False |          0          |   0.0   |
+|     0     |    0.0    |  0.0576   |    0.0    |  0.1016   |   0.0    |  -0.044  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     | True  |          0          |    R    |
+|     0     |    1.0    |  0.8052   |    0.0    |  0.4882   |   1.0    |  0.317   | 1.0  | 1.0  | 0.0 | Sure Thing  |  Persuadable  |    5     | True  |          0          |    R    |
+|     1     |    0.0    |  0.1323   |    0.0    |  0.2127   |   0.0    | -0.0804  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     | False |          0          |   0.0   |
+|     1     |    0.0    |  0.0085   |    0.0    |  0.0121   |   0.0    | -0.0036  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     | False |          0          |   0.0   |
+|     1     |    0.0    |  0.0036   |    0.0    |  0.0033   |   0.0    |  0.0003  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     | True  |          0          |    R    |
+|     1     |    0.0    |  0.0899   |    0.0    |  0.1147   |   0.0    | -0.0247  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     | False |          0          |   0.0   |
+|     0     |    0.0    |  0.0128   |    0.0    |  0.0229   |   0.0    | -0.0101  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     | False |          0          |   0.0   |
+|     0     |    0.0    |  0.1952   |    0.0    |  0.2657   |   0.0    | -0.0705  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     | True  |          0          |    R    |
+|     1     |    0.0    |  0.0237   |    0.0    |  0.0175   |   0.0    |  0.0062  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     | False |          0          |   0.0   |
+|     0     |    0.0    |  0.0311   |    0.0    |  0.0451   |   0.0    |  -0.014  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     | False |          0          |   0.0   |
+|     1     |    0.0    |  0.0353   |    0.0    |   0.05    |   0.0    | -0.0147  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     | False |          0          |   0.0   |
+|     1     |    0.0    |  0.0115   |    0.0    |  0.0205   |   0.0    | -0.0089  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     | False |          0          |   0.0   |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+-----+-------------+---------------+----------+-------+---------------------+---------+

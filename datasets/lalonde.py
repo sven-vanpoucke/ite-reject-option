@@ -24,6 +24,7 @@ x are all the covariates
 y is the observed outcome
 t indicates if the treatment happened or not
 """
+
 def processing_transform_data_lalonde(all_data):
     x = all_data[['age', 'education', 'black', 'hispanic', 'married', 'no_degree', 're75']]  # Covariates
     y = all_data['re78']  # Outcome
@@ -32,12 +33,9 @@ def processing_transform_data_lalonde(all_data):
     train_x, test_x, train_y, test_y, train_t, test_t = train_test_split(x, y, t, test_size=0.2, random_state=42)
     return train_x, test_x, train_y, test_y, train_t, test_t
 
-
-
 """
 all_data = processing_get_data_lalonde()
 train_x, test_x, train_y, test_y, train_t, test_t = processing_transform_data_lalonde(all_data)
-
 
 # Print Operations
 ## Get the size (number of rows and columns)
@@ -59,5 +57,4 @@ print("\n test_y")
 print(test_y)
 print("\n test_t")
 print(test_t)
-
 """

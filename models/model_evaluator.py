@@ -6,8 +6,8 @@ from sklearn.metrics import roc_curve
 from contextlib import redirect_stdout
 
 def evaluation_binary(treated_y, treated_y_pred, treated_y_prob, control_y, control_y_pred, control_y_prob, file_path):
-    evaluation_binary_metrics(treated_y, treated_y_pred, control_y, control_y_pred, file_path)
     evaluation_binary_confusion_table(treated_y, treated_y_pred, control_y, control_y_pred, file_path)
+    evaluation_binary_metrics(treated_y, treated_y_pred, control_y, control_y_pred, file_path)
     evaluation_binary_roc(treated_y, treated_y_prob, control_y, control_y_prob, file_path)
 
 def evaluation_binary_metrics(treated_y_test, treated_y_pred, control_y_test, control_y_pred, file_path):
@@ -31,11 +31,11 @@ def evaluation_binary_metrics(treated_y_test, treated_y_pred, control_y_test, co
 
     # Metrics in a dictionary for easier iteration
     metrics = {
-    "AUC": [treated_auc, control_auc],
-    "F1": [treated_f1, control_f1],
+    "Accuracy": [treated_accuracy, control_accuracy],
     "Precision": [treated_precision, control_precision],
     "Recall": [treated_recall, control_recall],
-    "Accuracy": [treated_accuracy, control_accuracy]
+    "F1": [treated_f1, control_f1],
+    "AUC": [treated_auc, control_auc],
     }
 
     # Convert dictionary to table format
@@ -52,7 +52,6 @@ def evaluation_binary_metrics(treated_y_test, treated_y_pred, control_y_test, co
         with redirect_stdout(file):
             print(tabulate(table, headers=["Metric", "Treated Group", "Control Group"], tablefmt="pretty"))
         file.write("\n")
-
 
     return treated_auc, control_auc, treated_f1, control_f1, treated_precision, control_precision, treated_recall, control_recall, treated_accuracy, control_accuracy
 
