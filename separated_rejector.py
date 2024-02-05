@@ -25,14 +25,15 @@ from models.evaluator import calculate_crosstab_matrix_names
 # REJECTION OOD
 from models.rejector import distance_test_to_train, is_out_of_distribution, nbrs_train
 from models.helper import improvement
+
 # REJECTION PROBABILITIES
 import math
 # PARAMETERS
-folder_path = 'output-dependent/'
+folder_path = 'output/dependent/'
 dataset = "twins" # Choose out of twins or lalonde
 model_class = LogisticRegression # Which two models do we want to generate in the t-models
 rejection_architecture = 'dependent' # dependent_rejector or separated_rejector
-rejection_type = "3DROC" # Choose out of ood or prob, 3DROC
+rejection_type = "prob" # Choose out of ood or prob, 3DROC
 prob_reject_upper_bound = 0.55
 prob_reject_under_bound = 0.45
 
@@ -114,11 +115,11 @@ test_set = pd.concat([test_t, test_y_t1_pred, test_y_t1_prob, test_y_t0_pred, te
 rmse = np.sqrt(mean_squared_error(test_set['ite'], test_set['ite_prob'])) # Calculate Root Mean Squared Error (RMSE)
 ate_accuracy = np.abs(test_set['ite_pred'].mean() - test_set['ite'].mean()) # Evaluate ATE accuracy
 
-accurancy_ite = calculate_crosstab('ite', 'ite_pred', test_set, file_path)
+accurancy, rr, micro_tpr, micro_fpr, macro_tpr, macro_fpr, micro_distance_threedroc, macro_distance_threedroc = calculate_crosstab('ite', 'ite_pred', test_set, file_path)
 
 # Log results
 with open(file_path, 'a') as file:
-    file.write(f"Root Mean Squared Error (RMSE) between the ite and ite_prob: {rmse.round(4)}\n\n")
+    file.write(f"\n\nRoot Mean Squared Error (RMSE) between the ite and ite_prob: {rmse.round(4)}\n\n")
     file.write(f"The Actual Average Treatment Effect (ATE): {test_set['ite'].mean().round(4)}\n")
     file.write(f"The Predicted Average Treatment Effect (ATE): {test_set['ite_pred'].mean().round(4)}\n")
     file.write(f"Accuracy of Average Treatment Effect (ATE): {ate_accuracy.round(4)}\n")
@@ -154,45 +155,65 @@ if rejection_architecture == "separated":
         model = nbrs_train(train_x)
         d = distance_test_to_train(model, test_x)
         test_set['ood'] = d.apply(is_out_of_distribution, threshold_distance=6)
-        percentage_rejected = (test_set['ood'].sum() / test_set['ood'].count()).round(4)*100
+        test_set['ite_rej'] = test_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
 
         # Calculate total misclassification cost
         test_set['cost_ite_reject_ood'] = test_set.apply(lambda row: 0 if row['ood'] else row['cost_ite'], axis=1)
         total_cost_ite_reject_ood = test_set['cost_ite_reject_ood'].sum()
         improvement_cost_reject_ood = improvement(total_cost_ite, total_cost_ite_reject_ood)
 
-        test_set['ite_rej'] = test_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
         # Create a cross-tabulation between 'ite' and 'ite_rej'
-        accurancy_ite_reject_ood = calculate_crosstab('ite', 'ite_rej', test_set, file_path)
-        improvement_ite_reject_ood = improvement(accurancy_ite, accurancy_ite_reject_ood)
+        accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2 = calculate_crosstab('ite', 'ite_rej', test_set, file_path)
+        
+
+        
+        accurancy_improvement = improvement(accurancy, accurancy_2)
+        micro_distance_improvement = improvement(micro_distance_threedroc, micro_distance_threedroc_2)
+        macro_distance_improvement = improvement(macro_distance_threedroc, macro_distance_threedroc_2)
 
         with open(file_path, 'a') as file:
             # Write the count of occurrences where 'ood' is true
-            file.write(f"Count of 'ood' being true: {test_set['ood'].sum()}\n")
+            file.write(f'\nTotal Misclassification Cost after ood rejection: {total_cost_ite_reject_ood:.2f}\n')
+
+            file.write(f"\nImprovements:\n")
+
             # Write the total misclassification cost
-            file.write(f'Total Misclassification Cost after ood rejection: {total_cost_ite_reject_ood}\n')
-            file.write(f'Change of the misclassification cost after ood rejection: {improvement_cost_reject_ood}%\n')
-            file.write(f'Change of the ITE Accurancy: {improvement_ite_reject_ood}%\n')
-            file.write(f'Rejection rate: {percentage_rejected}%\n')
+            file.write(f'Change of the misclassification cost after ood rejection: {improvement_cost_reject_ood:.2f}%\n')
+            file.write(f'Change of the ITE Accurancy: {accurancy_improvement:.2f}%\n')
+            file.write(f'Change of the 3D ROC (micro): {micro_distance_improvement:.2f}%\n')
+            file.write(f'Change of the 3D ROC (macro): {macro_distance_improvement:.2f}%\n')
 
-        # Calculate new TP, TN, FP, FN from the confusion matrices
 elif rejection_architecture == "dependent":
-
     if rejection_type == "prob":
         # REJECTION PROBABILITIES
         test_set['y_t1_reject_prob'] = test_set.apply(lambda row: True if row['y_t1_prob'] < prob_reject_upper_bound and row['y_t1_prob'] > prob_reject_under_bound else False, axis=1)
         test_set['y_t0_reject_prob'] = test_set.apply(lambda row: True if row['y_t0_prob'] < prob_reject_upper_bound and row['y_t0_prob'] > prob_reject_under_bound else False, axis=1)
         test_set['y_reject_prob'] = test_set.apply(lambda row: True if row['y_t0_reject_prob'] and row['y_t1_reject_prob'] else False, axis=1)
-        test_set['cost_ite_reject_prob'] = test_set.apply(lambda row: 0 if row['y_reject_prob'] else row['cost_ite'], axis=1)
-        
-        #  count of occurrences where 'ood' is true
-        total_cost_ite_reject_prob = test_set['cost_ite_reject_prob'].sum()
-        with open(file_path, 'a') as file:
-            # Write the count of occurrences where 'ood' is true after probability rejection
-            file.write(f"Count of 'probability rejection' being true: {test_set['y_reject_prob'].sum()}\n")
+        test_set['ite_rej'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] else row['ite_pred'], axis=1)
 
+        # Calculate total misclassification cost
+        test_set['cost_ite_reject_ood'] = test_set.apply(lambda row: 0 if row['y_reject_prob'] else row['cost_ite'], axis=1)
+        total_cost_ite_reject_prob = test_set['cost_ite_reject_ood'].sum()
+        improvement_cost_reject_prob = improvement(total_cost_ite, total_cost_ite_reject_prob)
+
+        # Performance
+        accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2 = calculate_crosstab('ite', 'ite_rej', test_set, file_path)
+
+        accurancy_improvement = improvement(accurancy, accurancy_2)
+        micro_distance_improvement = improvement(micro_distance_threedroc, micro_distance_threedroc_2)
+        macro_distance_improvement = improvement(macro_distance_threedroc, macro_distance_threedroc_2)
+
+        with open(file_path, 'a') as file:
             # Write the total misclassification cost after probability rejection
             file.write(f'Total Misclassification Cost after probability rejection: {total_cost_ite_reject_prob}\n')
+            
+            file.write(f"\nImprovements:\n")
+
+            # Write the total misclassification cost
+            file.write(f'Change of the misclassification cost after ood rejection: {improvement_cost_reject_prob:.2f}%\n')
+            file.write(f'Change of the ITE Accurancy: {accurancy_improvement:.2f}%\n')
+            file.write(f'Change of the 3D ROC (micro): {micro_distance_improvement:.2f}%\n')
+            file.write(f'Change of the 3D ROC (macro): {macro_distance_improvement:.2f}%\n')
 
     elif rejection_type == "3DROC":
         # REJECTION PROBABILITIES
@@ -202,13 +223,6 @@ elif rejection_architecture == "dependent":
         test_set['cost_ite_reject_prob'] = test_set.apply(lambda row: 0 if row['y_reject_prob'] else row['cost_ite'], axis=1)
         
         total_cost_ite_reject_prob = test_set['cost_ite_reject_prob'].sum()
-
-        # calculate 
-        FPR = 10 # Replace with the actual False Positive Rate value
-        TPR = 10 # Replace with the actual True Positive Rate value
-        RR = 10 # Replace with the actual Recall Rate value
-
-        distance_threedroc = math.sqrt((0 - FPR)**2 + (1 - TPR)**2 + (0 - RR)**2)
 
         with open(file_path, 'a') as file:
             # Write the count of occurrences where 'ood' is true after probability rejection

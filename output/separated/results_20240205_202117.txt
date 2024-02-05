@@ -1,0 +1,196 @@
+CHAPTER 1: INIT
+
+This file has been generated on: 20240205_202117
+
+CHAPTER 2: PREPROCESSING
+
+The used dataset is: twins
+
+CHAPTER 3: MODEL T-LEARNER
+
+The used model is: LogisticRegression
+
+CHAPTER 4: PREDICT
+
+CHAPTER 5: EVALUATE INDIVIDUAL LOGISTIC REGRESSION MODELS 
+
+Performance measurement: 
+
+ - Confusion Matrix 
+ - Accuracy: overal correctness of the model ((TP + TN) / (TP + TN + FP + FN)) 
+ - Precision: It measures the accuracy of positive predictions (TP / (TP + FP)) 
+ - Recall: ability of the model to capture all the relevant cases (TP / (TP + FN)) 
+ - F1 Score It balances precision and recall, providing a single metric for model evaluation (2 * (Precision * Recall) / (Precision + Recall)) 
+ - ROC 
+
+Evaluation of the individual models based on the **training data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |     3636      |     3688      |
+| False Positives |      128      |      109      |
+| False Negatives |      377      |      436      |
+| True Negatives  |      404      |      342      |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |     0.89      |     0.88      |
+| Precision |     0.76      |     0.76      |
+|  Recall   |     0.52      |     0.44      |
+|    F1     |     0.62      |     0.56      |
+|    AUC    |     0.74      |     0.71      |
++-----------+---------------+---------------+
+
+
+Evaluation of the individual models based on the **test data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |      928      |      906      |
+| False Positives |      31       |      26       |
+| False Negatives |      85       |      112      |
+| True Negatives  |      95       |      97       |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |      0.9      |     0.88      |
+| Precision |     0.75      |     0.79      |
+|  Recall   |     0.53      |     0.46      |
+|    F1     |     0.62      |     0.58      |
+|    AUC    |     0.75      |     0.72      |
++-----------+---------------+---------------+
+
+CHAPTER 6: EVALUATE OVERALL ITE MODEL: PERFORMANCE 
+
+Performance measurement: 
+ - Root Mean Squared Error (RMSE) of the ITE 
+ - Accurate estimate of the ATE 
+ - Accurancy of ITE 
+
+
+              precision    recall  f1-score   support
+
+          -1       0.08      0.01      0.01       127
+           0       0.91      0.97      0.94      2064
+           1       0.06      0.03      0.04        89
+
+    accuracy                           0.88      2280
+   macro avg       0.35      0.34      0.33      2280
+weighted avg       0.83      0.88      0.85      2280
+
+Accuracy: 0.9219
+Rejection Rate: 0.0000
+Micro TPR: 0.8829
+Micro FPR: 0.0586
+Macro TPR: 0.3383
+Macro FPR: 0.3286
+Micro Distance (3D ROC): 0.1309
+Macro Distance (3D ROC): 0.7388
+
+
+Root Mean Squared Error (RMSE) between the ite and ite_prob: 0.3125
+
+The Actual Average Treatment Effect (ATE): -0.0167
+The Predicted Average Treatment Effect (ATE): 0.0167
+Accuracy of Average Treatment Effect (ATE): 0.0333
+
+
+CHAPTER 7: EVALUATE OVERALL ITE MODEL: COST 
+
+We make the matrix: Lost Cause, Sleeping Dog, Persuadable, Sure Thing 
+Comment: 
+ - Upper left cell: amount of cases that have outcome 0: no matter if you would treat or not 
+   If treat, they stay alive, if no treat they also stay alive. 
+ - Under right cell: amount of cases that have outcome 1: no matter if you would treat or not 
+   If treat, they die, if no treat they also die. 
+ - Upper right cell: amount of cases that have outcome 1 if treated, but outcome 0 if not treated 
+   If treat, they die, if no treat they stay alive. 
+ - Under left cell: amount of cases that have outcome 0 if treated, but outcome 1 if not treated 
+   If treat, they stay alive, if no treat they die. 
+
+
+Crosstab for y_t0 and y_t1:
+┌────────┬───────┬───────┐
+│   y_t0 │   0.0 │   1.0 │
+├────────┼───────┼───────┤
+│      0 │  1782 │    89 │
+├────────┼───────┼───────┤
+│      1 │   127 │   282 │
+└────────┴───────┴───────┘
+
+Crosstab for y_t0_pred and y_t1_pred:
+┌─────────────┬───────┬───────┐
+│   y_t0_pred │   0.0 │   1.0 │
+├─────────────┼───────┼───────┤
+│           0 │  1993 │    51 │
+├─────────────┼───────┼───────┤
+│           1 │    13 │   223 │
+└─────────────┴───────┴───────┘
+
+Total Misclassification Cost: 2260
+
+CHAPTER 8: REJECTION 
+
+The used type of rejection is: ood
+
+
+              precision    recall  f1-score   support
+
+          -1       0.08      0.01      0.02       108
+           0       0.91      0.97      0.94      1733
+           1       0.07      0.04      0.05        72
+
+    accuracy                           0.88      1913
+   macro avg       0.35      0.34      0.34      1913
+weighted avg       0.83      0.88      0.85      1913
+
+Accuracy: 0.9230
+Rejection Rate: 0.1610
+Micro TPR: 0.8845
+Micro FPR: 0.0578
+Macro TPR: 0.3417
+Macro FPR: 0.3258
+Micro Distance (3D ROC): 0.2064
+Macro Distance (3D ROC): 0.7520
+
+Improvements:
+Total Misclassification Cost after ood rejection: 1860.00
+Change of the misclassification cost after ood rejection: -21.51%
+Change of the ITE Accurancy: 0.11%
+Change of the 3D ROC (micro): 36.56%
+Change of the 3D ROC (macro): 1.75%
+
+
+Table of test_set (First 20 rows)
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+----------+-------+---------+---------------------+
+| treatment | y_t1_pred | y_t1_prob | y_t0_pred | y_t0_prob | ite_pred | ite_prob | y_t0 | y_t1 | ite  |   category   | category_pred | cost_ite |  ood  | ite_rej | cost_ite_reject_ood |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+----------+-------+---------+---------------------+
+|     0     |    0.0    |  0.0097   |    0.0    |   0.024   |   0.0    | -0.0143  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     | False |   0.0   |          0          |
+|     0     |    0.0    |  0.1463   |    0.0    |  0.1325   |   0.0    |  0.0138  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     | False |   0.0   |          0          |
+|     0     |    0.0    |  0.0458   |    0.0    |  0.0651   |   0.0    | -0.0194  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     | False |   0.0   |          0          |
+|     0     |    0.0    |  0.1717   |    0.0    |  0.1819   |   0.0    | -0.0102  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     | False |   0.0   |          0          |
+|     1     |    0.0    |  0.0404   |    0.0    |  0.0436   |   0.0    | -0.0032  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     | False |   0.0   |          0          |
+|     1     |    0.0    |  0.0853   |    0.0    |  0.1183   |   0.0    |  -0.033  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     | False |   0.0   |          0          |
+|     1     |    0.0    |  0.0403   |    0.0    |  0.0448   |   0.0    | -0.0046  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     | False |   0.0   |          0          |
+|     0     |    0.0    |  0.1624   |    0.0    |   0.239   |   0.0    | -0.0766  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     | True  |    R    |          0          |
+|     1     |    0.0    |  0.0257   |    0.0    |  0.0436   |   0.0    | -0.0179  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     | False |   0.0   |          0          |
+|     1     |    0.0    |  0.1132   |    0.0    |  0.1105   |   0.0    |  0.0027  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     | False |   0.0   |          0          |
+|     0     |    1.0    |  0.5225   |    1.0    |  0.5173   |   0.0    |  0.0051  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |    0     | False |   0.0   |          0          |
+|     1     |    0.0    |  0.0504   |    0.0    |  0.0976   |   0.0    | -0.0472  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     | False |   0.0   |          0          |
+|     1     |    0.0    |  0.0717   |    0.0    |  0.0747   |   0.0    |  -0.003  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     | False |   0.0   |          0          |
+|     1     |    0.0    |   0.037   |    0.0    |  0.0505   |   0.0    | -0.0135  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     | False |   0.0   |          0          |
+|     1     |    0.0    |  0.0341   |    0.0    |  0.0325   |   0.0    |  0.0015  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     | False |   0.0   |          0          |
+|     0     |    0.0    |  0.0752   |    0.0    |  0.0691   |   0.0    |  0.0061  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |    10    | False |   0.0   |         10          |
+|     1     |    0.0    |  0.0846   |    0.0    |   0.118   |   0.0    | -0.0334  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     | False |   0.0   |          0          |
+|     0     |    1.0    |  0.6734   |    1.0    |  0.5672   |   0.0    |  0.1062  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |    0     | False |   0.0   |          0          |
+|     1     |    0.0    |  0.0134   |    0.0    |  0.0451   |   0.0    | -0.0317  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     | False |   0.0   |          0          |
+|     0     |    0.0    |  0.2025   |    0.0    |  0.2521   |   0.0    | -0.0497  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     | False |   0.0   |          0          |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+----------+-------+---------+---------------------+

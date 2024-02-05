@@ -14,5 +14,8 @@ def helper_output(folder_path='output/'):
 
 
 def improvement(old_value, new_value):
-    improvement = ((new_value-old_value)/new_value*100).round(2)
+    old_value = float(old_value)
+    new_value = float(new_value)
+
+    improvement = ((new_value-old_value)/new_value*100)# .round(2)
     return improvement
