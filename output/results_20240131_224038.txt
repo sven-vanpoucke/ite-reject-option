@@ -146,7 +146,8 @@ Crosstab for ite and ite_rej:
 │     0 │     19 │  1716 │     8 │ 303 │
 ├───────┼────────┼───────┼───────┼─────┤
 │     1 │      7 │    76 │     1 │  13 │
-└───────┴────────┴───────┴───────┴─────┘Sum of the main diagonal: 1721
+└───────┴────────┴───────┴───────┴─────┘
+Sum of the main diagonal: 1721
 Sum above the main diagonal: 119
 Sum below the main diagonal: 102
 
