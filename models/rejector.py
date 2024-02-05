@@ -23,6 +23,3 @@ def distance_test_to_train(nbrs_train, test_x):
 
 def is_out_of_distribution(distance, threshold_distance=3):
     return distance > threshold_distance
-
-
-

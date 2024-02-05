@@ -1,10 +1,9 @@
 from datetime import datetime
 
 
-def helper_output():
+def helper_output(folder_path='output/'):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f'results_{timestamp}.txt'
-    folder_path = 'output/'
     file_path = folder_path + filename
 
     with open(file_path, 'a') as file:
