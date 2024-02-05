@@ -1,0 +1,593 @@
+CHAPTER 1: INIT
+
+This file has been generated on: 20240205_211633
+
+CHAPTER 2: PREPROCESSING
+
+The used dataset is: twins
+
+CHAPTER 3: MODEL T-LEARNER
+
+The used model is: LogisticRegression
+
+CHAPTER 4: PREDICT
+
+CHAPTER 5: EVALUATE INDIVIDUAL LOGISTIC REGRESSION MODELS 
+
+Performance measurement: 
+
+ - Confusion Matrix 
+ - Accuracy: overal correctness of the model ((TP + TN) / (TP + TN + FP + FN)) 
+ - Precision: It measures the accuracy of positive predictions (TP / (TP + FP)) 
+ - Recall: ability of the model to capture all the relevant cases (TP / (TP + FN)) 
+ - F1 Score It balances precision and recall, providing a single metric for model evaluation (2 * (Precision * Recall) / (Precision + Recall)) 
+ - ROC 
+
+Evaluation of the individual models based on the **training data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |     3761      |     3605      |
+| False Positives |      124      |      105      |
+| False Negatives |      360      |      407      |
+| True Negatives  |      383      |      375      |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |      0.9      |     0.89      |
+| Precision |     0.76      |     0.78      |
+|  Recall   |     0.52      |     0.48      |
+|    F1     |     0.61      |     0.59      |
+|    AUC    |     0.74      |     0.73      |
++-----------+---------------+---------------+
+
+
+Evaluation of the individual models based on the **test data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |      940      |      869      |
+| False Positives |      39       |      28       |
+| False Negatives |      102      |      111      |
+| True Negatives  |      85       |      106      |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |     0.88      |     0.88      |
+| Precision |     0.69      |     0.79      |
+|  Recall   |     0.45      |     0.49      |
+|    F1     |     0.55      |      0.6      |
+|    AUC    |     0.71      |     0.73      |
++-----------+---------------+---------------+
+
+CHAPTER 6: EVALUATE OVERALL ITE MODEL: PERFORMANCE 
+
+Performance measurement: 
+ - Root Mean Squared Error (RMSE) of the ITE 
+ - Accurate estimate of the ATE 
+ - Accurancy of ITE 
+
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       145
+           0       0.89      0.98      0.94      2032
+           1       0.23      0.06      0.09       103
+
+    accuracy                           0.88      2280
+   macro avg       0.37      0.35      0.34      2280
+weighted avg       0.81      0.88      0.84      2280
+
+Accuracy: 0.9193
+Rejection Rate: 0.0000
+Micro TPR: 0.8789
+Micro FPR: 0.0605
+Macro TPR: 0.3472
+Macro FPR: 0.3258
+Micro Distance (3D ROC): 0.1353
+Macro Distance (3D ROC): 0.7296
+
+
+Root Mean Squared Error (RMSE) between the ite and ite_prob: 0.3318
+
+The Actual Average Treatment Effect (ATE): -0.0184
+The Predicted Average Treatment Effect (ATE): 0.0035
+Accuracy of Average Treatment Effect (ATE): 0.0219
+
+
+CHAPTER 7: EVALUATE OVERALL ITE MODEL: COST 
+
+We make the matrix: Lost Cause, Sleeping Dog, Persuadable, Sure Thing 
+Comment: 
+ - Upper left cell: amount of cases that have outcome 0: no matter if you would treat or not 
+   If treat, they stay alive, if no treat they also stay alive. 
+ - Under right cell: amount of cases that have outcome 1: no matter if you would treat or not 
+   If treat, they die, if no treat they also die. 
+ - Upper right cell: amount of cases that have outcome 1 if treated, but outcome 0 if not treated 
+   If treat, they die, if no treat they stay alive. 
+ - Under left cell: amount of cases that have outcome 0 if treated, but outcome 1 if not treated 
+   If treat, they stay alive, if no treat they die. 
+
+
+Crosstab for y_t0 and y_t1:
+┌────────┬───────┬───────┐
+│   y_t0 │   0.0 │   1.0 │
+├────────┼───────┼───────┤
+│      0 │  1750 │   103 │
+├────────┼───────┼───────┤
+│      1 │   145 │   282 │
+└────────┴───────┴───────┘
+
+Crosstab for y_t0_pred and y_t1_pred:
+┌─────────────┬───────┬───────┐
+│   y_t0_pred │   0.0 │   1.0 │
+├─────────────┼───────┼───────┤
+│           0 │  2001 │    26 │
+├─────────────┼───────┼───────┤
+│           1 │    18 │   235 │
+└─────────────┴───────┴───────┘
+
+Total Misclassification Cost: 2300
+
+CHAPTER 8: REJECTION 
+
+The used type of rejection is: 3DROC
+
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       145
+           0       0.89      0.98      0.94      2032
+           1       0.23      0.06      0.09       103
+
+    accuracy                           0.88      2280
+   macro avg       0.37      0.35      0.34      2280
+weighted avg       0.81      0.88      0.84      2280
+
+Accuracy: 0.9193
+Rejection Rate: 0.0000
+Micro TPR: 0.8789
+Micro FPR: 0.0605
+Macro TPR: 0.3472
+Macro FPR: 0.3258
+Micro Distance (3D ROC): 0.1353
+Macro Distance (3D ROC): 0.7296
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       129
+           0       0.90      1.00      0.95      1929
+           1       0.00      0.00      0.00        85
+
+    accuracy                           0.90      2143
+   macro avg       0.30      0.33      0.32      2143
+weighted avg       0.81      0.90      0.85      2143
+
+Accuracy: 0.9322
+Rejection Rate: 0.0601
+Micro TPR: 0.8983
+Micro FPR: 0.0509
+Macro TPR: 0.3326
+Macro FPR: 0.3340
+Micro Distance (3D ROC): 0.1286
+Macro Distance (3D ROC): 0.7487
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00        95
+           0       0.92      1.00      0.96      1711
+           1       0.00      0.00      0.00        62
+
+    accuracy                           0.92      1868
+   macro avg       0.31      0.33      0.32      1868
+weighted avg       0.84      0.92      0.88      1868
+
+Accuracy: 0.9440
+Rejection Rate: 0.1807
+Micro TPR: 0.9160
+Micro FPR: 0.0420
+Macro TPR: 0.3333
+Macro FPR: 0.3333
+Micro Distance (3D ROC): 0.2037
+Macro Distance (3D ROC): 0.7669
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       145
+           0       0.89      0.98      0.94      2031
+           1       0.23      0.06      0.09       103
+
+    accuracy                           0.88      2279
+   macro avg       0.37      0.35      0.34      2279
+weighted avg       0.81      0.88      0.84      2279
+
+Accuracy: 0.9193
+Rejection Rate: 0.0004
+Micro TPR: 0.8789
+Micro FPR: 0.0606
+Macro TPR: 0.3472
+Macro FPR: 0.3258
+Micro Distance (3D ROC): 0.1354
+Macro Distance (3D ROC): 0.7296
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       113
+           0       0.91      1.00      0.95      1861
+           1       0.00      0.00      0.00        78
+
+    accuracy                           0.91      2052
+   macro avg       0.30      0.33      0.32      2052
+weighted avg       0.82      0.91      0.86      2052
+
+Accuracy: 0.9373
+Rejection Rate: 0.1000
+Micro TPR: 0.9059
+Micro FPR: 0.0470
+Macro TPR: 0.3330
+Macro FPR: 0.3337
+Micro Distance (3D ROC): 0.1451
+Macro Distance (3D ROC): 0.7525
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       138
+           0       0.90      1.00      0.94      1968
+           1       0.50      0.02      0.04        92
+
+    accuracy                           0.89      2198
+   macro avg       0.47      0.34      0.33      2198
+weighted avg       0.82      0.89      0.85      2198
+
+Accuracy: 0.9284
+Rejection Rate: 0.0360
+Micro TPR: 0.8926
+Micro FPR: 0.0537
+Macro TPR: 0.3392
+Macro FPR: 0.3304
+Micro Distance (3D ROC): 0.1253
+Macro Distance (3D ROC): 0.7397
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       144
+           0       0.89      0.99      0.94      2022
+           1       0.30      0.06      0.10       103
+
+    accuracy                           0.88      2269
+   macro avg       0.40      0.35      0.35      2269
+weighted avg       0.81      0.88      0.84      2269
+
+Accuracy: 0.9210
+Rejection Rate: 0.0048
+Micro TPR: 0.8814
+Micro FPR: 0.0593
+Macro TPR: 0.3481
+Macro FPR: 0.3248
+Micro Distance (3D ROC): 0.1326
+Macro Distance (3D ROC): 0.7283
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       136
+           0       0.90      1.00      0.94      1961
+           1       0.50      0.02      0.04        91
+
+    accuracy                           0.89      2188
+   macro avg       0.47      0.34      0.33      2188
+weighted avg       0.82      0.89      0.85      2188
+
+Accuracy: 0.9293
+Rejection Rate: 0.0404
+Micro TPR: 0.8940
+Micro FPR: 0.0530
+Macro TPR: 0.3395
+Macro FPR: 0.3302
+Micro Distance (3D ROC): 0.1252
+Macro Distance (3D ROC): 0.7396
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       136
+           0       0.90      1.00      0.94      1961
+           1       0.50      0.02      0.04        91
+
+    accuracy                           0.89      2188
+   macro avg       0.47      0.34      0.33      2188
+weighted avg       0.82      0.89      0.85      2188
+
+Accuracy: 0.9293
+Rejection Rate: 0.0404
+Micro TPR: 0.8940
+Micro FPR: 0.0530
+Macro TPR: 0.3395
+Macro FPR: 0.3302
+Micro Distance (3D ROC): 0.1252
+Macro Distance (3D ROC): 0.7396
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       136
+           0       0.90      1.00      0.94      1961
+           1       0.50      0.02      0.04        91
+
+    accuracy                           0.89      2188
+   macro avg       0.47      0.34      0.33      2188
+weighted avg       0.82      0.89      0.85      2188
+
+Accuracy: 0.9293
+Rejection Rate: 0.0404
+Micro TPR: 0.8940
+Micro FPR: 0.0530
+Macro TPR: 0.3395
+Macro FPR: 0.3302
+Micro Distance (3D ROC): 0.1252
+Macro Distance (3D ROC): 0.7396
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       136
+           0       0.90      1.00      0.94      1961
+           1       0.50      0.02      0.04        91
+
+    accuracy                           0.89      2188
+   macro avg       0.47      0.34      0.33      2188
+weighted avg       0.82      0.89      0.85      2188
+
+Accuracy: 0.9293
+Rejection Rate: 0.0404
+Micro TPR: 0.8940
+Micro FPR: 0.0530
+Macro TPR: 0.3395
+Macro FPR: 0.3302
+Micro Distance (3D ROC): 0.1252
+Macro Distance (3D ROC): 0.7396
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       136
+           0       0.90      1.00      0.94      1961
+           1       0.50      0.02      0.04        91
+
+    accuracy                           0.89      2188
+   macro avg       0.47      0.34      0.33      2188
+weighted avg       0.82      0.89      0.85      2188
+
+Accuracy: 0.9293
+Rejection Rate: 0.0404
+Micro TPR: 0.8940
+Micro FPR: 0.0530
+Macro TPR: 0.3395
+Macro FPR: 0.3302
+Micro Distance (3D ROC): 0.1252
+Macro Distance (3D ROC): 0.7396
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       136
+           0       0.90      1.00      0.94      1961
+           1       0.50      0.02      0.04        91
+
+    accuracy                           0.89      2188
+   macro avg       0.47      0.34      0.33      2188
+weighted avg       0.82      0.89      0.85      2188
+
+Accuracy: 0.9293
+Rejection Rate: 0.0404
+Micro TPR: 0.8940
+Micro FPR: 0.0530
+Macro TPR: 0.3395
+Macro FPR: 0.3302
+Micro Distance (3D ROC): 0.1252
+Macro Distance (3D ROC): 0.7396
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       136
+           0       0.90      1.00      0.94      1961
+           1       0.50      0.02      0.04        91
+
+    accuracy                           0.89      2188
+   macro avg       0.47      0.34      0.33      2188
+weighted avg       0.82      0.89      0.85      2188
+
+Accuracy: 0.9293
+Rejection Rate: 0.0404
+Micro TPR: 0.8940
+Micro FPR: 0.0530
+Macro TPR: 0.3395
+Macro FPR: 0.3302
+Micro Distance (3D ROC): 0.1252
+Macro Distance (3D ROC): 0.7396
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       136
+           0       0.90      1.00      0.94      1961
+           1       0.50      0.02      0.04        91
+
+    accuracy                           0.89      2188
+   macro avg       0.47      0.34      0.33      2188
+weighted avg       0.82      0.89      0.85      2188
+
+Accuracy: 0.9293
+Rejection Rate: 0.0404
+Micro TPR: 0.8940
+Micro FPR: 0.0530
+Macro TPR: 0.3395
+Macro FPR: 0.3302
+Micro Distance (3D ROC): 0.1252
+Macro Distance (3D ROC): 0.7396
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       136
+           0       0.90      1.00      0.94      1961
+           1       0.50      0.02      0.04        91
+
+    accuracy                           0.89      2188
+   macro avg       0.47      0.34      0.33      2188
+weighted avg       0.82      0.89      0.85      2188
+
+Accuracy: 0.9293
+Rejection Rate: 0.0404
+Micro TPR: 0.8940
+Micro FPR: 0.0530
+Macro TPR: 0.3395
+Macro FPR: 0.3302
+Micro Distance (3D ROC): 0.1252
+Macro Distance (3D ROC): 0.7396
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       136
+           0       0.90      1.00      0.94      1961
+           1       0.50      0.02      0.04        91
+
+    accuracy                           0.89      2188
+   macro avg       0.47      0.34      0.33      2188
+weighted avg       0.82      0.89      0.85      2188
+
+Accuracy: 0.9293
+Rejection Rate: 0.0404
+Micro TPR: 0.8940
+Micro FPR: 0.0530
+Macro TPR: 0.3395
+Macro FPR: 0.3302
+Micro Distance (3D ROC): 0.1252
+Macro Distance (3D ROC): 0.7396
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       136
+           0       0.90      1.00      0.94      1961
+           1       0.50      0.02      0.04        91
+
+    accuracy                           0.89      2188
+   macro avg       0.47      0.34      0.33      2188
+weighted avg       0.82      0.89      0.85      2188
+
+Accuracy: 0.9293
+Rejection Rate: 0.0404
+Micro TPR: 0.8940
+Micro FPR: 0.0530
+Macro TPR: 0.3395
+Macro FPR: 0.3302
+Micro Distance (3D ROC): 0.1252
+Macro Distance (3D ROC): 0.7396
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       136
+           0       0.90      1.00      0.94      1961
+           1       0.50      0.02      0.04        91
+
+    accuracy                           0.89      2188
+   macro avg       0.47      0.34      0.33      2188
+weighted avg       0.82      0.89      0.85      2188
+
+Accuracy: 0.9293
+Rejection Rate: 0.0404
+Micro TPR: 0.8940
+Micro FPR: 0.0530
+Macro TPR: 0.3395
+Macro FPR: 0.3302
+Micro Distance (3D ROC): 0.1252
+Macro Distance (3D ROC): 0.7396
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       136
+           0       0.90      1.00      0.94      1961
+           1       0.50      0.02      0.04        91
+
+    accuracy                           0.89      2188
+   macro avg       0.47      0.34      0.33      2188
+weighted avg       0.82      0.89      0.85      2188
+
+Accuracy: 0.9293
+Rejection Rate: 0.0404
+Micro TPR: 0.8940
+Micro FPR: 0.0530
+Macro TPR: 0.3395
+Macro FPR: 0.3302
+Micro Distance (3D ROC): 0.1252
+Macro Distance (3D ROC): 0.7396
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       136
+           0       0.90      1.00      0.94      1961
+           1       0.50      0.02      0.04        91
+
+    accuracy                           0.89      2188
+   macro avg       0.47      0.34      0.33      2188
+weighted avg       0.82      0.89      0.85      2188
+
+Accuracy: 0.9293
+Rejection Rate: 0.0404
+Micro TPR: 0.8940
+Micro FPR: 0.0530
+Macro TPR: 0.3395
+Macro FPR: 0.3302
+Micro Distance (3D ROC): 0.1252
+Macro Distance (3D ROC): 0.7396
+
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       136
+           0       0.90      1.00      0.94      1961
+           1       0.50      0.02      0.04        91
+
+    accuracy                           0.89      2188
+   macro avg       0.47      0.34      0.33      2188
+weighted avg       0.82      0.89      0.85      2188
+
+Accuracy: 0.9293
+Rejection Rate: 0.0404
+Micro TPR: 0.8940
+Micro FPR: 0.0530
+Macro TPR: 0.3395
+Macro FPR: 0.3302
+Micro Distance (3D ROC): 0.1252
+Macro Distance (3D ROC): 0.7396
+
+Improvements:
+Change of the Misclassification Cost: -11.11%
+Change of the ITE Accurancy: 1.08%
+Change of the 3D ROC (micro): -8.08%
+Change of the 3D ROC (macro): 1.35%
+
+Table of test_set (First 20 rows)
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+----------+------------------+------------------+---------------+---------+-----------------+
+| treatment | y_t1_pred | y_t1_prob | y_t0_pred | y_t0_prob | ite_pred | ite_prob | y_t0 | y_t1 | ite  |   category   | category_pred | cost_ite | y_t1_reject_prob | y_t0_reject_prob | y_reject_prob | ite_rej | cost_ite_reject |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+----------+------------------+------------------+---------------+---------+-----------------+
+|     1     |    0.0    |  0.4293   |    0.0    |  0.3896   |   0.0    |  0.0396  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |    0     |       True       |      False       |     False     |   0.0   |        0        |
+|     0     |    0.0    |  0.4207   |    0.0    |  0.4309   |   0.0    | -0.0102  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |    0     |       True       |       True       |     True      |    R    |        0        |
+|     1     |    0.0    |  0.0445   |    0.0    |   0.058   |   0.0    | -0.0135  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |    10    |      False       |      False       |     False     |   0.0   |       10        |
+|     1     |    0.0    |  0.2991   |    0.0    |  0.2966   |   0.0    |  0.0025  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |      False       |      False       |     False     |   0.0   |        0        |
+|     0     |    0.0    |  0.0133   |    0.0    |  0.0179   |   0.0    | -0.0046  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |      False       |      False       |     False     |   0.0   |        0        |
+|     1     |    0.0    |  0.1274   |    0.0    |  0.1333   |   0.0    |  -0.006  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |      False       |      False       |     False     |   0.0   |        0        |
+|     1     |    0.0    |  0.0188   |    0.0    |  0.0294   |   0.0    | -0.0106  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |      False       |      False       |     False     |   0.0   |        0        |
+|     0     |    0.0    |  0.1816   |    0.0    |  0.1683   |   0.0    |  0.0133  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |      False       |      False       |     False     |   0.0   |        0        |
+|     1     |    0.0    |  0.0185   |    0.0    |  0.0312   |   0.0    | -0.0126  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |      False       |      False       |     False     |   0.0   |        0        |
+|     0     |    0.0    |  0.0481   |    0.0    |   0.046   |   0.0    |  0.0021  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |      False       |      False       |     False     |   0.0   |        0        |
+|     1     |    0.0    |  0.0756   |    0.0    |  0.1366   |   0.0    | -0.0611  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |      False       |      False       |     False     |   0.0   |        0        |
+|     1     |    0.0    |  0.0354   |    0.0    |  0.0472   |   0.0    | -0.0119  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |      False       |      False       |     False     |   0.0   |        0        |
+|     1     |    0.0    |   0.023   |    0.0    |  0.0311   |   0.0    | -0.0081  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |      False       |      False       |     False     |   0.0   |        0        |
+|     0     |    0.0    |  0.0504   |    0.0    |  0.0544   |   0.0    |  -0.004  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |      False       |      False       |     False     |   0.0   |        0        |
+|     1     |    0.0    |  0.0381   |    0.0    |  0.0469   |   0.0    | -0.0088  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |      False       |      False       |     False     |   0.0   |        0        |
+|     0     |    0.0    |  0.0352   |    0.0    |  0.0467   |   0.0    | -0.0115  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |      False       |      False       |     False     |   0.0   |        0        |
+|     1     |    0.0    |  0.0389   |    0.0    |  0.0547   |   0.0    | -0.0158  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |      False       |      False       |     False     |   0.0   |        0        |
+|     0     |    0.0    |  0.0198   |    0.0    |  0.0329   |   0.0    | -0.0131  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |      False       |      False       |     False     |   0.0   |        0        |
+|     1     |    0.0    |  0.0003   |    0.0    |  0.0009   |   0.0    | -0.0005  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |      False       |      False       |     False     |   0.0   |        0        |
+|     1     |    0.0    |  0.1191   |    0.0    |  0.1215   |   0.0    | -0.0024  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |      False       |      False       |     False     |   0.0   |        0        |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+----------+------------------+------------------+---------------+---------+-----------------+

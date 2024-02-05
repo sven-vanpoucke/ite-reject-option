@@ -65,7 +65,7 @@ def calculate_crosstab(value, value_pred, data, file_path):
     rr = (length_before_rejection-length_after_rejection) / length_before_rejection
     
     # Get unique class labels
-    unique_labels = np.unique(data[value])
+    unique_labels = np.union1d(np.unique(data[value]), np.unique(data[value_pred]))
 
     # Based on sklearn
     confusion_matrix_overall = confusion_matrix(data[value], data[value_pred])
@@ -73,9 +73,6 @@ def calculate_crosstab(value, value_pred, data, file_path):
     
     # Calculate the overall confusion matrix
     confusion_matrix_overall = confusion_matrix(data[value], data[value_pred])
-
-    # Get unique class labels
-    unique_labels = np.unique(data[value])
 
     # Initialize a dictionary to store confusion matrices, TPR, and FPR for each class
     class_metrics = {}
@@ -147,7 +144,7 @@ def calculate_crosstab(value, value_pred, data, file_path):
     headers = [f"Predicted {class_name}" for class_name in unique_values_t1]
     index = [f"Actual {class_name}" for class_name in unique_values_t0]
 
-    confusionmatrix = pd.DataFrame(confusionmatrix, columns=headers, index=index)
+    # confusionmatrix = pd.DataFrame(confusionmatrix, columns=headers, index=index)
 
     classificationreport = classification_report(data[value], data[value_pred])
     classificationreport_df = classification_report(data[value], data[value_pred], output_dict=True)

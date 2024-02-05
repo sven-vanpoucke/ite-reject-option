@@ -25,15 +25,14 @@ from models.evaluator import calculate_crosstab_matrix_names
 # REJECTION OOD
 from models.rejector import distance_test_to_train, is_out_of_distribution, nbrs_train
 from models.helper import improvement
-
 # REJECTION PROBABILITIES
-import math
+from scipy.optimize import minimize_scalar
 # PARAMETERS
 folder_path = 'output/dependent/'
 dataset = "twins" # Choose out of twins or lalonde
 model_class = LogisticRegression # Which two models do we want to generate in the t-models
 rejection_architecture = 'dependent' # dependent_rejector or separated_rejector
-rejection_type = "prob" # Choose out of ood or prob, 3DROC
+rejection_type = "3DROC" # Choose out of ood or prob, 3DROC
 prob_reject_upper_bound = 0.55
 prob_reject_under_bound = 0.45
 
@@ -149,6 +148,26 @@ with open(file_path, 'a') as file:
     file.write(f"\nCHAPTER 8: REJECTION \n\n")
     file.write(f"The used type of rejection is: {rejection_type}\n\n")
 
+
+# Define the objective function
+def calculate_objective(prob_reject_upper_bound, prob_reject_under_bound=0.4):
+    prob_reject_upper_bound, prob_reject_under_bound = prob_reject_upper_bound, prob_reject_under_bound
+    prob_reject_under_bound = 1 - prob_reject_upper_bound
+    test_set['y_t1_reject_prob'] = test_set.apply(lambda row: True if prob_reject_under_bound < row['y_t1_prob'] < prob_reject_upper_bound else False, axis=1)
+    test_set['y_t0_reject_prob'] = test_set.apply(lambda row: True if prob_reject_under_bound < row['y_t0_prob'] < prob_reject_upper_bound else False, axis=1)
+    test_set['y_reject_prob'] = test_set.apply(lambda row: True if row['y_t0_reject_prob'] and row['y_t1_reject_prob'] else False, axis=1)
+    test_set['ite_rej'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] else row['ite_pred'], axis=1)
+    
+    accurancy, rr, micro_tpr, micro_fpr, macro_tpr, macro_fpr, micro_distance_threedroc, macro_distance_threedroc = calculate_crosstab('ite', 'ite_rej', test_set, file_path)
+    print(f"The current under bound is: {prob_reject_under_bound}")
+    print(f"The current upper bound is: {prob_reject_upper_bound}")
+    print(f"The current rejection rate is is: {rr}")
+    print(f"Thwith a micro distance threedroc of : {micro_distance_threedroc}")
+
+    print(rr)
+
+    return micro_distance_threedroc
+
 if rejection_architecture == "separated":
     if rejection_type == "ood":
         # REJECTION OOD
@@ -164,8 +183,6 @@ if rejection_architecture == "separated":
 
         # Create a cross-tabulation between 'ite' and 'ite_rej'
         accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2 = calculate_crosstab('ite', 'ite_rej', test_set, file_path)
-        
-
         
         accurancy_improvement = improvement(accurancy, accurancy_2)
         micro_distance_improvement = improvement(micro_distance_threedroc, micro_distance_threedroc_2)
@@ -192,8 +209,8 @@ elif rejection_architecture == "dependent":
         test_set['ite_rej'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] else row['ite_pred'], axis=1)
 
         # Calculate total misclassification cost
-        test_set['cost_ite_reject_ood'] = test_set.apply(lambda row: 0 if row['y_reject_prob'] else row['cost_ite'], axis=1)
-        total_cost_ite_reject_prob = test_set['cost_ite_reject_ood'].sum()
+        test_set['cost_ite_reject_prob'] = test_set.apply(lambda row: 0 if row['y_reject_prob'] else row['cost_ite'], axis=1)
+        total_cost_ite_reject_prob = test_set['cost_ite_reject_prob'].sum()
         improvement_cost_reject_prob = improvement(total_cost_ite, total_cost_ite_reject_prob)
 
         # Performance
@@ -210,26 +227,56 @@ elif rejection_architecture == "dependent":
             file.write(f"\nImprovements:\n")
 
             # Write the total misclassification cost
-            file.write(f'Change of the misclassification cost after ood rejection: {improvement_cost_reject_prob:.2f}%\n')
+            file.write(f'Change of the misclassification cost after prob rejection: {improvement_cost_reject_prob:.2f}%\n')
             file.write(f'Change of the ITE Accurancy: {accurancy_improvement:.2f}%\n')
             file.write(f'Change of the 3D ROC (micro): {micro_distance_improvement:.2f}%\n')
             file.write(f'Change of the 3D ROC (macro): {macro_distance_improvement:.2f}%\n')
 
     elif rejection_type == "3DROC":
-        # REJECTION PROBABILITIES
-        test_set['y_t1_reject_prob'] = test_set.apply(lambda row: True if row['y_t1_prob'] < prob_reject_upper_bound and row['y_t1_prob'] > prob_reject_under_bound else False, axis=1)
-        test_set['y_t0_reject_prob'] = test_set.apply(lambda row: True if row['y_t0_prob'] < prob_reject_upper_bound and row['y_t0_prob'] > prob_reject_under_bound else False, axis=1)
+        # REJECTION PROBABILITIES with minimizing 3DROC
+        prob_reject_upper_bound = 0.6
+        prob_reject_under_bound = 0.4
+
+        # Initial guess for the optimization algorithm
+        initial_guess = 0.2  # Adjust this initial value based on your problem domain
+
+        # Run the optimization
+        result = minimize_scalar(calculate_objective, bounds=(0, 1), method='bounded', options={'disp': True})
+
+        # Get the optimal value
+        optimal_prob_reject_upper_bound = result.x
+        prob_reject_under_bound = 1 - optimal_prob_reject_upper_bound
+        print(f"optimal upper: {optimal_prob_reject_upper_bound}")
+        print(f"optimal under: {prob_reject_under_bound}")
+
+        # Use the optimal value in your code
+        test_set['y_t1_reject_prob'] = test_set.apply(lambda row: True if prob_reject_under_bound < row['y_t1_prob'] < optimal_prob_reject_upper_bound else False, axis=1)
+        test_set['y_t0_reject_prob'] = test_set.apply(lambda row: True if prob_reject_under_bound < row['y_t0_prob'] < optimal_prob_reject_upper_bound else False, axis=1)
         test_set['y_reject_prob'] = test_set.apply(lambda row: True if row['y_t0_reject_prob'] and row['y_t1_reject_prob'] else False, axis=1)
-        test_set['cost_ite_reject_prob'] = test_set.apply(lambda row: 0 if row['y_reject_prob'] else row['cost_ite'], axis=1)
-        
-        total_cost_ite_reject_prob = test_set['cost_ite_reject_prob'].sum()
+        test_set['ite_rej'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] else row['ite_pred'], axis=1)
+
+        # Calculate total misclassification cost
+        test_set['cost_ite_reject'] = test_set.apply(lambda row: 0 if row['y_reject_prob'] else row['cost_ite'], axis=1)
+        total_cost_ite_reject = test_set['cost_ite_reject'].sum()
+        improvement_cost_reject = improvement(total_cost_ite, total_cost_ite_reject)
+
+        # Calculate total misclassification cost, performance, and improvements using the updated code
+        accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2 = calculate_crosstab('ite', 'ite_rej', test_set, file_path)
+
+        accurancy_improvement = improvement(accurancy, accurancy_2)
+        micro_distance_improvement = improvement(micro_distance_threedroc, micro_distance_threedroc_2)
+        macro_distance_improvement = improvement(macro_distance_threedroc, macro_distance_threedroc_2)
 
         with open(file_path, 'a') as file:
-            # Write the count of occurrences where 'ood' is true after probability rejection
-            file.write(f"Count of 'probability rejection' being true: {test_set['y_reject_prob'].sum()}\n")
-
             # Write the total misclassification cost after probability rejection
-            file.write(f'Total Misclassification Cost after probability rejection: {total_cost_ite_reject_prob}\n')
+            
+            file.write(f"\nImprovements:\n")
+
+            # Write the total misclassification cost
+            file.write(f'Change of the Misclassification Cost: {improvement_cost_reject:.2f}%\n')
+            file.write(f'Change of the ITE Accurancy: {accurancy_improvement:.2f}%\n')
+            file.write(f'Change of the 3D ROC (micro): {micro_distance_improvement:.2f}%\n')
+            file.write(f'Change of the 3D ROC (macro): {macro_distance_improvement:.2f}%\n')
 
 
 with open(file_path, 'a') as file:
