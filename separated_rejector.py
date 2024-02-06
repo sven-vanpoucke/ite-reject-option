@@ -44,7 +44,8 @@ timestamp, file_name, file_path = helper_output(folder_path=folder_path)
 # PREPROCESSING
 with open(file_path, 'a') as file:
     file.write(f"CHAPTER 2: PREPROCESSING\n\n")
-    file.write(f"The used dataset is: {dataset}\n\n")
+    file.write("# This section executes the data retrieval, preprocessing and splitting in a training and dataset.")
+    file.write(f"During the whole file, the used dataset is: {dataset}\n\n")
 
 if dataset == "lalonde":
     # for lalaonde
@@ -65,8 +66,10 @@ else:
 
 # MODEL T-LEARNER
 with open(file_path, 'a') as file:
-    file.write(f"CHAPTER 3: MODEL T-LEARNER\n\n")
-    file.write(f"The used model is: {model_class.__name__}\n\n")
+    file.write(f"CHAPTER 3: MODEL TRAINING\n\n")
+    file.write("# This section provides details about the model selection, training process, and any hyperparameter tuning.\n")
+    file.write(f"The trained ITE model is a T-LEARNER.\n")
+    file.write(f"The two individually trained models are: {model_class.__name__}\n\n")
 
 # Training separate models for treated and control groups
 treated_model, control_model = predictor_t_model(train_treated_x, train_treated_y, train_control_x, train_control_y, model_class=model_class, max_iter=10000, solver='saga', random_state=42)
@@ -74,6 +77,8 @@ treated_model, control_model = predictor_t_model(train_treated_x, train_treated_
 # PREDICT
 with open(file_path, 'a') as file:
     file.write(f"CHAPTER 4: PREDICT\n\n")
+    file.write("# This section applies the trained models to our test_set. \n")
+    file.write("# We are able to predict the y_t0, y_t1 and ite \n")
 
 # Training and Testing predictions to evaluate individual models
 train_treated_y_pred, train_treated_y_prob, train_control_y_pred, train_control_y_prob = predictor_train_predictions(treated_model, control_model, train_treated_x, train_control_x)
@@ -85,7 +90,8 @@ test_y_t1_pred, test_y_t0_pred, test_y_t1_prob, test_y_t0_prob, test_ite_prob, t
 # EVALUATE INDIVIDUAL MODELS
 with open(file_path, 'a') as file:
     file.write(f"CHAPTER 5: EVALUATE INDIVIDUAL LOGISTIC REGRESSION MODELS \n\n")
-    file.write(f"Performance measurement: \n\n")
+    file.write("# This section evaluates the individually trained models (two as we used a T-learner). \n")
+    file.write(f"The used performance measures are: \n\n")
     file.write(f" - Confusion Matrix \n")
     file.write(f" - Accuracy: overal correctness of the model ((TP + TN) / (TP + TN + FP + FN)) \n")
     file.write(f" - Precision: It measures the accuracy of positive predictions (TP / (TP + FP)) \n")
@@ -104,7 +110,8 @@ evaluation_binary(test_treated_y, test_treated_y_pred, test_treated_y_prob, test
 # EVALUATE OVERALL ITE MODEL: PERFORMANCE
 with open(file_path, 'a') as file:
     file.write(f"CHAPTER 6: EVALUATE OVERALL ITE MODEL: PERFORMANCE \n\n")
-    file.write(f"Performance measurement: \n")
+    file.write("# This section evaluates the overal performance of the ITE model.\n")
+    file.write(f"The used performance measures are: \n\n")
     file.write(f" - Root Mean Squared Error (RMSE) of the ITE \n")
     file.write(f" - Accurate estimate of the ATE \n")
     file.write(f" - Accurancy of ITE \n\n")
@@ -127,6 +134,7 @@ with open(file_path, 'a') as file:
 # EVALUATE OVERALL ITE MODEL: COST
 with open(file_path, 'a') as file:
     file.write(f"\n\nCHAPTER 7: EVALUATE OVERALL ITE MODEL: COST \n\n")
+    file.write("# This section evaluates the overal misclassification costs of the ITE model.\n")
 
 # Apply the categorization function to create the 'Category' column
 test_set['category'] = test_set.apply(categorize, axis=1)
@@ -147,14 +155,16 @@ with open(file_path, 'a') as file:
 # CHAPTER 8: REJECTION
 with open(file_path, 'a') as file:
     file.write(f"\nCHAPTER 8: REJECTION \n\n")
+    file.write("# This section executes and reports metrics for ITE models with rejection.\n")
+    file.write("# Every indicated change are in comparision to the base ITE model without rejection.\n")
 
 # ARCHITECTURE TYPE 1: SEPARATED
 with open(file_path, 'a') as file:
-    file.write(f"\nARCHITECTURE TYPE 1: SEPARATED\n\n")
+    file.write(f"\nARCHITECTURE TYPE 1: SEPARATED\n")
 
 # REJECTION OOD
 with open(file_path, 'a') as file:
-    file.write(f"\nREJECTION TYPE 1A: OUT OF DISRIBUTION\n\n")
+    file.write(f"\nREJECTION TYPE 1A: OUT OF DISRIBUTION\n")
 
 model = nbrs_train(train_x)
 d = distance_test_to_train(model, test_x)
@@ -165,9 +175,9 @@ print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_t
 
 # ARCHITECTURE TYPE 2: DEPENDENT
 with open(file_path, 'a') as file:
-    file.write(f"\nARCHITECTURE TYPE 2: DEPENDENT\n\n")
-    file.write(f"\nREJECTION TYPE 2A: REJECTION BASED ON PROBABILITIES BY MINIMIZING 3DROC \n\n")
-    file.write(f"\nVARIANT TYPE 2A I: OPTIMIZATION OF SINGLE BOUNDARIES BY MINIMIZING 3DROC \n\n")
+    file.write(f"\nARCHITECTURE TYPE 2: DEPENDENT\n")
+    file.write(f"\nREJECTION TYPE 2A: REJECTION BASED ON PROBABILITIES BY MINIMIZING 3DROC \n")
+    file.write(f"\nVARIANT TYPE 2A I: OPTIMIZATION OF SINGLE BOUNDARIES BY MINIMIZING 3DROC \n")
 
 # Run the optimization
 result = minimize_scalar(calculate_objective_threedroc_single_variable, bounds=(0.5, 1), method='bounded', args=(test_set, file_path), options={'disp': True})
@@ -187,7 +197,7 @@ print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_t
 
 ## DOUBLE VARIABLE OPTIMIZATION
 with open(file_path, 'a') as file:
-    file.write(f"\nVARIANT TYPE 2A II: OPTIMIZATION OF DOUBLE BOUNDARIES BY MINIMIZING 3DROC  \n\n")
+    file.write(f"\nVARIANT TYPE 2A II: OPTIMIZATION OF DOUBLE BOUNDARIES BY MINIMIZING 3DROC  \n")
 
 # Optimization using minimize function (Multiple variables)
 initial_guess = [0.45, 0.55]
@@ -207,7 +217,7 @@ print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_t
 
 # REJECTION TYPE 2A: REJECTION BASED ON PROBABILITIES BY MINIMIZING MISCLASSIFICATION COSTS
 with open(file_path, 'a') as file:
-    file.write(f"\nREJECTION TYPE 2A: REJECTION BASED ON PROBABILITIES BY MINIMIZING MISCLASSIFICATION COSTS \n\n")
+    file.write(f"\nREJECTION TYPE 2A: REJECTION BASED ON PROBABILITIES BY MINIMIZING MISCLASSIFICATION COSTS \n")
 
 # Run the optimization
 result = minimize_scalar(calculate_objective_misclassificationcost_single_variable, bounds=(0.5, 1), method='bounded', args=(test_set, file_path), options={'disp': True})
