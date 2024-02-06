@@ -1,0 +1,304 @@
+CHAPTER 1: INTRODUCTION
+# This section introduces the purpose and background of the analysis.
+
+In this analysis, we aim to evaluate the performance of different reject options for Information Treatment Effect (ITE) models.The ITE model predicts the individual treatment effects in a given dataset, providing valuable insights into the impact of interventions.
+For your information, this file has been automatically generated on: 2024-02-06 23:17
+
+CHAPTER 2: PREPROCESSING
+
+# This section executes the data retrieval, preprocessing and splitting in a training and dataset.During the whole file, the used dataset is: twins
+
+CHAPTER 3: MODEL TRAINING
+
+# This section provides details about the model selection, training process, and any hyperparameter tuning.
+The trained ITE model is a T-LEARNER.
+The two individually trained models are: LogisticRegression
+
+CHAPTER 4: PREDICT
+
+# This section applies the trained models to our test_set. 
+# We are able to predict the y_t0, y_t1 and ite 
+CHAPTER 5: EVALUATE INDIVIDUAL LOGISTIC REGRESSION MODELS 
+
+# This section evaluates the individually trained models (two as we used a T-learner). 
+The used performance measures are: 
+
+ - Confusion Matrix 
+ - Accuracy: overal correctness of the model ((TP + TN) / (TP + TN + FP + FN)) 
+ - Precision: It measures the accuracy of positive predictions (TP / (TP + FP)) 
+ - Recall: ability of the model to capture all the relevant cases (TP / (TP + FN)) 
+ - F1 Score It balances precision and recall, providing a single metric for model evaluation (2 * (Precision * Recall) / (Precision + Recall)) 
+ - ROC 
+
+Evaluation of the individual models based on the **training data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |     3714      |     3635      |
+| False Positives |      113      |      117      |
+| False Negatives |      379      |      414      |
+| True Negatives  |      378      |      370      |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |     0.89      |     0.88      |
+| Precision |     0.77      |     0.76      |
+|  Recall   |      0.5      |     0.47      |
+|    F1     |     0.61      |     0.58      |
+|    AUC    |     0.73      |     0.72      |
++-----------+---------------+---------------+
+
+
+Evaluation of the individual models based on the **test data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |      921      |      918      |
+| False Positives |      27       |      33       |
+| False Negatives |      102      |      93       |
+| True Negatives  |      108      |      78       |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |     0.89      |     0.89      |
+| Precision |      0.8      |      0.7      |
+|  Recall   |     0.51      |     0.46      |
+|    F1     |     0.63      |     0.55      |
+|    AUC    |     0.74      |     0.71      |
++-----------+---------------+---------------+
+
+CHAPTER 6: EVALUATE OVERALL ITE MODEL: PERFORMANCE 
+
+# This section evaluates the overal performance of the ITE model.
+The used performance measures are: 
+
+ - Root Mean Squared Error (RMSE) of the ITE 
+ - Accurate estimate of the ATE 
+ - Accurancy of ITE
+
+
+Root Mean Squared Error (RMSE) between the ite and ite_prob: 0.2968
+
+The Actual Average Treatment Effect (ATE): -0.0114
+The Predicted Average Treatment Effect (ATE): -0.0092
+Accuracy of Average Treatment Effect (ATE): 0.0022
+
+
+CHAPTER 7: EVALUATE OVERALL ITE MODEL: COST 
+
+# This section evaluates the overal misclassification costs of the ITE model.
+We make the matrix: Lost Cause, Sleeping Dog, Persuadable, Sure Thing 
+Comment: 
+ - Upper left cell: amount of cases that have outcome 0: no matter if you would treat or not 
+   If treat, they stay alive, if no treat they also stay alive. 
+ - Under right cell: amount of cases that have outcome 1: no matter if you would treat or not 
+   If treat, they die, if no treat they also die. 
+ - Upper right cell: amount of cases that have outcome 1 if treated, but outcome 0 if not treated 
+   If treat, they die, if no treat they stay alive. 
+ - Under left cell: amount of cases that have outcome 0 if treated, but outcome 1 if not treated 
+   If treat, they stay alive, if no treat they die. 
+
+
+Crosstab for y_t0 and y_t1:
+┌────────┬───────┬───────┐
+│   y_t0 │   0.0 │   1.0 │
+├────────┼───────┼───────┤
+│      0 │  1806 │    87 │
+├────────┼───────┼───────┤
+│      1 │   113 │   274 │
+└────────┴───────┴───────┘
+
+Crosstab for y_t0_pred and y_t1_pred:
+┌─────────────┬───────┬───────┐
+│   y_t0_pred │   0.0 │   1.0 │
+├─────────────┼───────┼───────┤
+│           0 │  2004 │    15 │
+├─────────────┼───────┼───────┤
+│           1 │    36 │   225 │
+└─────────────┴───────┴───────┘
+
+Total Misclassification Cost: 1880
+
+CHAPTER 8: REJECTION 
+
+# This section executes and reports metrics for ITE models with rejection.
+# Every indicated change are in comparision to the base ITE model without rejection.
+
+ARCHITECTURE TYPE 0: NO REJECTION -- BASELINE MODEL
+
+              precision    recall  f1-score   support
+
+          -1       0.08      0.03      0.04       113
+           0       0.91      0.98      0.95      2080
+           1       0.07      0.01      0.02        87
+
+    accuracy                           0.90      2280
+   macro avg       0.35      0.34      0.34      2280
+weighted avg       0.84      0.90      0.87      2280
+
+Accuracy: 0.9304
+Rejection Rate: 0.0000
+Micro TPR: 0.8956
+Micro FPR: 0.0522
+Macro TPR: 0.3393
+Macro FPR: 0.3255
+Micro Distance (3D ROC): 0.1167
+Macro Distance (3D ROC): 0.7366
+
+Improvements due to a rejection rate of 0.00%:
+- Change of the Misclassification Cost: 0.00%
+- Change of the ITE Accurancy: 0.00%
+- Change of the 3D ROC (micro): 0.00%
+- Change of the 3D ROC (macro): 0.00%
+
+ARCHITECTURE TYPE 1: SEPARATED
+
+REJECTION TYPE 1A: OUT OF DISRIBUTION
+
+              precision    recall  f1-score   support
+
+          -1       0.04      0.01      0.02        87
+           0       0.91      0.98      0.95      1717
+           1       0.09      0.01      0.02        79
+
+    accuracy                           0.90      1883
+   macro avg       0.35      0.34      0.33      1883
+weighted avg       0.84      0.90      0.87      1883
+
+Accuracy: 0.9313
+Rejection Rate: 0.1741
+Micro TPR: 0.8970
+Micro FPR: 0.0515
+Macro TPR: 0.3356
+Macro FPR: 0.3258
+Micro Distance (3D ROC): 0.2088
+Macro Distance (3D ROC): 0.7602
+
+Improvements due to a rejection rate of 17.41%:
+- Change of the Misclassification Cost: 20.47%
+- Change of the ITE Accurancy: 0.10%
+- Change of the 3D ROC (micro): 44.10%
+- Change of the 3D ROC (macro): 3.11%
+
+ARCHITECTURE TYPE 2: DEPENDENT
+
+REJECTION TYPE 2A: REJECTION BASED ON PROBABILITIES BY MINIMIZING 3DROC 
+
+VARIANT TYPE 2A I: OPTIMIZATION OF SINGLE BOUNDARIES BY MINIMIZING 3DROC 
+
+ITE values witht a probability between the optimal underbound 0.4359997491323414 and the optimal upperbound 0.5640002508676586 are rejected 
+              precision    recall  f1-score   support
+
+          -1       0.18      0.02      0.03       105
+           0       0.92      0.99      0.95      2029
+           1       0.00      0.00      0.00        78
+
+    accuracy                           0.91      2212
+   macro avg       0.37      0.34      0.33      2212
+weighted avg       0.85      0.91      0.88      2212
+
+Accuracy: 0.9415
+Rejection Rate: 0.0298
+Micro TPR: 0.9123
+Micro FPR: 0.0439
+Macro TPR: 0.3375
+Macro FPR: 0.3301
+Micro Distance (3D ROC): 0.1025
+Macro Distance (3D ROC): 0.7407
+
+Improvements due to a rejection rate of 2.98%:
+- Change of the Misclassification Cost: -2.68%
+- Change of the ITE Accurancy: 1.18%
+- Change of the 3D ROC (micro): -13.87%
+- Change of the 3D ROC (macro): 0.56%
+
+VARIANT TYPE 2A II: OPTIMIZATION OF DOUBLE BOUNDARIES BY MINIMIZING 3DROC  
+
+ITE values witht a probability between the optimal underbound 0.45 and the optimal upperbound 0.55 are rejected 
+              precision    recall  f1-score   support
+
+          -1       0.17      0.03      0.05       109
+           0       0.92      0.99      0.95      2043
+           1       0.11      0.01      0.02        81
+
+    accuracy                           0.91      2233
+   macro avg       0.40      0.34      0.34      2233
+weighted avg       0.85      0.91      0.87      2233
+
+Accuracy: 0.9382
+Rejection Rate: 0.0206
+Micro TPR: 0.9073
+Micro FPR: 0.0464
+Macro TPR: 0.3432
+Macro FPR: 0.3264
+Micro Distance (3D ROC): 0.1057
+Macro Distance (3D ROC): 0.7337
+
+Improvements due to a rejection rate of 2.06%:
+- Change of the Misclassification Cost: -1.95%
+- Change of the ITE Accurancy: 0.83%
+- Change of the 3D ROC (micro): -10.44%
+- Change of the 3D ROC (macro): -0.39%
+
+REJECTION TYPE 2A: REJECTION BASED ON PROBABILITIES BY MINIMIZING MISCLASSIFICATION COSTS 
+
+ITE values witht a probability between the optimal underbound 0.49089590313884524 and the optimal upperbound 0.5091040968611548 are rejected 
+              precision    recall  f1-score   support
+
+          -1       0.08      0.03      0.04       113
+           0       0.91      0.98      0.95      2078
+           1       0.08      0.01      0.02        87
+
+    accuracy                           0.90      2278
+   macro avg       0.36      0.34      0.34      2278
+weighted avg       0.84      0.90      0.87      2278
+
+Accuracy: 0.9309
+Rejection Rate: 0.0009
+Micro TPR: 0.8964
+Micro FPR: 0.0518
+Macro TPR: 0.3396
+Macro FPR: 0.3252
+Micro Distance (3D ROC): 0.1158
+Macro Distance (3D ROC): 0.7361
+
+Improvements due to a rejection rate of 0.09%:
+- Change of the Misclassification Cost: -0.32%
+- Change of the ITE Accurancy: 0.06%
+- Change of the 3D ROC (micro): -0.76%
+- Change of the 3D ROC (macro): -0.06%
+
+
+Table of test_set (First 20 rows)
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+-----+-------------+---------------+----------+------------+-----------------+-------+------------------+------------------+---------------+----------+
+| treatment | y_t1_pred | y_t1_prob | y_t0_pred | y_t0_prob | ite_pred | ite_prob | y_t0 | y_t1 | ite |  category   | category_pred | cost_ite | ite_reject | cost_ite_reject |  ood  | y_t1_reject_prob | y_t0_reject_prob | y_reject_prob | y_reject |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+-----+-------------+---------------+----------+------------+-----------------+-------+------------------+------------------+---------------+----------+
+|     1     |    1.0    |  0.9366   |    1.0    |  0.9187   |   0.0    |  0.0179  | 1.0  | 1.0  | 0.0 | Sure Thing  |  Sure Thing   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    1.0    |  0.8228   |    1.0    |  0.8088   |   0.0    |  0.014   | 1.0  | 1.0  | 0.0 | Sure Thing  |  Sure Thing   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.1707   |    0.0    |  0.2352   |   0.0    | -0.0645  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.2211   |    0.0    |  0.2154   |   0.0    |  0.0056  | 0.0  | 1.0  | 1.0 | Persuadable |  Lost Cause   |    10    |    0.0     |       10        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0691   |    0.0    |  0.1167   |   0.0    | -0.0476  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.0265   |    0.0    |  0.0409   |   0.0    | -0.0144  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.4279   |    0.0    |  0.4484   |   0.0    | -0.0205  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0082   |    0.0    |  0.0115   |   0.0    | -0.0033  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |   0.011   |    0.0    |  0.0168   |   0.0    | -0.0058  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |   0.025   |    0.0    |  0.0445   |   0.0    | -0.0196  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0268   |    0.0    |  0.0451   |   0.0    | -0.0183  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.1751   |    0.0    |  0.1774   |   0.0    | -0.0023  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |   0.036   |    0.0    |  0.0462   |   0.0    | -0.0101  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.4807   |    1.0    |  0.5546   |   -1.0   | -0.0739  | 0.0  | 1.0  | 1.0 | Persuadable | Sleeping Dog  |    10    |    -1.0    |       10        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.1432   |    0.0    |  0.1348   |   0.0    |  0.0085  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    1.0    |  0.8392   |    1.0    |  0.8356   |   0.0    |  0.0037  | 1.0  | 1.0  | 0.0 | Sure Thing  |  Sure Thing   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0463   |    0.0    |  0.0719   |   0.0    | -0.0256  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | True  |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.1072   |    0.0    |  0.0887   |   0.0    |  0.0185  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.1797   |    0.0    |  0.1426   |   0.0    |  0.0371  | 0.0  | 0.0  | 0.0 | Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0388   |    0.0    |  0.0455   |   0.0    | -0.0067  | 0.0  | 1.0  | 1.0 | Persuadable |  Lost Cause   |    10    |    0.0     |       10        | False |      False       |      False       |     False     |  False   |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+-----+-------------+---------------+----------+------------+-----------------+-------+------------------+------------------+---------------+----------+

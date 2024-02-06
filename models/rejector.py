@@ -1,7 +1,7 @@
 from sklearn.neighbors import NearestNeighbors
 import pandas as pd 
 from models.evaluator import calculate_crosstab
-
+from models.cost import calculate_misclassification_cost
 def nbrs_train(train_data, n_neighbors=5):
     nbrs_train = NearestNeighbors(n_neighbors=n_neighbors, algorithm='auto').fit(train_data)
     return nbrs_train
@@ -72,7 +72,7 @@ def calculate_objective_misclassificationcost_single_variable(prob_reject_upper_
     test_set = args[0]
     file_path = args[1]
     rejection_cost = 10
-    
+
     prob_reject_under_bound = 1 - prob_reject_upper_bound
     test_set['y_t1_reject_prob'] = test_set.apply(lambda row: True if prob_reject_under_bound < row['y_t1_prob'] < prob_reject_upper_bound else False, axis=1)
     test_set['y_t0_reject_prob'] = test_set.apply(lambda row: True if prob_reject_under_bound < row['y_t0_prob'] < prob_reject_upper_bound else False, axis=1)
@@ -80,7 +80,6 @@ def calculate_objective_misclassificationcost_single_variable(prob_reject_upper_
     test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] else row['ite_pred'], axis=1)
     
     # Calculate total misclassification cost
-    test_set['cost_ite_reject'] = test_set.apply(lambda row: rejection_cost if row['ite_reject'] else row['cost_ite'], axis=1)
-    total_cost_ite_2 = test_set['cost_ite_reject'].sum()
+    total_cost_ite_2 = calculate_misclassification_cost(test_set, 2)
 
     return total_cost_ite_2

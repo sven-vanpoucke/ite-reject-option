@@ -43,7 +43,7 @@ timestamp, file_name, file_path = helper_output(folder_path=folder_path)
 
 # PREPROCESSING
 with open(file_path, 'a') as file:
-    file.write(f"CHAPTER 2: PREPROCESSING\n\n")
+    file.write(f"\nCHAPTER 2: PREPROCESSING\n\n")
     file.write("# This section executes the data retrieval, preprocessing and splitting in a training and dataset.")
     file.write(f"During the whole file, the used dataset is: {dataset}\n\n")
 
@@ -114,7 +114,7 @@ with open(file_path, 'a') as file:
     file.write(f"The used performance measures are: \n\n")
     file.write(f" - Root Mean Squared Error (RMSE) of the ITE \n")
     file.write(f" - Accurate estimate of the ATE \n")
-    file.write(f" - Accurancy of ITE \n\n")
+    file.write(f" - Accurancy of ITE\n")
 
 test_set = pd.concat([test_t, test_y_t1_pred, test_y_t1_prob, test_y_t0_pred, test_y_t0_prob, test_ite_pred, test_ite_prob, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
 
@@ -157,6 +157,11 @@ with open(file_path, 'a') as file:
     file.write(f"\nCHAPTER 8: REJECTION \n\n")
     file.write("# This section executes and reports metrics for ITE models with rejection.\n")
     file.write("# Every indicated change are in comparision to the base ITE model without rejection.\n")
+    file.write(f"\nARCHITECTURE TYPE 0: NO REJECTION -- BASELINE MODEL\n")
+
+# ARCHITECTURE TYPE 1: NO REJECTION
+test_set['ite_reject'] = test_set.apply(lambda row: row['ite_pred'], axis=1)
+print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
 
 # ARCHITECTURE TYPE 1: SEPARATED
 with open(file_path, 'a') as file:

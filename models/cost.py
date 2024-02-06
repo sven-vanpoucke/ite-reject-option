@@ -39,3 +39,9 @@ def calculate_cost_ite(row):
 
 def calculate_cost_cb(row):
     pass
+
+
+def calculate_misclassification_cost(test_set, rejection_cost=2):
+    test_set['cost_ite_reject'] = test_set.apply(lambda row: rejection_cost if row['ite_reject']=="R" else row['cost_ite'], axis=1)
+    total_cost_ite_2 = test_set['cost_ite_reject'].sum()
+    return total_cost_ite_2
