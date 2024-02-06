@@ -53,7 +53,7 @@ def calculate_crosstab_matrix_names(t0, t1, data, file_path):
 
 
 
-def calculate_crosstab(value, value_pred, data, file_path):
+def calculate_crosstab(value, value_pred, data, file_path, print=False):
     # Info on: https://www.v7labs.com/blog/confusion-matrix-guide
     length_before_rejection = len(data)
 
@@ -98,7 +98,7 @@ def calculate_crosstab(value, value_pred, data, file_path):
         tpr_class = true_positive / (true_positive + false_negative)
         fpr_class = false_positive / (false_positive + true_negative)
         specificity_class = 1 - fpr_class
-        precision_class = true_positive / (true_positive + false_positive)
+        precision_class = true_positive / (true_positive + false_positive) if (true_positive + false_positive) != 0 else 1.0
 
         # Store the metrics in the dictionary
         class_metrics[label] = {
@@ -153,8 +153,9 @@ def calculate_crosstab(value, value_pred, data, file_path):
 
     micro_distance_threedroc = threedroc(micro_tpr, micro_fpr, rr)
     macro_distance_threedroc = threedroc(macro_tpr, macro_fpr, rr)
-
-    evaluator_print(file_path, classificationreport, rr, accurancy, micro_tpr, micro_fpr, macro_tpr, macro_fpr, micro_distance_threedroc, macro_distance_threedroc)
+    if print == True:
+        evaluator_print(file_path, classificationreport, rr, accurancy, micro_tpr, micro_fpr, macro_tpr, macro_fpr, micro_distance_threedroc, macro_distance_threedroc)
+    
 
     return accurancy, rr, micro_tpr, micro_fpr, macro_tpr, macro_fpr, micro_distance_threedroc, macro_distance_threedroc
 
