@@ -49,11 +49,29 @@ def calculate_crosstab_matrix_names(t0, t1, data, file_path):
         file.write(f"\nCrosstab for {t0} and {t1}:\n")
         file.write(tabulate(count_matrix, headers='keys', tablefmt='simple_grid'))
         file.write(f"\n")
-    
-
-
 
 def calculate_crosstab(value, value_pred, data, file_path, print=False):
+    """
+    Calculate the crosstab of two columns in a DataFrame and perform evaluation metrics.
+
+    Args:
+        value (str): The name of the column representing the actual values.
+        value_pred (str): The name of the column representing the predicted values.
+        data (pandas.DataFrame): The DataFrame containing the data.
+        file_path (str): The file path to write the evaluation results.
+        print (bool, optional): Whether to print the evaluation results. Defaults to False.
+
+    Returns:
+        tuple: A tuple containing the following evaluation metrics:
+            - accurancy (float): The accuracy of the predictions.
+            - rr (float): The rejection rate.
+            - micro_tpr (float): The micro-average true positive rate.
+            - micro_fpr (float): The micro-average false positive rate.
+            - macro_tpr (float): The macro-average true positive rate.
+            - macro_fpr (float): The macro-average false positive rate.
+            - micro_distance_threedroc (float): The micro-average distance to the 3D ROC curve.
+            - macro_distance_threedroc (float): The macro-average distance to the 3D ROC curve.
+    """
     # Info on: https://www.v7labs.com/blog/confusion-matrix-guide
     if print==True:
         cross_tab = pd.crosstab(data[value], data[value_pred])
@@ -223,6 +241,7 @@ def evaluator_print(file_path, classificationreport, rr, accurancy, micro_tpr, m
         file.write(f"\n\nPart 2 of the evaluation: Assess ITE models by incorporating penalties for instances that are rejected.\n")
         file.write(f"Micro Distance (3D ROC): {micro_distance_threedroc:.4f}\n")
         file.write(f"Macro Distance (3D ROC): {macro_distance_threedroc:.4f}\n")
+
 
 def threedroc(tpr, fpr, rr):
     distance_threedroc = math.sqrt((0 - fpr)**2 + (1 - tpr)**2 + (0 - rr)**2)

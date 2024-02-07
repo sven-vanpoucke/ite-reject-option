@@ -39,6 +39,3 @@ def learning_to_reject_confusion_matrix(test_set, file_path):
         file.write(f"\n ")
     
     return combined_quality
-
-
-
