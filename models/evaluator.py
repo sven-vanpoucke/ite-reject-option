@@ -72,6 +72,7 @@ def calculate_crosstab(value, value_pred, data, file_path, print=False):
             - micro_distance_threedroc (float): The micro-average distance to the 3D ROC curve.
             - macro_distance_threedroc (float): The macro-average distance to the 3D ROC curve.
     """
+    
     # Info on: https://www.v7labs.com/blog/confusion-matrix-guide
     if print==True:
         cross_tab = pd.crosstab(data[value], data[value_pred])
