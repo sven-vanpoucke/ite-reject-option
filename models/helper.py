@@ -17,7 +17,6 @@ def helper_output(folder_path='output/'):
         file.write(f"For your information, this file has been automatically generated on: {timestamp_print}\n")
     return timestamp, filename, file_path
 
-
 def improvement(old_value, new_value):
     old_value = float(old_value)
     new_value = float(new_value)

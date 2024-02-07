@@ -25,11 +25,13 @@ from models.evaluator import calculate_crosstab_matrix_names
 # REJECTION
 from models.helper import print_rejection
 # REJECTION OOD
-from models.rejector import distance_test_to_train, is_out_of_distribution, nbrs_train
+from models.rejectors.rejector import distance_test_to_train, is_out_of_distribution, nbrs_train
 from models.helper import improvement
+# REJECTION OOD - OCSVM
+from models.rejectors.ocsvm import train_ocsvm, distance_test_to_train_ocsvm, is_out_of_distribution_ocsvm
 # REJECTION PROBABILITIES
 from scipy.optimize import minimize_scalar, minimize
-from models.rejector import calculate_objective_threedroc_double_variable, calculate_objective_threedroc_single_variable, calculate_objective_misclassificationcost_single_variable
+from models.rejectors.rejector import calculate_objective_threedroc_double_variable, calculate_objective_threedroc_single_variable, calculate_objective_misclassificationcost_single_variable
 # PARAMETERS
 folder_path = 'output/dependent/'
 dataset = "twins" # Choose out of twins or lalonde
@@ -177,6 +179,69 @@ test_set['ood'] = d.apply(is_out_of_distribution, threshold_distance=6)
 test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
 
 print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+
+
+
+# REJECTION ONE CLASS CLASSIFICATION MODEL
+# Generally, they enclose the dataset into a specific surface and
+# flag any example that falls outside such region as novelty. For instance, a typical
+# approach is to use a One-Class Support Vector Machine (OCSVM) to encapsulate the training data through a hypersphere (Coenen et al. 2020; Homenda et al.
+# 2014). By adjusting the size of the hypersphere, the
+
+with open(file_path, 'a') as file:
+    file.write(f"\nREJECTION TYPE 1B: ONE CLASS CLASSIFICATION MODEL\n")
+
+model = nbrs_train(train_x)
+d = distance_test_to_train(model, test_x)
+test_set['ood'] = d.apply(is_out_of_distribution, threshold_distance=6)
+test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
+
+print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+
+# REJECTION ONE CLASS CLASSIFICATION MODEL
+# Generally, they enclose the dataset into a specific surface and
+# flag any example that falls outside such region as novelty. For instance, a typical
+# approach is to use a One-Class Support Vector Machine (OCSVM) to encapsulate the training data through a hypersphere (Coenen et al. 2020; Homenda et al.
+# 2014). By adjusting the size of the hypersphere, the proportion of non-rejected
+# examples can be increased (Wu et al. 2007)
+
+# Rejection using OCSVM
+with open(file_path, 'a') as file:
+    file.write(f"\nREJECTION TYPE 1B: ONE CLASS CLASSIFICATION MODEL using OCSVM\n")
+
+# Assuming train_x and test_x are your training and test data, replace with actual data
+model_ocsvm = train_ocsvm(train_x)
+distances_ocsvm = distance_test_to_train_ocsvm(model_ocsvm, test_x)
+
+# Assuming you have a threshold_distance defined
+threshold_distance = 4
+test_set['ood'] = distances_ocsvm.apply(is_out_of_distribution_ocsvm, threshold=threshold_distance)
+test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
+
+# Assuming you have functions like 'print_rejection' defined
+print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+
+# REJECTION SCORES MODEL
+# Alternatively, some models assign scores that represent the degree of novelty
+# of each example (i.e., the higher the more novel), such as LOF (Van der Plas et al.
+# 2023) or Neural Networks (Hsu et al. 2020). When dealing with these methods,
+# one often initially transforms the scores into novelty probabilities using heuristic
+# functions, such as sigmoid and squashing (Vercruyssen et al. 2018), or Gaussian
+# Processes (Martens et al. 2023). Then, the rejection threshold can be set to reject
+# examples with high novelty probability.
+
+with open(file_path, 'a') as file:
+    file.write(f"\nREJECTION TYPE 1C: SCORE MODEL\n")
+    file.write(f"\n - Not done yet\n")
+
+model = nbrs_train(train_x)
+d = distance_test_to_train(model, test_x)
+test_set['ood'] = d.apply(is_out_of_distribution, threshold_distance=6)
+test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
+
+print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+
+
 
 # ARCHITECTURE TYPE 2: DEPENDENT
 with open(file_path, 'a') as file:
