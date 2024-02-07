@@ -1,0 +1,687 @@
+CHAPTER 1: INTRODUCTION
+# This section introduces the purpose and background of the analysis.
+
+In this analysis, we aim to evaluate the performance of different reject options for Information Treatment Effect (ITE) models.The ITE model predicts the individual treatment effects in a given dataset, providing valuable insights into the impact of interventions.
+For your information, this file has been automatically generated on: 2024-02-07 17:43
+
+CHAPTER 2: PREPROCESSING
+
+# This section executes the data retrieval, preprocessing and splitting in a training and dataset.During the whole file, the used dataset is: twins
+
+CHAPTER 3: MODEL TRAINING
+
+# This section provides details about the model selection, training process, and any hyperparameter tuning.
+The trained ITE model is a T-LEARNER.
+The two individually trained models are: LogisticRegression
+
+CHAPTER 4: PREDICT
+
+# This section applies the trained models to our test_set. 
+# We are able to predict the y_t0, y_t1 and ite 
+CHAPTER 5: EVALUATE INDIVIDUAL LOGISTIC REGRESSION MODELS 
+
+# This section evaluates the individually trained models (two as we used a T-learner). 
+The used performance measures are: 
+
+ - Confusion Matrix 
+ - Accuracy: overal correctness of the model ((TP + TN) / (TP + TN + FP + FN)) 
+ - Precision: It measures the accuracy of positive predictions (TP / (TP + FP)) 
+ - Recall: ability of the model to capture all the relevant cases (TP / (TP + FN)) 
+ - F1 Score It balances precision and recall, providing a single metric for model evaluation (2 * (Precision * Recall) / (Precision + Recall)) 
+ - ROC 
+
+Evaluation of the individual models based on the **training data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |     3675      |     3663      |
+| False Positives |      117      |      128      |
+| False Negatives |      339      |      416      |
+| True Negatives  |      365      |      417      |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |      0.9      |     0.88      |
+| Precision |     0.76      |     0.77      |
+|  Recall   |     0.52      |      0.5      |
+|    F1     |     0.62      |     0.61      |
+|    AUC    |     0.74      |     0.73      |
++-----------+---------------+---------------+
+
+
+Evaluation of the individual models based on the **test data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |      922      |      904      |
+| False Positives |      34       |      27       |
+| False Negatives |      91       |      110      |
+| True Negatives  |      83       |      109      |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |     0.89      |     0.88      |
+| Precision |     0.71      |      0.8      |
+|  Recall   |     0.48      |      0.5      |
+|    F1     |     0.57      |     0.61      |
+|    AUC    |     0.72      |     0.73      |
++-----------+---------------+---------------+
+
+CHAPTER 6: EVALUATE OVERALL ITE MODEL: PERFORMANCE 
+
+# This section evaluates the overal performance of the ITE model.
+The used performance measures are: 
+
+ - Root Mean Squared Error (RMSE) of the ITE 
+ - Accurate estimate of the ATE 
+ - Accurancy of ITE
+
+
+Root Mean Squared Error (RMSE) between the ite and ite_prob: 0.3179
+
+The Actual Average Treatment Effect (ATE): -0.0118
+The Predicted Average Treatment Effect (ATE): 0.0018
+Accuracy of Average Treatment Effect (ATE): 0.0136
+
+
+CHAPTER 7: EVALUATE OVERALL ITE MODEL: COST 
+
+# This section evaluates the overal misclassification costs of the ITE model.
+We make the matrix: Lost Cause, Sleeping Dog, Persuadable, Sure Thing 
+Comment: 
+ - Upper left cell: amount of cases that have outcome 0: no matter if you would treat or not 
+   If treat, they stay alive, if no treat they also stay alive. 
+ - Under right cell: amount of cases that have outcome 1: no matter if you would treat or not 
+   If treat, they die, if no treat they also die. 
+ - Upper right cell: amount of cases that have outcome 1 if treated, but outcome 0 if not treated 
+   If treat, they die, if no treat they stay alive. 
+ - Under left cell: amount of cases that have outcome 0 if treated, but outcome 1 if not treated 
+   If treat, they stay alive, if no treat they die. 
+
+
+Crosstab for y_t0 and y_t1:
+┌────────┬───────┬───────┐
+│   y_t0 │   0.0 │   1.0 │
+├────────┼───────┼───────┤
+│      0 │  1784 │   100 │
+├────────┼───────┼───────┤
+│      1 │   127 │   269 │
+└────────┴───────┴───────┘
+
+Crosstab for y_t0_pred and y_t1_pred:
+┌─────────────┬───────┬───────┐
+│   y_t0_pred │   0.0 │   1.0 │
+├─────────────┼───────┼───────┤
+│           0 │  2008 │    22 │
+├─────────────┼───────┼───────┤
+│           1 │    18 │   232 │
+└─────────────┴───────┴───────┘
+
+Total Misclassification Cost: 2135
+
+CHAPTER 8: REJECTION 
+
+# This section executes and reports metrics for ITE models with rejection.
+# Every indicated change are in comparision to the base ITE model without rejection.
+
+ARCHITECTURE TYPE 0: NO REJECTION -- BASELINE MODEL
+This matrix is the crosstab of the column ite and ite_reject.
+┌───────┬────────┬───────┬───────┐
+│   ite │   -1.0 │   0.0 │   1.0 │
+├───────┼────────┼───────┼───────┤
+│    -1 │      2 │   124 │     1 │
+├───────┼────────┼───────┼───────┤
+│     0 │     14 │  2021 │    18 │
+├───────┼────────┼───────┼───────┤
+│     1 │      2 │    95 │     3 │
+└───────┴────────┴───────┴───────┘
+
+Part 1 of the evaluation: Evaluate ITE models by considering only accepted instances, excluding rejected ones 
+              precision    recall  f1-score   support
+
+          -1       0.11      0.02      0.03       127
+           0       0.90      0.98      0.94      2053
+           1       0.14      0.03      0.05       100
+
+    accuracy                           0.89      2280
+   macro avg       0.38      0.34      0.34      2280
+weighted avg       0.82      0.89      0.85      2280
+
+Accuracy: 0.9257
+Rejection Rate: 0.0000
+Micro TPR: 0.8886
+Micro FPR: 0.0557
+Macro TPR: 0.3434
+Macro FPR: 0.3270
+
+
+Part 2 of the evaluation: Assess ITE models by incorporating penalties for instances that are rejected.
+Micro Distance (3D ROC): 0.1246
+Macro Distance (3D ROC): 0.7335
+This matrix is the crosstab of the column ite_correct (T/F) and ite_rejected (T/F).
+┌───────┬────────┬───────┬───────┐
+│   ite │   -1.0 │   0.0 │   1.0 │
+├───────┼────────┼───────┼───────┤
+│    -1 │      2 │   124 │     1 │
+├───────┼────────┼───────┼───────┤
+│     0 │     14 │  2021 │    18 │
+├───────┼────────┼───────┼───────┤
+│     1 │      2 │    95 │     3 │
+└───────┴────────┴───────┴───────┘
+The count of True Accepted is: 2026
+The count of False Accepted is: 254
+The count of True Rejected is: 0
+The count of False Rejected is: 0
+
+Accurancy of the rejection ( How much is correclty accepted) ): 0.8886
+Coverage of the rejection (how much is accepted) ): 1.0000
+The two measures above are clearly competing (more rejected, higher accurancy
+
+Prediction quality measures the predictor’s performance on the non-rejected examples: 0.8886
+Rejection quality indicates the rejector’s ability to reject misclassified examples: 0.0000
+Combined quality: 0.8886
+
+
+Improvements due to a rejection rate of 0.00%:
+- Change of the Misclassification Cost: 0.00%
+- Change of the ITE Accurancy: 0.00%
+- Change of the 3D ROC (micro): 0.00%
+- Change of the 3D ROC (macro): 0.00%
+
+ARCHITECTURE TYPE 1: SEPARATED
+
+REJECTION TYPE 1A: OUT OF DISRIBUTION
+This matrix is the crosstab of the column ite and ite_reject.
+┌───────┬────────┬───────┬───────┬─────┐
+│   ite │   -1.0 │   0.0 │   1.0 │   R │
+├───────┼────────┼───────┼───────┼─────┤
+│    -1 │      2 │   102 │     1 │  22 │
+├───────┼────────┼───────┼───────┼─────┤
+│     0 │     10 │  1683 │    13 │ 347 │
+├───────┼────────┼───────┼───────┼─────┤
+│     1 │      1 │    71 │     3 │  25 │
+└───────┴────────┴───────┴───────┴─────┘
+
+Part 1 of the evaluation: Evaluate ITE models by considering only accepted instances, excluding rejected ones 
+              precision    recall  f1-score   support
+
+          -1       0.15      0.02      0.03       105
+           0       0.91      0.99      0.94      1706
+           1       0.18      0.04      0.07        75
+
+    accuracy                           0.90      1886
+   macro avg       0.41      0.35      0.35      1886
+weighted avg       0.84      0.90      0.86      1886
+
+Accuracy: 0.9300
+Rejection Rate: 0.1728
+Micro TPR: 0.8950
+Micro FPR: 0.0525
+Macro TPR: 0.3485
+Macro FPR: 0.3250
+
+
+Part 2 of the evaluation: Assess ITE models by incorporating penalties for instances that are rejected.
+Micro Distance (3D ROC): 0.2089
+Macro Distance (3D ROC): 0.7483
+This matrix is the crosstab of the column ite_correct (T/F) and ite_rejected (T/F).
+┌───────┬────────┬───────┬───────┬─────┐
+│   ite │   -1.0 │   0.0 │   1.0 │   R │
+├───────┼────────┼───────┼───────┼─────┤
+│    -1 │      2 │   102 │     1 │  22 │
+├───────┼────────┼───────┼───────┼─────┤
+│     0 │     10 │  1683 │    13 │ 347 │
+├───────┼────────┼───────┼───────┼─────┤
+│     1 │      1 │    71 │     3 │  25 │
+└───────┴────────┴───────┴───────┴─────┘
+The count of True Accepted is: 1688
+The count of False Accepted is: 198
+The count of True Rejected is: 0
+The count of False Rejected is: 0
+
+Accurancy of the rejection ( How much is correclty accepted) ): 0.8950
+Coverage of the rejection (how much is accepted) ): 1.0000
+The two measures above are clearly competing (more rejected, higher accurancy
+
+Prediction quality measures the predictor’s performance on the non-rejected examples: 0.8950
+Rejection quality indicates the rejector’s ability to reject misclassified examples: 0.0000
+Combined quality: 0.8950
+
+
+Improvements due to a rejection rate of 17.28%:
+- Change of the Misclassification Cost: 13.49%
+- Change of the ITE Accurancy: 0.46%
+- Change of the 3D ROC (micro): 40.38%
+- Change of the 3D ROC (macro): 1.97%
+
+REJECTION TYPE 1B: ONE CLASS CLASSIFICATION MODEL using OCSVM
+
+>>> The best threshold is 0.20100659337361054
+This matrix is the crosstab of the column ite and ite_reject.
+┌───────┬────────┬───────┬───────┬──────┐
+│   ite │   -1.0 │   0.0 │   1.0 │    R │
+├───────┼────────┼───────┼───────┼──────┤
+│    -1 │      2 │    59 │     1 │   65 │
+├───────┼────────┼───────┼───────┼──────┤
+│     0 │      7 │  1028 │     6 │ 1012 │
+├───────┼────────┼───────┼───────┼──────┤
+│     1 │      0 │    43 │     0 │   57 │
+└───────┴────────┴───────┴───────┴──────┘
+
+Part 1 of the evaluation: Evaluate ITE models by considering only accepted instances, excluding rejected ones 
+              precision    recall  f1-score   support
+
+          -1       0.22      0.03      0.06        62
+           0       0.91      0.99      0.95      1041
+           1       0.00      0.00      0.00        43
+
+    accuracy                           0.90      1146
+   macro avg       0.38      0.34      0.33      1146
+weighted avg       0.84      0.90      0.86      1146
+
+Accuracy: 0.9325
+Rejection Rate: 0.4974
+Micro TPR: 0.8988
+Micro FPR: 0.0506
+Macro TPR: 0.3399
+Macro FPR: 0.3281
+
+
+Part 2 of the evaluation: Assess ITE models by incorporating penalties for instances that are rejected.
+Micro Distance (3D ROC): 0.5101
+Macro Distance (3D ROC): 0.8892
+This matrix is the crosstab of the column ite_correct (T/F) and ite_rejected (T/F).
+┌───────┬────────┬───────┬───────┬──────┐
+│   ite │   -1.0 │   0.0 │   1.0 │    R │
+├───────┼────────┼───────┼───────┼──────┤
+│    -1 │      2 │    59 │     1 │   65 │
+├───────┼────────┼───────┼───────┼──────┤
+│     0 │      7 │  1028 │     6 │ 1012 │
+├───────┼────────┼───────┼───────┼──────┤
+│     1 │      0 │    43 │     0 │   57 │
+└───────┴────────┴───────┴───────┴──────┘
+The count of True Accepted is: 1030
+The count of False Accepted is: 116
+The count of True Rejected is: 0
+The count of False Rejected is: 0
+
+Accurancy of the rejection ( How much is correclty accepted) ): 0.8988
+Coverage of the rejection (how much is accepted) ): 1.0000
+The two measures above are clearly competing (more rejected, higher accurancy
+
+Prediction quality measures the predictor’s performance on the non-rejected examples: 0.8988
+Rejection quality indicates the rejector’s ability to reject misclassified examples: 0.0000
+Combined quality: 0.8988
+
+
+Improvements due to a rejection rate of 49.74%:
+- Change of the Misclassification Cost: 34.97%
+- Change of the ITE Accurancy: 0.73%
+- Change of the 3D ROC (micro): 75.58%
+- Change of the 3D ROC (macro): 17.51%
+
+REJECTION TYPE 1B: ONE CLASS CLASSIFICATION MODEL using OCSVM
+
+>>> The best threshold is 4
+This matrix is the crosstab of the column ite and ite_reject.
+┌───────┬────────┬───────┬───────┬──────┐
+│   ite │   -1.0 │   0.0 │   1.0 │    R │
+├───────┼────────┼───────┼───────┼──────┤
+│    -1 │      2 │    58 │     1 │   66 │
+├───────┼────────┼───────┼───────┼──────┤
+│     0 │      7 │  1014 │     6 │ 1026 │
+├───────┼────────┼───────┼───────┼──────┤
+│     1 │      0 │    43 │     0 │   57 │
+└───────┴────────┴───────┴───────┴──────┘
+
+Part 1 of the evaluation: Evaluate ITE models by considering only accepted instances, excluding rejected ones 
+              precision    recall  f1-score   support
+
+          -1       0.22      0.03      0.06        61
+           0       0.91      0.99      0.95      1027
+           1       0.00      0.00      0.00        43
+
+    accuracy                           0.90      1131
+   macro avg       0.38      0.34      0.33      1131
+weighted avg       0.84      0.90      0.86      1131
+
+Accuracy: 0.9322
+Rejection Rate: 0.5039
+Micro TPR: 0.8983
+Micro FPR: 0.0508
+Macro TPR: 0.3400
+Macro FPR: 0.3280
+
+
+Part 2 of the evaluation: Assess ITE models by incorporating penalties for instances that are rejected.
+Micro Distance (3D ROC): 0.5166
+Macro Distance (3D ROC): 0.8928
+This matrix is the crosstab of the column ite_correct (T/F) and ite_rejected (T/F).
+┌───────┬────────┬───────┬───────┬──────┐
+│   ite │   -1.0 │   0.0 │   1.0 │    R │
+├───────┼────────┼───────┼───────┼──────┤
+│    -1 │      2 │    58 │     1 │   66 │
+├───────┼────────┼───────┼───────┼──────┤
+│     0 │      7 │  1014 │     6 │ 1026 │
+├───────┼────────┼───────┼───────┼──────┤
+│     1 │      0 │    43 │     0 │   57 │
+└───────┴────────┴───────┴───────┴──────┘
+The count of True Accepted is: 1016
+The count of False Accepted is: 115
+The count of True Rejected is: 0
+The count of False Rejected is: 0
+
+Accurancy of the rejection ( How much is correclty accepted) ): 0.8983
+Coverage of the rejection (how much is accepted) ): 1.0000
+The two measures above are clearly competing (more rejected, higher accurancy
+
+Prediction quality measures the predictor’s performance on the non-rejected examples: 0.8983
+Rejection quality indicates the rejector’s ability to reject misclassified examples: 0.0000
+Combined quality: 0.8983
+
+
+Improvements due to a rejection rate of 50.39%:
+- Change of the Misclassification Cost: 35.36%
+- Change of the ITE Accurancy: 0.70%
+- Change of the 3D ROC (micro): 75.89%
+- Change of the 3D ROC (macro): 17.84%
+
+REJECTION TYPE 1C: SCORE MODEL
+
+ - Not done yet
+This matrix is the crosstab of the column ite and ite_reject.
+┌───────┬────────┬───────┬───────┬─────┐
+│   ite │   -1.0 │   0.0 │   1.0 │   R │
+├───────┼────────┼───────┼───────┼─────┤
+│    -1 │      2 │   102 │     1 │  22 │
+├───────┼────────┼───────┼───────┼─────┤
+│     0 │     10 │  1683 │    13 │ 347 │
+├───────┼────────┼───────┼───────┼─────┤
+│     1 │      1 │    71 │     3 │  25 │
+└───────┴────────┴───────┴───────┴─────┘
+
+Part 1 of the evaluation: Evaluate ITE models by considering only accepted instances, excluding rejected ones 
+              precision    recall  f1-score   support
+
+          -1       0.15      0.02      0.03       105
+           0       0.91      0.99      0.94      1706
+           1       0.18      0.04      0.07        75
+
+    accuracy                           0.90      1886
+   macro avg       0.41      0.35      0.35      1886
+weighted avg       0.84      0.90      0.86      1886
+
+Accuracy: 0.9300
+Rejection Rate: 0.1728
+Micro TPR: 0.8950
+Micro FPR: 0.0525
+Macro TPR: 0.3485
+Macro FPR: 0.3250
+
+
+Part 2 of the evaluation: Assess ITE models by incorporating penalties for instances that are rejected.
+Micro Distance (3D ROC): 0.2089
+Macro Distance (3D ROC): 0.7483
+This matrix is the crosstab of the column ite_correct (T/F) and ite_rejected (T/F).
+┌───────┬────────┬───────┬───────┬─────┐
+│   ite │   -1.0 │   0.0 │   1.0 │   R │
+├───────┼────────┼───────┼───────┼─────┤
+│    -1 │      2 │   102 │     1 │  22 │
+├───────┼────────┼───────┼───────┼─────┤
+│     0 │     10 │  1683 │    13 │ 347 │
+├───────┼────────┼───────┼───────┼─────┤
+│     1 │      1 │    71 │     3 │  25 │
+└───────┴────────┴───────┴───────┴─────┘
+The count of True Accepted is: 1688
+The count of False Accepted is: 198
+The count of True Rejected is: 0
+The count of False Rejected is: 0
+
+Accurancy of the rejection ( How much is correclty accepted) ): 0.8950
+Coverage of the rejection (how much is accepted) ): 1.0000
+The two measures above are clearly competing (more rejected, higher accurancy
+
+Prediction quality measures the predictor’s performance on the non-rejected examples: 0.8950
+Rejection quality indicates the rejector’s ability to reject misclassified examples: 0.0000
+Combined quality: 0.8950
+
+
+Improvements due to a rejection rate of 17.28%:
+- Change of the Misclassification Cost: 13.49%
+- Change of the ITE Accurancy: 0.46%
+- Change of the 3D ROC (micro): 40.38%
+- Change of the 3D ROC (macro): 1.97%
+
+ARCHITECTURE TYPE 2: DEPENDENT
+
+REJECTION TYPE 2A: REJECTION BASED ON PROBABILITIES BY MINIMIZING 3DROC 
+
+VARIANT TYPE 2A I: OPTIMIZATION OF SINGLE BOUNDARIES BY MINIMIZING 3DROC 
+
+ITE values witht a probability between the optimal underbound 0.40280039956084657 and the optimal upperbound 0.5971996004391534 are rejected This matrix is the crosstab of the column ite and ite_reject.
+┌───────┬────────┬───────┬───────┬─────┐
+│   ite │   -1.0 │   0.0 │   1.0 │   R │
+├───────┼────────┼───────┼───────┼─────┤
+│    -1 │      1 │   115 │     0 │  11 │
+├───────┼────────┼───────┼───────┼─────┤
+│     0 │      7 │  1979 │    10 │  57 │
+├───────┼────────┼───────┼───────┼─────┤
+│     1 │      1 │    87 │     1 │  11 │
+└───────┴────────┴───────┴───────┴─────┘
+
+Part 1 of the evaluation: Evaluate ITE models by considering only accepted instances, excluding rejected ones 
+              precision    recall  f1-score   support
+
+          -1       0.11      0.01      0.02       116
+           0       0.91      0.99      0.95      1996
+           1       0.09      0.01      0.02        89
+
+    accuracy                           0.90      2201
+   macro avg       0.37      0.34      0.33      2201
+weighted avg       0.83      0.90      0.86      2201
+
+Accuracy: 0.9334
+Rejection Rate: 0.0346
+Micro TPR: 0.9000
+Micro FPR: 0.0500
+Macro TPR: 0.3371
+Macro FPR: 0.3313
+
+
+Part 2 of the evaluation: Assess ITE models by incorporating penalties for instances that are rejected.
+Micro Distance (3D ROC): 0.1170
+Macro Distance (3D ROC): 0.7419
+This matrix is the crosstab of the column ite_correct (T/F) and ite_rejected (T/F).
+┌───────┬────────┬───────┬───────┬─────┐
+│   ite │   -1.0 │   0.0 │   1.0 │   R │
+├───────┼────────┼───────┼───────┼─────┤
+│    -1 │      1 │   115 │     0 │  11 │
+├───────┼────────┼───────┼───────┼─────┤
+│     0 │      7 │  1979 │    10 │  57 │
+├───────┼────────┼───────┼───────┼─────┤
+│     1 │      1 │    87 │     1 │  11 │
+└───────┴────────┴───────┴───────┴─────┘
+The count of True Accepted is: 1981
+The count of False Accepted is: 220
+The count of True Rejected is: 0
+The count of False Rejected is: 0
+
+Accurancy of the rejection ( How much is correclty accepted) ): 0.9000
+Coverage of the rejection (how much is accepted) ): 1.0000
+The two measures above are clearly competing (more rejected, higher accurancy
+
+Prediction quality measures the predictor’s performance on the non-rejected examples: 0.9000
+Rejection quality indicates the rejector’s ability to reject misclassified examples: 0.0000
+Combined quality: 0.9000
+
+
+Improvements due to a rejection rate of 3.46%:
+- Change of the Misclassification Cost: -1.76%
+- Change of the ITE Accurancy: 0.82%
+- Change of the 3D ROC (micro): -6.45%
+- Change of the 3D ROC (macro): 1.13%
+
+VARIANT TYPE 2A II: OPTIMIZATION OF DOUBLE BOUNDARIES BY MINIMIZING 3DROC  
+
+ITE values witht a probability between the optimal underbound 0.45 and the optimal upperbound 0.55 are rejected This matrix is the crosstab of the column ite and ite_reject.
+┌───────┬────────┬───────┬───────┬─────┐
+│   ite │   -1.0 │   0.0 │   1.0 │   R │
+├───────┼────────┼───────┼───────┼─────┤
+│    -1 │      1 │   121 │     1 │   4 │
+├───────┼────────┼───────┼───────┼─────┤
+│     0 │     10 │  2003 │    14 │  26 │
+├───────┼────────┼───────┼───────┼─────┤
+│     1 │      1 │    93 │     3 │   3 │
+└───────┴────────┴───────┴───────┴─────┘
+
+Part 1 of the evaluation: Evaluate ITE models by considering only accepted instances, excluding rejected ones 
+              precision    recall  f1-score   support
+
+          -1       0.08      0.01      0.01       123
+           0       0.90      0.99      0.94      2027
+           1       0.17      0.03      0.05        97
+
+    accuracy                           0.89      2247
+   macro avg       0.38      0.34      0.34      2247
+weighted avg       0.83      0.89      0.85      2247
+
+Accuracy: 0.9288
+Rejection Rate: 0.0145
+Micro TPR: 0.8932
+Micro FPR: 0.0534
+Macro TPR: 0.3424
+Macro FPR: 0.3283
+
+
+Part 2 of the evaluation: Assess ITE models by incorporating penalties for instances that are rejected.
+Micro Distance (3D ROC): 0.1203
+Macro Distance (3D ROC): 0.7351
+This matrix is the crosstab of the column ite_correct (T/F) and ite_rejected (T/F).
+┌───────┬────────┬───────┬───────┬─────┐
+│   ite │   -1.0 │   0.0 │   1.0 │   R │
+├───────┼────────┼───────┼───────┼─────┤
+│    -1 │      1 │   121 │     1 │   4 │
+├───────┼────────┼───────┼───────┼─────┤
+│     0 │     10 │  2003 │    14 │  26 │
+├───────┼────────┼───────┼───────┼─────┤
+│     1 │      1 │    93 │     3 │   3 │
+└───────┴────────┴───────┴───────┴─────┘
+The count of True Accepted is: 2007
+The count of False Accepted is: 240
+The count of True Rejected is: 0
+The count of False Rejected is: 0
+
+Accurancy of the rejection ( How much is correclty accepted) ): 0.8932
+Coverage of the rejection (how much is accepted) ): 1.0000
+The two measures above are clearly competing (more rejected, higher accurancy
+
+Prediction quality measures the predictor’s performance on the non-rejected examples: 0.8932
+Rejection quality indicates the rejector’s ability to reject misclassified examples: 0.0000
+Combined quality: 0.8932
+
+
+Improvements due to a rejection rate of 1.45%:
+- Change of the Misclassification Cost: 0.28%
+- Change of the ITE Accurancy: 0.33%
+- Change of the 3D ROC (micro): -3.54%
+- Change of the 3D ROC (macro): 0.22%
+
+REJECTION TYPE 2A: REJECTION BASED ON PROBABILITIES BY MINIMIZING MISCLASSIFICATION COSTS 
+
+ITE values witht a probability between the optimal underbound 0.3208130390072116 and the optimal upperbound 0.6791869609927884 are rejected This matrix is the crosstab of the column ite and ite_reject.
+┌───────┬────────┬───────┬───────┬─────┐
+│   ite │   -1.0 │   0.0 │   1.0 │   R │
+├───────┼────────┼───────┼───────┼─────┤
+│    -1 │      0 │   103 │     0 │  24 │
+├───────┼────────┼───────┼───────┼─────┤
+│     0 │      3 │  1897 │     5 │ 148 │
+├───────┼────────┼───────┼───────┼─────┤
+│     1 │      0 │    79 │     1 │  20 │
+└───────┴────────┴───────┴───────┴─────┘
+
+Part 1 of the evaluation: Evaluate ITE models by considering only accepted instances, excluding rejected ones 
+              precision    recall  f1-score   support
+
+          -1       0.00      0.00      0.00       103
+           0       0.91      1.00      0.95      1905
+           1       0.17      0.01      0.02        80
+
+    accuracy                           0.91      2088
+   macro avg       0.36      0.34      0.33      2088
+weighted avg       0.84      0.91      0.87      2088
+
+Accuracy: 0.9393
+Rejection Rate: 0.0842
+Micro TPR: 0.9090
+Micro FPR: 0.0455
+Macro TPR: 0.3361
+Macro FPR: 0.3328
+
+
+Part 2 of the evaluation: Assess ITE models by incorporating penalties for instances that are rejected.
+Micro Distance (3D ROC): 0.1321
+Macro Distance (3D ROC): 0.7474
+This matrix is the crosstab of the column ite_correct (T/F) and ite_rejected (T/F).
+┌───────┬────────┬───────┬───────┬─────┐
+│   ite │   -1.0 │   0.0 │   1.0 │   R │
+├───────┼────────┼───────┼───────┼─────┤
+│    -1 │      0 │   103 │     0 │  24 │
+├───────┼────────┼───────┼───────┼─────┤
+│     0 │      3 │  1897 │     5 │ 148 │
+├───────┼────────┼───────┼───────┼─────┤
+│     1 │      0 │    79 │     1 │  20 │
+└───────┴────────┴───────┴───────┴─────┘
+The count of True Accepted is: 1898
+The count of False Accepted is: 190
+The count of True Rejected is: 0
+The count of False Rejected is: 0
+
+Accurancy of the rejection ( How much is correclty accepted) ): 0.9090
+Coverage of the rejection (how much is accepted) ): 1.0000
+The two measures above are clearly competing (more rejected, higher accurancy
+
+Prediction quality measures the predictor’s performance on the non-rejected examples: 0.9090
+Rejection quality indicates the rejector’s ability to reject misclassified examples: 0.0000
+Combined quality: 0.9090
+
+
+Improvements due to a rejection rate of 8.42%:
+- Change of the Misclassification Cost: -1.23%
+- Change of the ITE Accurancy: 1.45%
+- Change of the 3D ROC (micro): 5.69%
+- Change of the 3D ROC (macro): 1.86%
+
+
+Table of test_set (First 20 rows)
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+----------+------------+-----------------+-------+------------------+------------------+---------------+----------+
+| treatment | y_t1_pred | y_t1_prob | y_t0_pred | y_t0_prob | ite_pred | ite_prob | y_t0 | y_t1 | ite  |   category   | category_pred | cost_ite | ite_reject | cost_ite_reject |  ood  | y_t1_reject_prob | y_t0_reject_prob | y_reject_prob | y_reject |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+----------+------------+-----------------+-------+------------------+------------------+---------------+----------+
+|     0     |    0.0    |   0.035   |    0.0    |  0.0812   |   0.0    | -0.0462  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | True  |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0115   |    0.0    |   0.018   |   0.0    | -0.0065  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0259   |    0.0    |   0.039   |   0.0    | -0.0131  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0603   |    0.0    |  0.0832   |   0.0    | -0.0229  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |   0.004   |    0.0    |   0.007   |   0.0    |  -0.003  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |   0.046   |    0.0    |   0.055   |   0.0    |  -0.009  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    1.0    |   0.917   |    1.0    |  0.8727   |   0.0    |  0.0443  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.0788   |    0.0    |  0.1032   |   0.0    | -0.0243  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.0034   |    0.0    |  0.0079   |   0.0    | -0.0044  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0081   |    0.0    |  0.0319   |   0.0    | -0.0239  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | True  |      False       |      False       |     False     |  False   |
+|     0     |    1.0    |  0.6094   |    1.0    |  0.5665   |   0.0    |  0.0429  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |    0     |     R      |        2        | False |       True       |       True       |     True      |   True   |
+|     0     |    0.0    |  0.0767   |    0.0    |  0.0961   |   0.0    | -0.0195  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.3825   |    0.0    |  0.1327   |   0.0    |  0.2497  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |    10    |    0.0     |       10        | True  |       True       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0471   |    0.0    |  0.0749   |   0.0    | -0.0278  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0017   |    0.0    |   0.003   |   0.0    | -0.0014  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | True  |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0093   |    0.0    |  0.0107   |   0.0    | -0.0014  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | True  |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.1066   |    0.0    |  0.1436   |   0.0    |  -0.037  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.0213   |    0.0    |  0.0847   |   0.0    | -0.0634  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.3375   |    0.0    |  0.3462   |   0.0    | -0.0087  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |    10    |     R      |        2        | False |       True       |       True       |     True      |   True   |
+|     0     |    0.0    |  0.0053   |    0.0    |  0.0054   |   0.0    | -0.0001  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |    0     |    0.0     |        0        | True  |      False       |      False       |     False     |  False   |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+----------+------------+-----------------+-------+------------------+------------------+---------------+----------+

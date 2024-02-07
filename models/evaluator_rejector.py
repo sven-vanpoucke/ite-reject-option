@@ -1,8 +1,8 @@
 import pandas as pd
 
 def learning_to_reject_confusion_matrix(test_set, file_path):
+    
     # Add column: prediction correct? T/F
-
     test_set['ite_correct'] = test_set.apply(lambda row: True if row['ite'] == row['ite_pred'] else False, axis=1)
 
     # Prediction correct: yes-no

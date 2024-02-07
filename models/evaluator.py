@@ -55,8 +55,13 @@ def calculate_crosstab_matrix_names(t0, t1, data, file_path):
 
 def calculate_crosstab(value, value_pred, data, file_path, print=False):
     # Info on: https://www.v7labs.com/blog/confusion-matrix-guide
+    if print==True:
+        cross_tab = pd.crosstab(data[value], data[value_pred])
+        with open(file_path, 'a') as file:
+            file.write(f"This matrix is the crosstab of the column {value} and {value_pred}.\n")
+            file.write(tabulate(cross_tab, headers='keys', tablefmt='simple_grid'))
+    
     length_before_rejection = len(data)
-
     data = data[data[value_pred] != 'R'].copy()
     length_after_rejection = len(data)
     data[value] = data[value].astype(int)
@@ -153,24 +158,69 @@ def calculate_crosstab(value, value_pred, data, file_path, print=False):
 
     micro_distance_threedroc = threedroc(micro_tpr, micro_fpr, rr)
     macro_distance_threedroc = threedroc(macro_tpr, macro_fpr, rr)
+
     if print == True:
         evaluator_print(file_path, classificationreport, rr, accurancy, micro_tpr, micro_fpr, macro_tpr, macro_fpr, micro_distance_threedroc, macro_distance_threedroc)
     
+    # EXTRA METRICS IF REJECTION
+    if 'ite_reject' in data.columns:
+        # Add column: prediction correct? T/F
+        data['ite_correct'] = data.apply(lambda row: True if row['ite'] == row['ite_pred'] else False, axis=1)
+        data['ite_rejected'] = data.apply(lambda row: True if row['ite_reject'] == 'R' else False, axis=1)
+
+        # Prediction correct: yes-no
+        # Rejection: yes-no
+        # Assuming ite_correct and ite_rejected are boolean columns
+        correctly_accepted = data[(data['ite_correct'] == True) & (data['ite_rejected'] == False)] # TA Prediction is correct, and the item is not rejected = True accepted
+        correctly_rejected = data[(data['ite_correct'] == False) & (data['ite_rejected'] == True)] # TR Prediction is incorrect, and the item is rejected
+        incorrectly_rejected = data[(data['ite_correct'] == True) & (data['ite_rejected'] == True)] # FR Prediction is correct, but the item is rejected
+        incorrectly_accepted = data[(data['ite_correct'] == False) & (data['ite_rejected'] == False)] # FA Prediction is incorrect, and the item is not rejected
+
+        TA = len(correctly_accepted)
+        FA = len(incorrectly_accepted)
+        TR = len(correctly_rejected)
+        FR = len(incorrectly_rejected)
+
+        accurancy_rejection = TA / (TA + FA) if (TA + FA) != 0 else 0
+        coverage_rejection = (TA+FA) / (TA+FA+FR+TR)
+    
+        #Evaluating models with a fixed rejection rate
+        prediction_quality = TA / (TA + FA) if (TA + FA) != 0 else 0
+        rejection_quality = (TR/FR) / ((FA+TR)/(TA+FR)) if (TA+FR) != 0 and FR != 0 else 0
+        combined_quality = (TA+TR) / (TA+FA+FR+TR)
+
+        if print==True:
+            with open(file_path, 'a') as file:
+                file.write("This matrix is the crosstab of the column ite_correct (T/F) and ite_rejected (T/F).\n")
+                file.write(tabulate(cross_tab, headers='keys', tablefmt='simple_grid'))
+                file.write("\n")
+                file.write(f"The count of True Accepted is: {TA}\n")
+                file.write(f"The count of False Accepted is: {FA}\n")
+                file.write(f"The count of True Rejected is: {TR}\n")
+                file.write(f"The count of False Rejected is: {FR}\n\n")
+
+                file.write(f"Accurancy of the rejection ( How much is correclty accepted) ): {accurancy_rejection:.4f}\n")
+                file.write(f"Coverage of the rejection (how much is accepted) ): {coverage_rejection:.4f}\n")
+                file.write(f"The two measures above are clearly competing (more rejected, higher accurancy\n\n")
+                file.write(f"Prediction quality measures the predictor’s performance on the non-rejected examples: {prediction_quality:.4f}\n")
+                file.write(f"Rejection quality indicates the rejector’s ability to reject misclassified examples: {rejection_quality:.4f}\n")
+                file.write(f"Combined quality: {combined_quality:.4f}\n") 
+                file.write("\n")
 
     return accurancy, rr, micro_tpr, micro_fpr, macro_tpr, macro_fpr, micro_distance_threedroc, macro_distance_threedroc
 
 def evaluator_print(file_path, classificationreport, rr, accurancy, micro_tpr, micro_fpr, macro_tpr, macro_fpr, micro_distance_threedroc, macro_distance_threedroc):
     with open(file_path, 'a') as file:
-        file.write(f"\n")
+        file.write(f"\n\nPart 1 of the evaluation: Evaluate ITE models by considering only accepted instances, excluding rejected ones \n")
         file.write(classificationreport)
         file.write("\n")
         file.write(f"Accuracy: {accurancy:.4f}\n")
         file.write(f"Rejection Rate: {rr:.4f}\n")
-
         file.write(f"Micro TPR: {micro_tpr:.4f}\n")
         file.write(f"Micro FPR: {micro_fpr:.4f}\n")
         file.write(f"Macro TPR: {macro_tpr:.4f}\n")
         file.write(f"Macro FPR: {macro_fpr:.4f}\n")
+        file.write(f"\n\nPart 2 of the evaluation: Assess ITE models by incorporating penalties for instances that are rejected.\n")
         file.write(f"Micro Distance (3D ROC): {micro_distance_threedroc:.4f}\n")
         file.write(f"Macro Distance (3D ROC): {macro_distance_threedroc:.4f}\n")
 

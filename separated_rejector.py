@@ -28,7 +28,7 @@ from models.helper import print_rejection
 from models.rejectors.rejector import distance_test_to_train, is_out_of_distribution, nbrs_train
 from models.helper import improvement
 # REJECTION OOD - OCSVM
-from models.rejectors.ocsvm import train_ocsvm, distance_test_to_train_ocsvm, is_out_of_distribution_ocsvm
+from models.rejectors.ocsvm import train_ocsvm, distance_test_to_train_ocsvm, is_out_of_distribution_ocsvm, calculate_objective_threedroc_threshold
 # REJECTION PROBABILITIES
 from scipy.optimize import minimize_scalar, minimize
 from models.rejectors.rejector import calculate_objective_threedroc_double_variable, calculate_objective_threedroc_single_variable, calculate_objective_misclassificationcost_single_variable
@@ -180,25 +180,8 @@ test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['ood'] else row['
 
 print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
 
-
-
 # REJECTION ONE CLASS CLASSIFICATION MODEL
-# Generally, they enclose the dataset into a specific surface and
-# flag any example that falls outside such region as novelty. For instance, a typical
-# approach is to use a One-Class Support Vector Machine (OCSVM) to encapsulate the training data through a hypersphere (Coenen et al. 2020; Homenda et al.
-# 2014). By adjusting the size of the hypersphere, the
 
-with open(file_path, 'a') as file:
-    file.write(f"\nREJECTION TYPE 1B: ONE CLASS CLASSIFICATION MODEL\n")
-
-model = nbrs_train(train_x)
-d = distance_test_to_train(model, test_x)
-test_set['ood'] = d.apply(is_out_of_distribution, threshold_distance=6)
-test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
-
-print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
-
-# REJECTION ONE CLASS CLASSIFICATION MODEL
 # Generally, they enclose the dataset into a specific surface and
 # flag any example that falls outside such region as novelty. For instance, a typical
 # approach is to use a One-Class Support Vector Machine (OCSVM) to encapsulate the training data through a hypersphere (Coenen et al. 2020; Homenda et al.
@@ -213,12 +196,41 @@ with open(file_path, 'a') as file:
 model_ocsvm = train_ocsvm(train_x)
 distances_ocsvm = distance_test_to_train_ocsvm(model_ocsvm, test_x)
 
-# Assuming you have a threshold_distance defined
-threshold_distance = 4
+# Run the optimization of the threshold
+result = minimize_scalar(calculate_objective_threedroc_threshold, bounds=(0, 40), method='bounded', args=(test_set, file_path, distances_ocsvm), options={'disp': True})
+# Get the optimal value
+threshold_distance = result.x
+# threshold_distance = 4
+
+with open(file_path, 'a') as file:
+    file.write(f"\n>>> The best threshold is {threshold_distance}\n")
+
 test_set['ood'] = distances_ocsvm.apply(is_out_of_distribution_ocsvm, threshold=threshold_distance)
 test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
 
-# Assuming you have functions like 'print_rejection' defined
+print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+
+
+# Rejection using OCSVM
+with open(file_path, 'a') as file:
+    file.write(f"\nREJECTION TYPE 1B: ONE CLASS CLASSIFICATION MODEL using OCSVM\n")
+
+# Assuming train_x and test_x are your training and test data, replace with actual data
+model_ocsvm = train_ocsvm(train_x)
+distances_ocsvm = distance_test_to_train_ocsvm(model_ocsvm, test_x)
+
+# Run the optimization of the threshold
+# result = minimize_scalar(calculate_objective_threedroc_threshold, bounds=(0, 40), method='bounded', args=(test_set, file_path, distances_ocsvm), options={'disp': True})
+# # Get the optimal value
+# threshold_distance = result.x
+threshold_distance = 4
+
+with open(file_path, 'a') as file:
+    file.write(f"\n>>> The best threshold is {threshold_distance}\n")
+
+test_set['ood'] = distances_ocsvm.apply(is_out_of_distribution_ocsvm, threshold=threshold_distance)
+test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
+
 print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
 
 # REJECTION SCORES MODEL
@@ -240,8 +252,6 @@ test_set['ood'] = d.apply(is_out_of_distribution, threshold_distance=6)
 test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
 
 print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
-
-
 
 # ARCHITECTURE TYPE 2: DEPENDENT
 with open(file_path, 'a') as file:
@@ -304,9 +314,6 @@ test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] 
 with open(file_path, 'a') as file:
     file.write(f"\nITE values witht a probability between the optimal underbound {prob_reject_under_bound} and the optimal upperbound {prob_reject_upper_bound} are rejected ")
 print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
-
-
-
 
 with open(file_path, 'a') as file:
     file.write("\n\nTable of test_set (First 20 rows)\n")
