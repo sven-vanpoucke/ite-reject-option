@@ -1,6 +1,6 @@
 from sklearn.svm import OneClassSVM
 import pandas as pd
-from models.evaluator import calculate_crosstab
+from models.evaluators.performance_evaluator import calculate_performance_metrics
 # Assuming you have the necessary functions like 'nbrs_train', 'distance_test_to_train', etc.
 
 # Function to train OCSVM model
@@ -33,7 +33,11 @@ def calculate_objective_threedroc_threshold(threshold_distance, *args):
     test_set['ood'] = distances_ocsvm.apply(is_out_of_distribution_ocsvm, threshold=threshold_distance)
     test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
 
-    accurancy, rr, micro_tpr, micro_fpr, macro_tpr, macro_fpr, micro_distance_threedroc, macro_distance_threedroc = calculate_crosstab('ite', 'ite_reject', test_set, file_path)
+    metrics_dict = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path)
+    micro_distance_threedroc = metrics_dict['Micro Distance (3D ROC)']
+
+    # micro_distance_threedroc = calculate_threedroc(micro_tpr, micro_fpr, rr)
+
     # print(f"The current under bound is: {prob_reject_under_bound}")
     # print(f"The current upper bound is: {prob_reject_upper_bound}")
     # print(f"The current rejection rate is is: {rr}")

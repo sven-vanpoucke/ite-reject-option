@@ -1,0 +1,39 @@
+
+
+
+About the matrix: Lost Cause, Sleeping Dog, Persuadable, Sure Thing
+Comment:
+ - Upper left cell: amount of cases that have outcome 0: no matter if you would treat or not
+   If treat, they stay alive, if no treat they also stay alive.
+ - Under right cell: amount of cases that have outcome 1: no matter if you would treat or not
+   If treat, they die, if no treat they also die.
+ - Upper right cell: amount of cases that have outcome 1 if treated, but outcome 0 if not treated
+   If treat, they die, if no treat they stay alive.
+ - Under left cell: amount of cases that have outcome 0 if treated, but outcome 1 if not treated
+   If treat, they stay alive, if no treat they die.
+
+
+
+#micro: Micro specificity is calculated by considering the global count of true negatives and false positives across all classes. It gives equal weight to each instance, regardless of its class.
+#macro: Macro specificity is calculated by computing specificity for each class individually and then taking the average. It treats each class equally, regardless of the class size.
+
+
+
+
+This matrix is the crosstab of the column ite_correct (T/F) and ite_rejected (T/F).
++-----------------+-----------------+
+| ite_correct     | ite_rejected    |
++-----------------+-----------------+
+| True Accepted   | False Accepted  |
+| True Rejected   | False Rejected  |
++-----------------+-----------------+
+Accurancy of the rejection ( How much is correclty accepted) ): {accurancy_rejection:.4f}
+Coverage of the rejection (how much is accepted) ): {coverage_rejection:.4f}
+The two measures above are clearly competing (more rejected, higher accurancy)
+
+Prediction quality measures the predictor’s performance on the non-rejected examples: {prediction_quality:.4f}
+Rejection quality indicates the rejector’s ability to reject misclassified examples: {rejection_quality:.4f}
+Combined quality: {combined_quality:.4f}
+
+Miclassification Cost
+Cc < Cr < Ce

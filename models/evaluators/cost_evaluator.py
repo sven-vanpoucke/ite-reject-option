@@ -15,7 +15,32 @@ Comments:
 
 This file contains everything related to misclassification costs. These amount are expressed in a valuta (p.e. EUR).
 """
+def categorize(row, is_pred=True):
+    """
+    Categorizes a row based on the values of y_t0 and y_t1.
 
+    Parameters:
+    - row: A dictionary representing a row of data.
+    - is_pred: A boolean indicating whether the values are predictions or not.
+
+    Returns:
+    - A string representing the category of the row.
+    """
+    if is_pred:
+        y_t0 = row['y_t0_pred']
+        y_t1 = row['y_t1_pred']
+    else:
+        y_t0 = row['y_t0']
+        y_t1 = row['y_t1']
+
+    if y_t0 == 0 and y_t1 == 0:
+        return 'Lost Cause'
+    elif y_t0 == 1 and y_t1 == 0:
+        return 'Sleeping Dog'
+    elif y_t0 == 0 and y_t1 == 1:
+        return 'Persuadable' # (can be rescued)
+    elif y_t0 == 1 and y_t1 == 1:
+        return 'Sure Thing'
 
 def define_cost_matrix(cost_correct=0, cost_same_treatment=0, cost_wasted_treatment=5, cost_potential_improvement=10):
     cost_matrix = {
@@ -51,10 +76,23 @@ def define_cost_matrix(cost_correct=0, cost_same_treatment=0, cost_wasted_treatm
 def calculate_cost_ite(row):
     cost_matrix = define_cost_matrix()
     true_category = row['category']
-    pred_category = row['category_pred']
-    return cost_matrix[true_category][pred_category]
+    pred_category = row['category_rej']
+    cost = cost_matrix[true_category][pred_category]
+    return cost
 
-def calculate_misclassification_cost(test_set, rejection_cost=2):
-    test_set['cost_ite_reject'] = test_set.apply(lambda row: rejection_cost if row['ite_reject']=="R" else row['cost_ite'], axis=1)
-    total_cost_ite_2 = test_set['cost_ite_reject'].sum()
-    return total_cost_ite_2
+def calculate_misclassification_cost(data, rejection_cost=2):
+    data['category_rej'] = data.apply(categorize, axis=1)
+    data['cost_ite'] = data.apply(calculate_cost_ite, axis=1)
+    data['cost_ite_reject'] = data.apply(lambda row: rejection_cost if row['ite_reject']=="R" else row['cost_ite'], axis=1)
+    total_cost_ite = data['cost_ite_reject'].sum()
+    return total_cost_ite
+
+def calculate_cost_metrics(value, value_pred, data, file_path, print=False):
+
+    total_cost_ite = calculate_misclassification_cost(data)
+    
+    metrics_dict = {
+        'Misclassification Cost': total_cost_ite,
+    }
+
+    return metrics_dict

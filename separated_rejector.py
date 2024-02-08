@@ -29,6 +29,12 @@ Table of contents:
 ## Chapter 6C: Calculate and report performance measurements
 
 # CHAPTER 7: REJECTION
+# Baseline Model - No Rejection // Experiment 0
+# OOD: K-Nearest Neighbors // Experiment 1
+# One Class Classification - OCSVM // Experiment 2
+# Probabilities symetric upper and under bound // Experiment 3
+# Probabilities asymetric upper and under bound // Experiment 4
+# REJECTION TYPE 2A: REJECTION BASED ON PROBABILITIES BY MINIMIZING MISCLASSIFICATION COSTS // Experiment 5
 
 
 # CHAPTER 8: Output to file
@@ -41,7 +47,6 @@ from tabulate import tabulate
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.metrics import mean_squared_error
 ## INIT
 from models.helper import helper_output
 ## PREPROCESSING
@@ -56,12 +61,12 @@ from models.predictor import predictor_train_predictions, predictor_test_predict
 ## EVALUATE INDIVIDUAL MODELS
 from models.model_evaluator import evaluation_binary
 # EVALUATE OVERALL ITE MODEL: PERFORMANCE
-from models.evaluator import categorize, categorize_pred, instructions_matrix, calculate_crosstab, calculate_crosstab
+from models.evaluators.cost_evaluator import categorize # calculate_performance_metrics
 ## EVALUATE OVERALL ITE MODEL: COSTS
-from models.cost import calculate_cost_ite
-from models.evaluator import calculate_crosstab_matrix_names
+from models.evaluators.cost_evaluator import calculate_cost_ite
 ## REJECTION
 from models.helper import print_rejection
+from models.evaluators.evaluator import calculate_all_metrics
 ## REJECTION OOD
 from models.rejectors.rejector import distance_test_to_train, is_out_of_distribution, nbrs_train
 from models.helper import improvement
@@ -81,28 +86,28 @@ prob_reject_upper_bound = 0.55
 prob_reject_under_bound = 0.45
 timestamp, file_name, file_path = helper_output(folder_path=folder_path)
 ## Assuming you have the following metrics for each experiment
-experiment_results = {
-    'Experiment': [],
-    'Architecture Type': [],
-    'Rejection Type': [],
-    'Accuracy': [],
-    'Rejection Rate': [],
-    'Micro TPR': [],
-    'Micro FPR': [],
-    'Macro TPR': [],
-    'Macro FPR': [],
+metrics_results = {
+    # 'Experiment': [],
+    # 'Architecture Type': [],
+    # 'Rejection Type': [],
+    # 'Accuracy': [],
+    # 'Rejection Rate': [],
+    # 'Micro TPR': [],
+    # 'Micro FPR': [],
+    # 'Macro TPR': [],
+    # 'Macro FPR': [],
 }
 
 def append_result(experiment, architecture_type, rejection_type, metric1, metric2, metric3, metric4, metric5, metric6):
-    experiment_results['Experiment'].append(experiment)
-    experiment_results['Architecture Type'].append(architecture_type)
-    experiment_results['Rejection Type'].append(rejection_type)
-    experiment_results['Accuracy'].append(round(metric1, 4))
-    experiment_results['Rejection Rate'].append(round(metric2, 4))
-    experiment_results['Micro TPR'].append(round(metric3, 4))
-    experiment_results['Micro FPR'].append(round(metric4, 4))
-    experiment_results['Macro TPR'].append(round(metric5, 4))
-    experiment_results['Macro FPR'].append(round(metric6, 4))
+    metrics_results['Experiment'].append(experiment)
+    metrics_results['Architecture Type'].append(architecture_type)
+    metrics_results['Rejection Type'].append(rejection_type)
+    metrics_results['Accuracy'].append(round(metric1, 4))
+    metrics_results['Rejection Rate'].append(round(metric2, 4))
+    metrics_results['Micro TPR'].append(round(metric3, 4))
+    metrics_results['Micro FPR'].append(round(metric4, 4))
+    metrics_results['Macro TPR'].append(round(metric5, 4))
+    metrics_results['Macro FPR'].append(round(metric6, 4))
 
 # Chapter 2: Preprocessing
 ## Chapter 2A: Output to file
@@ -181,19 +186,7 @@ with open(file_path, 'a') as file:
 ## Chapter 5B: Preprocessing of the test_set
 test_set = pd.concat([test_t, test_y_t1_pred, test_y_t1_prob, test_y_t0_pred, test_y_t0_prob, test_ite_pred, test_ite_prob, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
 
-## Chapter 5C: Calculate and report performance measurements
-### Calculate
-rmse = np.sqrt(mean_squared_error(test_set['ite'], test_set['ite_prob'])) # Calculate Root Mean Squared Error (RMSE)
-ate_accuracy = np.abs(test_set['ite_pred'].mean() - test_set['ite'].mean()) # Evaluate ATE accuracy
-accurancy, rr, micro_tpr, micro_fpr, macro_tpr, macro_fpr, micro_distance_threedroc, macro_distance_threedroc = calculate_crosstab('ite', 'ite_pred', test_set, file_path)
-#### Log results
-with open(file_path, 'a') as file:
-    file.write(f"\n\nRoot Mean Squared Error (RMSE) between the ite and ite_prob: {rmse.round(4)}\n\n")
-    file.write(f"The Actual Average Treatment Effect (ATE): {test_set['ite'].mean().round(4)}\n")
-    file.write(f"The Predicted Average Treatment Effect (ATE): {test_set['ite_pred'].mean().round(4)}\n")
-    file.write(f"Accuracy of Average Treatment Effect (ATE): {ate_accuracy.round(4)}\n")
-
-# Chapter 6: Evaluate overall ITE Model: Performance
+# Chapter 6: Evaluate overall ITE Model: Costs
 ## Chapter 6A: Output to file
 with open(file_path, 'a') as file:
     file.write(f"\n\nCHAPTER 7: EVALUATE OVERALL ITE MODEL: COST \n\n")
@@ -201,20 +194,9 @@ with open(file_path, 'a') as file:
 
 ## Chapter 5B: Preprocessing of the test_set
 ### Apply the categorization function to create the 'Category' column
-test_set['category'] = test_set.apply(categorize, axis=1)
-test_set['category_pred'] = test_set.apply(categorize_pred, axis=1)
-### Apply the calculate_cost function to each row in the DataFrame
-test_set['cost_ite'] = test_set.apply(calculate_cost_ite, axis=1)
-### Calculate total misclassification cost
-total_cost_ite = test_set['cost_ite'].sum()
-
-## Chapter 5C: Calculate and report performance measurements
-instructions_matrix(file_path)
-calculate_crosstab_matrix_names('y_t0', 'y_t1', test_set, file_path)
-calculate_crosstab_matrix_names('y_t0_pred', 'y_t1_pred', test_set, file_path)
-### Report
-with open(file_path, 'a') as file:
-    file.write(f"\nTotal Misclassification Cost: {total_cost_ite}\n")
+test_set['category'] = test_set.apply(categorize, axis=1, is_pred=False)
+test_set['category_pred'] = test_set.apply(categorize, axis=1)
+test_set['category_rej'] = test_set.apply(categorize, axis=1)
 
 #######################################################################################################################
 
@@ -241,10 +223,21 @@ rej_type = "No Rejection"
 test_set['ite_reject'] = test_set.apply(lambda row: row['ite_pred'], axis=1)
 
     # Step 5 Calculate the performance metrics
-accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2 = calculate_crosstab('ite', 'ite_reject', test_set, file_path, print = True)
-append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
-print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+#metrics_dict = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path)
+# accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2, accurancy_rejection_2, coverage_rejection_2, prediction_quality_2, rejection_quality_2, combined_quality_2 = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path, print = True)
+# append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
+# print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
 
+calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
+
+"""
+with open(file_path, 'a') as file:
+    file.write(f"\n\nRoot Mean Squared Error (RMSE) between the ite and ite_prob: {rmse.round(4)}\n\n")
+    file.write(f"The Actual Average Treatment Effect (ATE): {test_set['ite'].mean().round(4)}\n")
+    file.write(f"The Predicted Average Treatment Effect (ATE): {test_set['ite_pred'].mean().round(4)}\n")
+    file.write(f"Accuracy of Average Treatment Effect (ATE): {ate_accuracy.round(4)}\n")
+    file.write(f"\nTotal Misclassification Cost: {total_cost_ite}\n")
+"""
 
 #######################################################################################################################
 ## CHAPTER 7C: Architecture Type = Separated
@@ -275,9 +268,11 @@ test_set['ood'] = d.apply(is_out_of_distribution, threshold_distance=6)
 test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
 
     # Step 5 Calculate and report the performance metrics
-accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2 = calculate_crosstab('ite', 'ite_reject', test_set, file_path, print = True)
-append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
-print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+# accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2, accurancy_rejection_2, coverage_rejection_2, prediction_quality_2, rejection_quality_2, combined_quality_2 = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path, print = True)
+# append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
+# print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+
+calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
 
 ### Rejection based on One Class Classification Model
 """
@@ -311,9 +306,11 @@ test_set['ood'] = distances_ocsvm.apply(is_out_of_distribution_ocsvm, threshold=
 test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
 
     # Step 5 Calculate and report the performance metrics
-accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2 = calculate_crosstab('ite', 'ite_reject', test_set, file_path, print = True)
-append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
-print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+# accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2, accurancy_rejection_2, coverage_rejection_2, prediction_quality_2, rejection_quality_2, combined_quality_2 = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path, print = True)
+# append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
+# print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+
+calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
 
 ### Rejection based on SCORES MODEL
 """
@@ -345,9 +342,9 @@ with open(file_path, 'a') as file:
 test_set['ite_reject'] = test_set.apply(lambda row: row['ite_pred'], axis=1)
 
     # Step 5 Calculate and report the performance metrics
-accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2 = calculate_crosstab('ite', 'ite_reject', test_set, file_path, print = True)
-append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
-print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+# accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2, accurancy_rejection_2, coverage_rejection_2, prediction_quality_2, rejection_quality_2, combined_quality_2 = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path, print = True)
+# append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
+# print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
 
 #######################################################################################################################
 
@@ -384,9 +381,10 @@ test_set['y_reject'] = test_set.apply(lambda row: True if row['y_t0_reject_prob'
 test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] else row['ite_pred'], axis=1)
 
     # Step 5 Calculate and report the performance metrics
-accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2 = calculate_crosstab('ite', 'ite_reject', test_set, file_path, print = True)
-append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
-print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+# accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2, accurancy_rejection_2, coverage_rejection_2, prediction_quality_2, rejection_quality_2, combined_quality_2 = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path, print = True)
+# append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
+# print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
 
 # Probabilities asymetric upper and under bound // Experiment 4
 
@@ -412,9 +410,10 @@ test_set['y_reject'] = test_set.apply(lambda row: True if row['y_t0_reject_prob'
 test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
 
     # Step 5 Calculate and report the performance metrics
-accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2 = calculate_crosstab('ite', 'ite_reject', test_set, file_path, print = True)
-append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
-print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+# accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2, accurancy_rejection_2, coverage_rejection_2, prediction_quality_2, rejection_quality_2, combined_quality_2 = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path, print = True)
+# append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
+# print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
 
 
 # REJECTION TYPE 2A: REJECTION BASED ON PROBABILITIES BY MINIMIZING MISCLASSIFICATION COSTS // Experiment 5
@@ -440,34 +439,56 @@ test_set['y_reject'] = test_set.apply(lambda row: True if row['y_t0_reject_prob'
 test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] else row['ite_pred'], axis=1)
 
     # Step 5 Calculate and report the performance metrics
-accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2 = calculate_crosstab('ite', 'ite_reject', test_set, file_path, print = True)
-append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
-print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+# accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2, accurancy_rejection_2, coverage_rejection_2, prediction_quality_2, rejection_quality_2, combined_quality_2 = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path, print = True)
+# append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
+# print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
 
+metrics_results = pd.DataFrame(metrics_results)
+improvement_matrix = metrics_results.copy()
+for col in improvement_matrix.columns[0:]:
+    improvement_matrix[col] = (improvement_matrix[col] - improvement_matrix[col].iloc[0]) / improvement_matrix[col].iloc[0] * 100
+improvement_matrix = pd.DataFrame(improvement_matrix)
+
+experiments = {
+    0: "No Rejector: Baseline Model",
+    1: "Separated Rejector - O.O.D.: K-Nearest Neighbors",
+    2: "Separated Rejector - One Class Classification: OCSVM",
+    3: "Dependent Rejector - Rejection based on probabilities: symetric symmetric upper & under bound (minimization of 3D ROC)",
+    4: "Dependent Rejector - Rejection based on probabilities: asymmetric upper & under bound (minimization of 3D ROC)",
+    5: "Dependent Rejector - Rejection based on probabilities: symmetric upper & under bound (minimization of misclassification costs)"
+}
 
 # Chapter 8: Output to file
 with open(file_path, 'a') as file:
+
     file.write("\n\nTable of test_set (First 20 rows)\n")
     file.write(tabulate(test_set.head(20), headers='keys', tablefmt='pretty', showindex=False))
-
-    file.write("\n\nTable of results of the experiments\n")
-    file.write(tabulate(experiment_results, headers='keys', tablefmt='rounded_grid', showindex=False))
     
-    experiment_results = pd.DataFrame(experiment_results)
+    file.write ("\n")
+    for exp_number, description in experiments.items():
+        file.write(f"# Experiment {exp_number}: {description}\n")
 
-    file.write("\n\nTable of results of the experiments\n")
-    file.write(tabulate(experiment_results.T, headers='keys', tablefmt='rounded_grid', showindex=True))
+    file.write("\nTable of results of the experiments\n")
+    file.write(tabulate(metrics_results.T, headers='keys', tablefmt='rounded_grid', showindex=True))
+    
+    file.write ("\n")
+    for exp_number, description in experiments.items():
+        file.write(f"# Experiment {exp_number}: {description}\n")
 
-# Assuming results_df is your DataFrame
+    file.write("\nTable of change (%) of each experiment in comparision with the baseline model\n")
+    file.write(tabulate(improvement_matrix.T, headers='keys', tablefmt='rounded_grid', showindex=True))
+
 # Select numeric columns excluding the "experiment" column
-numeric_columns = experiment_results.select_dtypes(include=['number']).drop(columns=['Experiment'])
+numeric_columns = metrics_results.select_dtypes(include=['number'])
+# numeric_columns = metrics_results.select_dtypes(include=['number']).drop(columns=['Experiment'])
 
 # Create a heatmap
 plt.figure(figsize=(10, 8))
 heatmap = sns.heatmap(numeric_columns, annot=True, cmap='coolwarm', fmt=".2f")
 plt.title("Heatmap of Numeric Columns in DataFrame")
 # Add row labels
-heatmap.set_yticklabels(experiment_results['Rejection Type'], rotation=0)
+#heatmap.set_yticklabels(metrics_results['Rejection Type'], rotation=0)
 # Save the heatmap as an image file (e.g., PNG)
 plt.savefig("output/heatmap.png")
 plt.close()

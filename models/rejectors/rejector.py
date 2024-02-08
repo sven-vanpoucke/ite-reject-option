@@ -1,7 +1,7 @@
 from sklearn.neighbors import NearestNeighbors
 import pandas as pd 
-from models.evaluator import calculate_crosstab
-from models.cost import calculate_misclassification_cost
+from models.evaluators.performance_evaluator import calculate_performance_metrics
+from models.evaluators.cost_evaluator import calculate_misclassification_cost
 def nbrs_train(train_data, n_neighbors=5):
     nbrs_train = NearestNeighbors(n_neighbors=n_neighbors, algorithm='auto').fit(train_data)
     return nbrs_train
@@ -38,7 +38,9 @@ def calculate_objective_threedroc_single_variable(prob_reject_upper_bound, *args
     test_set['y_reject_prob'] = test_set.apply(lambda row: True if row['y_t0_reject_prob'] and row['y_t1_reject_prob'] else False, axis=1)
     test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] else row['ite_pred'], axis=1)
     
-    accurancy, rr, micro_tpr, micro_fpr, macro_tpr, macro_fpr, micro_distance_threedroc, macro_distance_threedroc = calculate_crosstab('ite', 'ite_reject', test_set, file_path)
+    metrics_dict = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path)
+    micro_distance_threedroc = metrics_dict['Micro Distance (3D ROC)']
+
     # print(f"The current under bound is: {prob_reject_under_bound}")
     # print(f"The current upper bound is: {prob_reject_upper_bound}")
     # print(f"The current rejection rate is is: {rr}")
@@ -59,7 +61,9 @@ def calculate_objective_threedroc_double_variable(param, *args):
     test_set['y_reject_prob'] = test_set.apply(lambda row: True if row['y_t0_reject_prob'] and row['y_t1_reject_prob'] else False, axis=1)
     test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] else row['ite_pred'], axis=1)
     
-    accurancy, rr, micro_tpr, micro_fpr, macro_tpr, macro_fpr, micro_distance_threedroc, macro_distance_threedroc = calculate_crosstab('ite', 'ite_reject', test_set, file_path)
+    metrics_dict = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path)
+    micro_distance_threedroc = metrics_dict['Micro Distance (3D ROC)']
+
     # print(f"The current under bound is: {prob_reject_under_bound}")
     # print(f"The current upper bound is: {prob_reject_upper_bound}")
     # print(f"The current rejection rate is is: {rr}")
