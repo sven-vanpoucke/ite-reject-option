@@ -13,9 +13,28 @@ Comment:
    If treat, they stay alive, if no treat they die.
 
 
+Metrics:
+# Accuracy = (TP + TN) / N
+# Rejection Rate = (non-rejected )/ N
+# ATE Accuracy = absolute value of (ATE_real - ATE_predicted) / ATE_real
 
-#micro: Micro specificity is calculated by considering the global count of true negatives and false positives across all classes. It gives equal weight to each instance, regardless of its class.
-#macro: Macro specificity is calculated by computing specificity for each class individually and then taking the average. It treats each class equally, regardless of the class size.
+# Micro specificity is calculated by considering the global count of true negatives and false positives across all classes. It gives equal weight to each instance, regardless of its class.
+# Micro TPR = Recall = Sensitivity = TP / (TP + FN)
+# Micro FPR = FP = (FP + TN)
+# Micro Distance (3DROC) = Distance between solution and perfect one (0 rr, 0 fpr, and 1 tpr)
+
+# Macro specificity is calculated by computing specificity for each class individually and then taking the average. It treats each class equally, regardless of the class size.
+# Macro TPR
+# Macro FPR
+# Macro Distance (3DROC)
+
+# Accuracy with rejection = TA / (TA + FA) if (TA + FA)
+# Coverage with rejection = (TA+FA) / (TA+FA+FR+TR)
+# Prediction Quality = TA / (TA + FA)
+# Rejection Quality = (TR/FR) / ((FA+TR)/(TA+FR))
+# Combined Quality = (TA+TR) / (TA+FA+FR+TR)
+
+# Misclassification Cost
 
 
 
@@ -37,3 +56,16 @@ Combined quality: {combined_quality:.4f}
 
 Miclassification Cost
 Cc < Cr < Ce
+
+
+
+
+
+Experiments:
+
+### Rejection based on One Class Classification Model
+# Generally, they enclose the dataset into a specific surface and
+# flag any example that falls outside such region as novelty. For instance, a typical
+# approach is to use a One-Class Support Vector Machine (OCSVM) to encapsulate the training data through a hypersphere (Coenen et al. 2020; Homenda et al.
+# 2014). By adjusting the size of the hypersphere, the proportion of non-rejected
+# examples can be increased (Wu et al. 2007)

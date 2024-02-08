@@ -65,13 +65,14 @@ from models.evaluators.cost_evaluator import categorize # calculate_performance_
 ## EVALUATE OVERALL ITE MODEL: COSTS
 from models.evaluators.cost_evaluator import calculate_cost_ite
 ## REJECTION
-from models.helper import print_rejection
 from models.evaluators.evaluator import calculate_all_metrics
+from models.rejectors.one_class_classification_rejector import execute_one_class_classification_experiment
+from models.rejectors.ood_rejector import execute_ood_experiment
 ## REJECTION OOD
 from models.rejectors.rejector import distance_test_to_train, is_out_of_distribution, nbrs_train
-from models.helper import improvement
 ## REJECTION OOD - OCSVM
-from models.rejectors.ocsvm import train_ocsvm, distance_test_to_train_ocsvm, is_out_of_distribution_ocsvm, calculate_objective_threedroc_threshold
+from sklearn.neighbors import NearestNeighbors
+from sklearn.svm import OneClassSVM
 ## REJECTION PROBABILITIES
 from scipy.optimize import minimize_scalar, minimize
 from models.rejectors.rejector import calculate_objective_threedroc_double_variable, calculate_objective_threedroc_single_variable, calculate_objective_misclassificationcost_single_variable
@@ -86,28 +87,7 @@ prob_reject_upper_bound = 0.55
 prob_reject_under_bound = 0.45
 timestamp, file_name, file_path = helper_output(folder_path=folder_path)
 ## Assuming you have the following metrics for each experiment
-metrics_results = {
-    # 'Experiment': [],
-    # 'Architecture Type': [],
-    # 'Rejection Type': [],
-    # 'Accuracy': [],
-    # 'Rejection Rate': [],
-    # 'Micro TPR': [],
-    # 'Micro FPR': [],
-    # 'Macro TPR': [],
-    # 'Macro FPR': [],
-}
-
-def append_result(experiment, architecture_type, rejection_type, metric1, metric2, metric3, metric4, metric5, metric6):
-    metrics_results['Experiment'].append(experiment)
-    metrics_results['Architecture Type'].append(architecture_type)
-    metrics_results['Rejection Type'].append(rejection_type)
-    metrics_results['Accuracy'].append(round(metric1, 4))
-    metrics_results['Rejection Rate'].append(round(metric2, 4))
-    metrics_results['Micro TPR'].append(round(metric3, 4))
-    metrics_results['Micro FPR'].append(round(metric4, 4))
-    metrics_results['Macro TPR'].append(round(metric5, 4))
-    metrics_results['Macro FPR'].append(round(metric6, 4))
+metrics_results = {}
 
 # Chapter 2: Preprocessing
 ## Chapter 2A: Output to file
@@ -205,114 +185,83 @@ test_set['category_rej'] = test_set.apply(categorize, axis=1)
 with open(file_path, 'a') as file:
     file.write(f"\nCHAPTER 7: REJECTION \n\n")
     file.write("# This section executes and reports metrics for ITE models with rejection.\n")
-    file.write("# Every indicated change are in comparision to the base ITE model without rejection.\n")
-    file.write(f"\nARCHITECTURE TYPE 0: NO REJECTION -- BASELINE MODEL\n")
     
-## CHAPTER 7B: Baseline Model - No Rejection // Experiment 0
-    
-    # Step 1 Set variables
-exp_number = 0
-arch_type = "No Rejection"
-rej_type = "No Rejection"
+#######################################################################################################################
+# Baseline Model - No Rejection // Experiment 0
 
-    # Step 2 Train the Rejector
-
-    # Step 3 Optimize the threshold
+experiment_names = {}
+experiment_names.update({0: f"No Rejector - Baseline Model"})
 
     # Step 4 Apply rejector to the code
 test_set['ite_reject'] = test_set.apply(lambda row: row['ite_pred'], axis=1)
 
     # Step 5 Calculate the performance metrics
-#metrics_dict = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path)
-# accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2, accurancy_rejection_2, coverage_rejection_2, prediction_quality_2, rejection_quality_2, combined_quality_2 = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path, print = True)
-# append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
-# print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
-
 calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
-
-"""
-with open(file_path, 'a') as file:
-    file.write(f"\n\nRoot Mean Squared Error (RMSE) between the ite and ite_prob: {rmse.round(4)}\n\n")
-    file.write(f"The Actual Average Treatment Effect (ATE): {test_set['ite'].mean().round(4)}\n")
-    file.write(f"The Predicted Average Treatment Effect (ATE): {test_set['ite_pred'].mean().round(4)}\n")
-    file.write(f"Accuracy of Average Treatment Effect (ATE): {ate_accuracy.round(4)}\n")
-    file.write(f"\nTotal Misclassification Cost: {total_cost_ite}\n")
-"""
 
 #######################################################################################################################
-## CHAPTER 7C: Architecture Type = Separated
-with open(file_path, 'a') as file:
-    file.write(f"\nARCHITECTURE TYPE 1: SEPARATED\n")
+# Architecture Type = Separated
 
-arch_type = "separated"
+experiments = [
+    {
+        'id': 1,
+        'architecture': "Separated Rejector",
+        'model_class': NearestNeighbors,
+        'bounds': (0, 3),
+        'key_metric': "Micro Distance (3D ROC)",
+        'model_options': {'n_neighbors': 5, 'algorithm': 'auto', 'leaf_size': 30, 'metric': 'minkowski', 'p': 2, 'n_jobs': None}
+    },
+]
 
-### Rejection based on Out Of Distribution Detecten - OOD
-#### OOD: K-Nearest Neighbors // Experiment 1
+def run_experiment_ood(experiment_id, architecture, model_class, bounds, key_metric, model_options, train_x, test_x, test_set, file_path, metrics_results, experiment_names):
+    with open(file_path, 'a') as file:
+        file.write(f"\nRunning Experiment {experiment_id} - {architecture} - {model_class.__name__} with optimizing {key_metric}")
+    experiment_names.update({experiment_id: f"{architecture} - {model_class.__name__} with optimizing {key_metric}"})
 
-    # Step 1 Set variables
-rej_type =  "OOD - KNN"
-exp_number += 1
+    execute_ood_experiment(train_x, model_class, test_x, bounds, test_set, file_path, key_metric, metrics_results, model_options)
 
-with open(file_path, 'a') as file:
-    file.write(f"\nREJECTION TYPE 1A: OUT OF DISRIBUTION\n")
+# Execute experiments
+for experiment in experiments:
+    run_experiment_ood(experiment['id'], experiment['architecture'], experiment['model_class'], 
+                   experiment['bounds'], experiment['key_metric'], experiment['model_options'], train_x, test_x, test_set, 
+                   file_path, metrics_results, experiment_names, )
 
-    # Step 2 Train the Rejector
-model = nbrs_train(train_x)
-d = distance_test_to_train(model, test_x)
+#######################################################################################################################
+# One Class Classification - OCSVM
+experiments = [
+    {
+        'id': 2,
+        'architecture': "Separated Rejector",
+        'model_class': OneClassSVM,
+        'bounds': (0, 40),
+        'key_metric': "Micro Distance (3D ROC)",
+        'model_options': {'kernel': 'rbf', 'nu': 0.5, }
+    },
+    {
+        'id': 3,
+        'architecture': "Separated Rejector",
+        'model_class': OneClassSVM,
+        'bounds': (0, 40),
+        'key_metric': "Combined Quality",
+        'model_options': {'kernel': 'rbf', 'nu': 0.5, }
+    },
+]
 
-    # Step 3 Optimize the threshold
-# We don't optimize yet, we use a fixed threshold
+def run_experiment_one_class_svm(experiment_id, architecture, model_class, bounds, key_metric, model_options, train_x, test_x, test_set, file_path, metrics_results, experiment_names):
+    with open(file_path, 'a') as file:
+        file.write(f"\nRunning Experiment {experiment_id} - {architecture} - {model_class.__name__} with optimizing {key_metric}")
+    experiment_names.update({experiment_id: f"{architecture} - {model_class.__name__} with optimizing {key_metric}"})
 
-    # Step 4 Apply rejector to the code
-test_set['ood'] = d.apply(is_out_of_distribution, threshold_distance=6)
-test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
+    execute_one_class_classification_experiment(train_x, model_class, test_x, bounds, test_set, file_path, key_metric, metrics_results, model_options)
 
-    # Step 5 Calculate and report the performance metrics
-# accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2, accurancy_rejection_2, coverage_rejection_2, prediction_quality_2, rejection_quality_2, combined_quality_2 = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path, print = True)
-# append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
-# print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
+# Execute experiments
+for experiment in experiments:
+    run_experiment_one_class_svm(experiment['id'], experiment['architecture'], experiment['model_class'], 
+                   experiment['bounds'], experiment['key_metric'], experiment['model_options'], train_x, test_x, test_set, 
+                   file_path, metrics_results, experiment_names, )
 
-calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
+#######################################################################################################################
+# Rejection based on SCORES MODEL
 
-### Rejection based on One Class Classification Model
-"""
-# Generally, they enclose the dataset into a specific surface and
-# flag any example that falls outside such region as novelty. For instance, a typical
-# approach is to use a One-Class Support Vector Machine (OCSVM) to encapsulate the training data through a hypersphere (Coenen et al. 2020; Homenda et al.
-# 2014). By adjusting the size of the hypersphere, the proportion of non-rejected
-# examples can be increased (Wu et al. 2007)
-"""
-#### One Class Classification - OCSVM // Experiment 2
-
-    # Step 1 Set variables
-rej_type =  "OCSVM"
-exp_number += 1
-
-with open(file_path, 'a') as file:
-    file.write(f"\nREJECTION TYPE 1B: ONE CLASS CLASSIFICATION MODEL using OCSVM\n")
-
-    # Step 2 Train the Rejector
-model_ocsvm = train_ocsvm(train_x)
-distances_ocsvm = distance_test_to_train_ocsvm(model_ocsvm, test_x)
-
-    # Step 3 Optimize the threshold
-result = minimize_scalar(calculate_objective_threedroc_threshold, bounds=(0, 40), method='bounded', args=(test_set, file_path, distances_ocsvm), options={'disp': True})
-threshold_distance = result.x
-with open(file_path, 'a') as file:
-    file.write(f"\nThe best threshold is {threshold_distance}\n")
-
-    # Step 4 Apply rejector to the code
-test_set['ood'] = distances_ocsvm.apply(is_out_of_distribution_ocsvm, threshold=threshold_distance)
-test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
-
-    # Step 5 Calculate and report the performance metrics
-# accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2, accurancy_rejection_2, coverage_rejection_2, prediction_quality_2, rejection_quality_2, combined_quality_2 = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path, print = True)
-# append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
-# print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
-
-calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
-
-### Rejection based on SCORES MODEL
 """
 # Alternatively, some models assign scores that represent the degree of novelty
 # of each example (i.e., the higher the more novel), such as LOF (Van der Plas et al.
@@ -322,53 +271,18 @@ calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results,
 # Processes (Martens et al. 2023). Then, the rejection threshold can be set to reject
 # examples with high novelty probability.
 """
-### REJECTION SCORES MODEL // Experiment 3
-
-    # Step 1 Set variables
-exp_number += 1
-rej_type =  "Scores Model"
-
-with open(file_path, 'a') as file:
-    file.write(f"\nREJECTION TYPE 1C: SCORE MODEL\n")
-    file.write(f"\n - Not done yet\n")
-
-    # Step 2 Train the Rejector
-
-
-    # Step 3 Optimize the threshold
-
-
-    # Step 4 Apply rejector to the code
-test_set['ite_reject'] = test_set.apply(lambda row: row['ite_pred'], axis=1)
-
-    # Step 5 Calculate and report the performance metrics
-# accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2, accurancy_rejection_2, coverage_rejection_2, prediction_quality_2, rejection_quality_2, combined_quality_2 = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path, print = True)
-# append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
-# print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
 
 #######################################################################################################################
-
 # ARCHITECTURE TYPE 2: DEPENDENT
-arch_type = "dependent"
-
-with open(file_path, 'a') as file:
-    file.write(f"\nARCHITECTURE TYPE 2: DEPENDENT\n")
-    file.write(f"\nREJECTION TYPE 2A: REJECTION BASED ON PROBABILITIES BY MINIMIZING 3DROC \n")
-
-
 # Probabilities symetric upper and under bound // Experiment 3
-    
-    # Step 1 Set variables
-rej_type =  "prob symetric bounds"
-exp_number += 1
+architecture="Dependent architecture"
+model_class_name =  "Rejection based on probabilities: symetric symmetric upper & under bound"
+key_metric = "Micro Distance (3D ROC)"
 
-with open(file_path, 'a') as file:
-    file.write(f"\nVARIANT TYPE 2A I: OPTIMIZATION OF SINGLE BOUNDARIES BY MINIMIZING 3DROC \n")
-
-    # Step 2 Define  the threshold
+experiment_names.update({4: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
 
     # Step 3 Optimize the threshold
-result = minimize_scalar(calculate_objective_threedroc_single_variable, bounds=(0.5, 1), method='bounded', args=(test_set, file_path), options={'disp': True})
+result = minimize_scalar(calculate_objective_threedroc_single_variable, bounds=(0.5, 1), method='bounded', args=(test_set, file_path), options={'disp': False})
 prob_reject_upper_bound = result.x
 prob_reject_under_bound = 1 - prob_reject_upper_bound
 with open(file_path, 'a') as file:
@@ -381,20 +295,15 @@ test_set['y_reject'] = test_set.apply(lambda row: True if row['y_t0_reject_prob'
 test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] else row['ite_pred'], axis=1)
 
     # Step 5 Calculate and report the performance metrics
-# accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2, accurancy_rejection_2, coverage_rejection_2, prediction_quality_2, rejection_quality_2, combined_quality_2 = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path, print = True)
-# append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
-# print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
 calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
 
+#######################################################################################################################
 # Probabilities asymetric upper and under bound // Experiment 4
+architecture="Dependent architecture"
+model_class_name =  "Rejection based on probabilities: asymetric symmetric upper & under bound"
+key_metric = "Micro Distance (3D ROC)"
 
-    # Step 1 Set variables
-rej_type =  "prob asymetric bounds"
-exp_number += 1
-with open(file_path, 'a') as file:
-    file.write(f"\nVARIANT TYPE 2A II: OPTIMIZATION OF DOUBLE BOUNDARIES BY MINIMIZING 3DROC  \n")
-
-    # Step 2 Define  the threshold
+experiment_names.update({5: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
 
     # Step 3 Optimize the threshold
 initial_guess = [0.45, 0.55]
@@ -410,20 +319,15 @@ test_set['y_reject'] = test_set.apply(lambda row: True if row['y_t0_reject_prob'
 test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
 
     # Step 5 Calculate and report the performance metrics
-# accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2, accurancy_rejection_2, coverage_rejection_2, prediction_quality_2, rejection_quality_2, combined_quality_2 = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path, print = True)
-# append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
-# print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
 calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
 
+#######################################################################################################################
+# Rejection based on probabilities: symetric symmetric upper & under bound by min MISCLASSIFICATION COSTS
+architecture="Dependent architecture"
+model_class_name =  "Rejection based on probabilities: symetric symmetric upper & under bound"
+key_metric = "Misclassification Cost"
 
-# REJECTION TYPE 2A: REJECTION BASED ON PROBABILITIES BY MINIMIZING MISCLASSIFICATION COSTS // Experiment 5
-    # Step 1 Set variables
-rej_type =  "prob miscost"
-exp_number += 1
-with open(file_path, 'a') as file:
-    file.write(f"\nREJECTION TYPE 2A: REJECTION BASED ON PROBABILITIES BY MINIMIZING MISCLASSIFICATION COSTS \n")
-
-    # Step 2 Define  the threshold
+experiment_names.update({6: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
 
     # Step 3 Optimize the threshold
 result = minimize_scalar(calculate_objective_misclassificationcost_single_variable, bounds=(0.5, 1), method='bounded', args=(test_set, file_path), options={'disp': True})
@@ -439,18 +343,17 @@ test_set['y_reject'] = test_set.apply(lambda row: True if row['y_t0_reject_prob'
 test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] else row['ite_pred'], axis=1)
 
     # Step 5 Calculate and report the performance metrics
-# accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2, micro_distance_threedroc_2, macro_distance_threedroc_2, accurancy_rejection_2, coverage_rejection_2, prediction_quality_2, rejection_quality_2, combined_quality_2 = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path, print = True)
-# append_result(exp_number, arch_type, rej_type, accurancy_2, rr_2, micro_tpr_2, micro_fpr_2, macro_tpr_2, macro_fpr_2)
-# print_rejection(file_path, test_set, total_cost_ite, accurancy, micro_distance_threedroc, macro_distance_threedroc)
 calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
 
+#######################################################################################################################
 metrics_results = pd.DataFrame(metrics_results)
 improvement_matrix = metrics_results.copy()
 for col in improvement_matrix.columns[0:]:
-    improvement_matrix[col] = (improvement_matrix[col] - improvement_matrix[col].iloc[0]) / improvement_matrix[col].iloc[0] * 100
+    improvement_matrix[col] = round((improvement_matrix[col] - improvement_matrix[col].iloc[0]) / improvement_matrix[col].iloc[0] * 100, 2)
 improvement_matrix = pd.DataFrame(improvement_matrix)
 
-experiments = {
+"""
+experiment_descriptions = {
     0: "No Rejector: Baseline Model",
     1: "Separated Rejector - O.O.D.: K-Nearest Neighbors",
     2: "Separated Rejector - One Class Classification: OCSVM",
@@ -458,6 +361,7 @@ experiments = {
     4: "Dependent Rejector - Rejection based on probabilities: asymmetric upper & under bound (minimization of 3D ROC)",
     5: "Dependent Rejector - Rejection based on probabilities: symmetric upper & under bound (minimization of misclassification costs)"
 }
+"""
 
 # Chapter 8: Output to file
 with open(file_path, 'a') as file:
@@ -466,14 +370,14 @@ with open(file_path, 'a') as file:
     file.write(tabulate(test_set.head(20), headers='keys', tablefmt='pretty', showindex=False))
     
     file.write ("\n")
-    for exp_number, description in experiments.items():
+    for exp_number, description in experiment_names.items():
         file.write(f"# Experiment {exp_number}: {description}\n")
 
     file.write("\nTable of results of the experiments\n")
     file.write(tabulate(metrics_results.T, headers='keys', tablefmt='rounded_grid', showindex=True))
     
     file.write ("\n")
-    for exp_number, description in experiments.items():
+    for exp_number, description in experiment_names.items():
         file.write(f"# Experiment {exp_number}: {description}\n")
 
     file.write("\nTable of change (%) of each experiment in comparision with the baseline model\n")
