@@ -152,16 +152,19 @@ def calculate_sliced_confusion_matrix_metrics(unique_labels, confusion_matrix):
 
 def calculate_performance_metrics_penalty_rejection(data):
     # Add column: prediction correct? T/F
-    data['ite_correct'] = data.apply(lambda row: True if row['ite'] == row['ite_pred'] else False, axis=1)
+    # rejected_samples = data[data['ite_reject'] == "R"].copy()
+    # predicted_samples = data[data['ite_reject'] != "R"].copy()
+
+    data['ite_correctly_predicted'] = data.apply(lambda row: True if row['ite'] == row['ite_pred'] else False, axis=1)
     data['ite_rejected'] = data.apply(lambda row: True if row['ite_reject'] == 'R' else False, axis=1)
 
     # Prediction correct: yes-no
     # Rejection: yes-no
     # Assuming ite_correct and ite_rejected are boolean columns
-    correctly_accepted = data[(data['ite_correct'] == True) & (data['ite_rejected'] == False)] # TA Prediction is correct, and the item is not rejected = True accepted
-    correctly_rejected = data[(data['ite_correct'] == False) & (data['ite_rejected'] == True)] # TR Prediction is incorrect, and the item is rejected
-    incorrectly_rejected = data[(data['ite_correct'] == True) & (data['ite_rejected'] == True)] # FR Prediction is correct, but the item is rejected
-    incorrectly_accepted = data[(data['ite_correct'] == False) & (data['ite_rejected'] == False)] # FA Prediction is incorrect, and the item is not rejected
+    correctly_accepted = data[(data['ite_correctly_predicted'] == True) & (data['ite_rejected'] == False)].copy() # TA Prediction is correct, and the item is not rejected = True accepted
+    incorrectly_accepted = data[(data['ite_correctly_predicted'] == False) & (data['ite_rejected'] == False)].copy() # FA Prediction is incorrect, and the item is not rejected
+    correctly_rejected = data[(data['ite_correctly_predicted'] == False) & (data['ite_rejected'] == True)].copy() # TR Prediction is incorrect, and the item is rejected
+    incorrectly_rejected = data[(data['ite_correctly_predicted'] == True) & (data['ite_rejected'] == True)].copy() # FR Prediction is correct, but the item is rejected
 
     TA = len(correctly_accepted)
     FA = len(incorrectly_accepted)
@@ -173,10 +176,13 @@ def calculate_performance_metrics_penalty_rejection(data):
 
     #Evaluating models with a fixed rejection rate
     prediction_quality = TA / (TA + FA) if (TA + FA) != 0 else 0
-    rejection_quality = (TR/FR) / ((FA+TR)/(TA+FR)) if (TA+FR) != 0 and FR != 0 else 0
+    if (FR) == 0:
+        rejection_quality = 1 / ( (FA+TR) / (TA+FA) ) if (TA+FR) != 0 else 0
+    else:
+        rejection_quality = (TR/FR) / ( (FA+TR) / (TA+FR) ) if (TA+FR) != 0 else 0
     combined_quality = (TA+TR) / (TA+FA+FR+TR)
 
-    return accurancy_rejection, coverage_rejection, prediction_quality, rejection_quality, combined_quality
+    return accurancy_rejection, coverage_rejection, prediction_quality, rejection_quality, combined_quality, TA, FA, TR, FR
 
 
 def calculate_performance_metrics(value, value_pred, data, file_path, print=False):
@@ -215,7 +221,7 @@ def calculate_performance_metrics(value, value_pred, data, file_path, print=Fals
     metrics_dict['Rejection Rate'] = rr
 
 
-    accurancy_rejection, coverage_rejection, prediction_quality, rejection_quality, combined_quality = calculate_performance_metrics_penalty_rejection(data)
+    accurancy_rejection, coverage_rejection, prediction_quality, rejection_quality, combined_quality, TA, FA, TR, FR = calculate_performance_metrics_penalty_rejection(data)
 
     # Step 2: Data Preprocessing 
     ##  Remove rejected items
@@ -253,6 +259,10 @@ def calculate_performance_metrics(value, value_pred, data, file_path, print=Fals
         metrics_dict['Macro FPR'] = macro_fpr
         metrics_dict['Macro F1 Score'] = macro_f1score
         metrics_dict['Macro Distance (3D ROC)'] = macro_distance_threedroc
+        metrics_dict['True Accepted'] = TA
+        metrics_dict['False Accepted'] = FA
+        metrics_dict['True Rejected'] = TR
+        metrics_dict['False Rejected'] = FR
         metrics_dict['Accuracy with Rejection'] = accurancy_rejection
         metrics_dict['Coverage with Rejection'] = coverage_rejection
         metrics_dict['Prediction Quality'] = prediction_quality

@@ -52,7 +52,7 @@ def define_cost_matrix(cost_correct=0, cost_same_treatment=0, cost_wasted_treatm
         },
         # define costs for other predicted categories when true category is 'Sleeping Dog'
         'Sleeping Dog': {
-            'Lost Cause': cost_potential_improvement,       # Cost of predicting 'Lost Cause' when true category is 'Sleeping Dog' = we'll not take any action ==> cost = potential improvement
+            'Lost Cause': cost_same_treatment,       # Cost of predicting 'Lost Cause' when true category is 'Sleeping Dog' = we'll not take any action ==> cost = potential improvement
             'Sleeping Dog': cost_correct,     # Correct
             'Persuadable': cost_wasted_treatment+10,      # Cost of predicting 'Persuadable' when true category is 'Sleeping Dog' = wasted T and negative consequenc
             'Sure Thing': cost_same_treatment,      # Cost of predicting 'Sure Thing' when true category is 'Sleeping Dog'
@@ -75,14 +75,16 @@ def define_cost_matrix(cost_correct=0, cost_same_treatment=0, cost_wasted_treatm
 
 def calculate_cost_ite(row):
     cost_matrix = define_cost_matrix()
-    true_category = row['category']
-    pred_category = row['category_rej']
+    true_category = row['category'] # What happened in reality
+    pred_category = row['category_rej'] # What we predicted
     cost = cost_matrix[true_category][pred_category]
     return cost
 
 def calculate_misclassification_cost(data, rejection_cost=2):
     data['category_rej'] = data.apply(categorize, axis=1)
     data['cost_ite'] = data.apply(calculate_cost_ite, axis=1)
+    data['category_reject'] = data.apply(lambda row: rejection_cost if row['ite_reject']=="R" else row['category_rej'], axis=1)
+
     data['cost_ite_reject'] = data.apply(lambda row: rejection_cost if row['ite_reject']=="R" else row['cost_ite'], axis=1)
     total_cost_ite = data['cost_ite_reject'].sum()
     return total_cost_ite
@@ -90,7 +92,42 @@ def calculate_misclassification_cost(data, rejection_cost=2):
 def calculate_cost_metrics(value, value_pred, data, file_path, print=False):
 
     total_cost_ite = calculate_misclassification_cost(data)
-    
+
+    correct = 0
+    same_treatment = 0
+    lost_potential = 0
+    wasted_treatment = 0
+    opposite_effect = 0
+    for index, row in data.iterrows():
+        if row['category'] == row['category_reject']:
+            correct += 1
+        elif row['category'] == 'Lost Cause' and row['category_reject'] == 'Persuadable':
+            wasted_treatment += 1
+        elif row['category'] == 'Sleeping Dog' and row['category_reject'] == 'Persuadable':
+            opposite_effect += 1
+        elif row['category'] == 'Persuadable' and row['category'] != row['category_reject']:
+            lost_potential += 1
+        elif row['category'] == 'Sure Thing' and row['category_reject'] == 'Persuadable':
+            wasted_treatment += 1
+        else:
+            same_treatment += 1
+
+    metrics_dict = {
+        'Misclassification Cost': total_cost_ite,
+        'Correct Prediction': correct,
+        'Same Treatment Given': same_treatment,
+        'Lost Potential': lost_potential,
+        'Wasted Treatment': wasted_treatment,
+        'Opposite Effect': opposite_effect
+
+    }
+
+    return metrics_dict
+
+
+
+
+
     metrics_dict = {
         'Misclassification Cost': total_cost_ite,
     }

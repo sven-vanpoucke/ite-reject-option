@@ -1,0 +1,218 @@
+CHAPTER 1: INTRODUCTION
+# This section introduces the purpose and background of the analysis.
+
+In this analysis, we aim to evaluate the performance of different reject options for Information Treatment Effect (ITE) models.The ITE model predicts the individual treatment effects in a given dataset, providing valuable insights into the impact of interventions.
+For your information, this file has been automatically generated on: 2024-02-08 21:47
+\Chapter 2: Preprocessing
+
+# This section executes the data retrieval, preprocessing and splitting in a training and dataset.During the whole file, the used dataset is: TWINS
+
+CHAPTER 3: Training of the ITE Model
+
+# This section provides details about the model selection, training process, and any hyperparameter tuning.
+The trained ITE model is a T-LEARNER.
+The two individually trained models are: LogisticRegression
+
+CHAPTER 4: Evaluate treated and control groups seperately
+
+# This section evaluates the individually trained models (two as we used a T-learner).
+The used performance measures are:
+
+ - Confusion Matrix
+ - Accuracy: overall correctness of the model ((TP + TN) / (TP + TN + FP + FN))
+ - Precision: It measures the accuracy of positive predictions (TP / (TP + FP))
+ - Recall: ability of the model to capture all the relevant cases (TP / (TP + FN))
+ - F1 Score: It balances precision and recall, providing a single metric for model evaluation (2 * (Precision * Recall) / (Precision + Recall))
+ - ROC
+
+Evaluation of the individual models based on the **training data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |     3683      |     3646      |
+| False Positives |      125      |      117      |
+| False Negatives |      369      |      427      |
+| True Negatives  |      380      |      373      |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |     0.89      |     0.88      |
+| Precision |     0.75      |     0.76      |
+|  Recall   |     0.51      |     0.47      |
+|    F1     |     0.61      |     0.58      |
+|    AUC    |     0.74      |     0.72      |
++-----------+---------------+---------------+
+
+
+Evaluation of the individual models based on the **test data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |      933      |      913      |
+| False Positives |      33       |      34       |
+| False Negatives |      88       |      105      |
+| True Negatives  |      72       |      102      |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |     0.89      |     0.88      |
+| Precision |     0.69      |     0.75      |
+|  Recall   |     0.45      |     0.49      |
+|    F1     |     0.54      |     0.59      |
+|    AUC    |     0.71      |     0.73      |
++-----------+---------------+---------------+
+
+Chapter 4: Evaluate overall ITE Model: Performance 
+
+# This section evaluates the overal performance of the ITE model.
+The used performance measures are: 
+
+ - Root Mean Squared Error (RMSE) of the ITE 
+ - Accurate estimate of the ATE 
+ - Accurancy of ITE
+
+
+CHAPTER 7: EVALUATE OVERALL ITE MODEL: COST 
+
+# This section evaluates the overal misclassification costs of the ITE model.
+
+CHAPTER 7: REJECTION 
+
+# This section executes and reports metrics for ITE models with rejection.
+
+Running Experiment 1 - Separated Rejector - NearestNeighbors with optimizing Micro Distance (3D ROC)
+Running Experiment 2 - Separated Rejector - OneClassSVM with optimizing Micro Distance (3D ROC)
+Running Experiment 3 - Separated Rejector - OneClassSVM with optimizing Combined Quality
+ITE values witht a probability between the optimal underbound 0.473242203467128 and the optimal upperbound 0.526757796532872 are rejected 
+ITE values witht a probability between the optimal underbound 0.45 and the optimal upperbound 0.55 are rejected 
+ITE values witht a probability between the optimal underbound 0.30911282077632884 and the optimal upperbound 0.6908871792236712 are rejected 
+
+Table of test_set (First 20 rows)
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+--------------+------------+-------------+--------------+----------+-----------------+-------+------------------+------------------+---------------+----------+
+| treatment | y_t1_pred | y_t1_prob | y_t0_pred | y_t0_prob | ite_pred | ite_prob | y_t0 | y_t1 | ite  |   category   | category_pred | category_rej | ite_reject | ite_correct | ite_rejected | cost_ite | cost_ite_reject |  ood  | y_t1_reject_prob | y_t0_reject_prob | y_reject_prob | y_reject |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+--------------+------------+-------------+--------------+----------+-----------------+-------+------------------+------------------+---------------+----------+
+|     0     |    0.0    |  0.1495   |    0.0    |  0.1315   |   0.0    |  0.018   | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |    True     |    False     |    0     |        0        | True  |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.0272   |    0.0    |  0.0186   |   0.0    |  0.0086  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |    True     |    False     |    0     |        0        | True  |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0437   |    0.0    |  0.0775   |   0.0    | -0.0339  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |    True     |    False     |    0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0288   |    0.0    |  0.0498   |   0.0    |  -0.021  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |    True     |    False     |    0     |        0        | True  |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.0727   |    0.0    |  0.1265   |   0.0    | -0.0537  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |    True     |    False     |    0     |        0        | True  |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.2149   |    0.0    |  0.3142   |   0.0    | -0.0993  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |    True     |    False     |    0     |        0        | True  |      False       |       True       |     False     |  False   |
+|     1     |    0.0    |  0.4206   |    0.0    |  0.3912   |   0.0    |  0.0294  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |     R      |    False    |     True     |    10    |        2        | True  |       True       |       True       |     True      |   True   |
+|     0     |    0.0    |  0.0108   |    0.0    |  0.0195   |   0.0    | -0.0087  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |    True     |    False     |    0     |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.0478   |    0.0    |  0.0865   |   0.0    | -0.0387  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |    False    |    False     |    10    |       10        | True  |      False       |      False       |     False     |  False   |
+|     0     |    1.0    |  0.5825   |    0.0    |  0.4676   |   1.0    |  0.1149  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Persuadable  | Persuadable  |     R      |    False    |     True     |    5     |        2        | True  |       True       |       True       |     True      |   True   |
+|     1     |    0.0    |   0.259   |    0.0    |  0.3078   |   0.0    | -0.0488  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |    True     |    False     |    0     |        0        | True  |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.0283   |    0.0    |  0.0444   |   0.0    | -0.0161  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |    True     |    False     |    0     |        0        | True  |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |   0.022   |    0.0    |  0.0489   |   0.0    | -0.0269  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |    True     |    False     |    0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0865   |    0.0    |  0.1767   |   0.0    | -0.0902  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |    True     |    False     |    0     |        0        | True  |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0227   |    0.0    |  0.0155   |   0.0    |  0.0071  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |    True     |    False     |    0     |        0        | True  |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0158   |    0.0    |  0.0241   |   0.0    | -0.0084  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |    True     |    False     |    0     |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.0123   |    0.0    |  0.0312   |   0.0    |  -0.019  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |    True     |    False     |    0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |   0.049   |    0.0    |  0.0239   |   0.0    |  0.0251  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |    True     |    False     |    0     |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.0137   |    0.0    |  0.0372   |   0.0    | -0.0235  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |    True     |    False     |    0     |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.3253   |    0.0    |  0.3763   |   0.0    | -0.0511  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |     R      |    True     |     True     |    0     |        2        | False |       True       |       True       |     True      |   True   |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+--------------+------------+-------------+--------------+----------+-----------------+-------+------------------+------------------+---------------+----------+
+# Experiment 0: No Rejector - Baseline Model
+# Experiment 1: Separated Rejector - NearestNeighbors with optimizing Micro Distance (3D ROC)
+# Experiment 2: Separated Rejector - OneClassSVM with optimizing Micro Distance (3D ROC)
+# Experiment 3: Separated Rejector - OneClassSVM with optimizing Combined Quality
+# Experiment 4: Dependent architecture - Rejection based on probabilities: symetric symmetric upper & under bound with optimizing Micro Distance (3D ROC)
+# Experiment 5: Dependent architecture - Rejection based on probabilities: asymetric symmetric upper & under bound with optimizing Micro Distance (3D ROC)
+# Experiment 6: Dependent architecture - Rejection based on probabilities: symetric symmetric upper & under bound with optimizing Misclassification Cost
+
+Table of results of the experiments
+╭─────────────────────────┬───────────┬───────────┬───────────┬───────────┬───────────┬───────────┬───────────╮
+│                         │         0 │         1 │         2 │         3 │         4 │         5 │         6 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Rejection Rate          │    0      │    0      │    0.5162 │    0.5162 │    0.0048 │    0.0101 │    0.0882 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Accuracy                │    0.9298 │    0.9298 │    0.932  │    0.932  │    0.9312 │    0.9331 │    0.9452 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ RMSE                    │    0.3238 │    0.3238 │    0.3237 │    0.3237 │    0.3224 │    0.3226 │    0.3021 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ ATE Accuracy            │   -0.8276 │   -0.8276 │   -0.4545 │   -0.4545 │   -0.8214 │   -0.9655 │   -1.0588 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Micro TPR               │    0.0078 │    0.0078 │    0.0164 │    0.0164 │    0.0079 │    0.0079 │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Micro FPR               │    0.0149 │    0.0149 │    0.0144 │    0.0144 │    0.014  │    0.0117 │    0.0025 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Micro F1 Score          │    0.0123 │    0.0123 │    0.026  │    0.026  │    0.0127 │    0.0131 │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Micro Distance (3D ROC) │    0.9924 │    0.9924 │    1.1109 │    1.1109 │    0.9922 │    0.9922 │    1.0039 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Macro TPR               │    0.0026 │    0.0026 │    0.0055 │    0.0055 │    0.0026 │    0.0026 │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Macro FPR               │    0.005  │    0.005  │    0.0048 │    0.0048 │    0.0047 │    0.0039 │    0.0008 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Macro F1 Score          │    0.0041 │    0.0041 │    0.0087 │    0.0087 │    0.0042 │    0.0044 │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Macro Distance (3D ROC) │    0.9974 │    0.9974 │    1.1205 │    1.1205 │    0.9974 │    0.9974 │    1.0039 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Accuracy with Rejection │    0.8785 │    0.8785 │    0.883  │    0.883  │    0.8797 │    0.8821 │    0.9057 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Coverage with Rejection │    1      │    1      │    0.4838 │    0.4838 │    0.9952 │    0.9899 │    0.9118 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Prediction Quality      │    0.8785 │    0.8785 │    0.883  │    0.883  │    0.8797 │    0.8821 │    0.9057 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Rejection Quality       │    0      │    0      │    1.04   │    1.04   │    4.132  │    6.6285 │    4.881  │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Combined Quality        │    0.8785 │    0.8785 │    0.4921 │    0.4921 │    0.8772 │    0.8781 │    0.8614 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Misclassification Cost  │ 2245      │ 2245      │ 3429      │ 3429      │ 2227      │ 2236      │ 2167      │
+╰─────────────────────────┴───────────┴───────────┴───────────┴───────────┴───────────┴───────────┴───────────╯
+# Experiment 0: No Rejector - Baseline Model
+# Experiment 1: Separated Rejector - NearestNeighbors with optimizing Micro Distance (3D ROC)
+# Experiment 2: Separated Rejector - OneClassSVM with optimizing Micro Distance (3D ROC)
+# Experiment 3: Separated Rejector - OneClassSVM with optimizing Combined Quality
+# Experiment 4: Dependent architecture - Rejection based on probabilities: symetric symmetric upper & under bound with optimizing Micro Distance (3D ROC)
+# Experiment 5: Dependent architecture - Rejection based on probabilities: asymetric symmetric upper & under bound with optimizing Micro Distance (3D ROC)
+# Experiment 6: Dependent architecture - Rejection based on probabilities: symetric symmetric upper & under bound with optimizing Misclassification Cost
+
+Table of change (%) of each experiment in comparision with the baseline model
+╭─────────────────────────┬─────┬─────┬────────┬────────┬────────┬────────┬─────────╮
+│                         │   0 │   1 │      2 │      3 │      4 │      5 │       6 │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ Rejection Rate          │ nan │ nan │ inf    │ inf    │ inf    │ inf    │  inf    │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ Accuracy                │   0 │   0 │   0.24 │   0.24 │   0.15 │   0.35 │    1.66 │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ RMSE                    │   0 │   0 │  -0.03 │  -0.03 │  -0.43 │  -0.37 │   -6.7  │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ ATE Accuracy            │  -0 │  -0 │ -45.08 │ -45.08 │  -0.75 │  16.66 │   27.94 │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ Micro TPR               │   0 │   0 │ 110.26 │ 110.26 │   1.28 │   1.28 │ -100    │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ Micro FPR               │   0 │   0 │  -3.36 │  -3.36 │  -6.04 │ -21.48 │  -83.22 │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ Micro F1 Score          │   0 │   0 │ 111.38 │ 111.38 │   3.25 │   6.5  │ -100    │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ Micro Distance (3D ROC) │   0 │   0 │  11.94 │  11.94 │  -0.02 │  -0.02 │    1.16 │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ Macro TPR               │   0 │   0 │ 111.54 │ 111.54 │   0    │   0    │ -100    │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ Macro FPR               │   0 │   0 │  -4    │  -4    │  -6    │ -22    │  -84    │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ Macro F1 Score          │   0 │   0 │ 112.2  │ 112.2  │   2.44 │   7.32 │ -100    │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ Macro Distance (3D ROC) │   0 │   0 │  12.34 │  12.34 │   0    │   0    │    0.65 │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ Accuracy with Rejection │   0 │   0 │   0.51 │   0.51 │   0.14 │   0.41 │    3.1  │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ Coverage with Rejection │   0 │   0 │ -51.62 │ -51.62 │  -0.48 │  -1.01 │   -8.82 │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ Prediction Quality      │   0 │   0 │   0.51 │   0.51 │   0.14 │   0.41 │    3.1  │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ Rejection Quality       │ nan │ nan │ inf    │ inf    │ inf    │ inf    │  inf    │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ Combined Quality        │   0 │   0 │ -43.98 │ -43.98 │  -0.15 │  -0.05 │   -1.95 │
+├─────────────────────────┼─────┼─────┼────────┼────────┼────────┼────────┼─────────┤
+│ Misclassification Cost  │   0 │   0 │  52.74 │  52.74 │  -0.8  │  -0.4  │   -3.47 │
+╰─────────────────────────┴─────┴─────┴────────┴────────┴────────┴────────┴─────────╯

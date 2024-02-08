@@ -69,13 +69,13 @@ from models.evaluators.evaluator import calculate_all_metrics
 from models.rejectors.one_class_classification_rejector import execute_one_class_classification_experiment
 from models.rejectors.ood_rejector import execute_ood_experiment
 ## REJECTION OOD
-from models.rejectors.rejector import distance_test_to_train, is_out_of_distribution, nbrs_train
+from models.rejectors.dependent_prob_rejector import distance_test_to_train, is_out_of_distribution, nbrs_train
 ## REJECTION OOD - OCSVM
 from sklearn.neighbors import NearestNeighbors
 from sklearn.svm import OneClassSVM
 ## REJECTION PROBABILITIES
 from scipy.optimize import minimize_scalar, minimize
-from models.rejectors.rejector import calculate_objective_threedroc_double_variable, calculate_objective_threedroc_single_variable, calculate_objective_misclassificationcost_single_variable
+from models.rejectors.dependent_prob_rejector import calculate_objective_threedroc_double_variable, calculate_objective_misclassificationcost_single_variable, calculate_objective
 
 # Chapter 1: Initialization
 ## Parameters
@@ -206,23 +206,25 @@ experiments = [
         'id': 1,
         'architecture': "Separated Rejector",
         'model_class': NearestNeighbors,
-        'bounds': (0, 3),
+        'bounds': (0,10),
         'key_metric': "Micro Distance (3D ROC)",
+        'minmax': 'min',
+
         'model_options': {'n_neighbors': 5, 'algorithm': 'auto', 'leaf_size': 30, 'metric': 'minkowski', 'p': 2, 'n_jobs': None}
     },
 ]
 
-def run_experiment_ood(experiment_id, architecture, model_class, bounds, key_metric, model_options, train_x, test_x, test_set, file_path, metrics_results, experiment_names):
+def run_experiment_ood(experiment_id, architecture, model_class, bounds, key_metric, minmax, model_options, train_x, test_x, test_set, file_path, metrics_results, experiment_names):
     with open(file_path, 'a') as file:
-        file.write(f"\nRunning Experiment {experiment_id} - {architecture} - {model_class.__name__} with optimizing {key_metric}")
+        file.write(f"\n\nRunning Experiment {experiment_id} - {architecture} - {model_class.__name__} with optimizing {key_metric}")
     experiment_names.update({experiment_id: f"{architecture} - {model_class.__name__} with optimizing {key_metric}"})
 
-    execute_ood_experiment(train_x, model_class, test_x, bounds, test_set, file_path, key_metric, metrics_results, model_options)
+    execute_ood_experiment(train_x, model_class, test_x, bounds, test_set, file_path, key_metric, minmax, metrics_results, model_options)
 
 # Execute experiments
 for experiment in experiments:
     run_experiment_ood(experiment['id'], experiment['architecture'], experiment['model_class'], 
-                   experiment['bounds'], experiment['key_metric'], experiment['model_options'], train_x, test_x, test_set, 
+                   experiment['bounds'], experiment['key_metric'], experiment['minmax'], experiment['model_options'], train_x, test_x, test_set, 
                    file_path, metrics_results, experiment_names, )
 
 #######################################################################################################################
@@ -232,31 +234,33 @@ experiments = [
         'id': 2,
         'architecture': "Separated Rejector",
         'model_class': OneClassSVM,
-        'bounds': (0, 40),
+        'bounds': (0, 2000),
         'key_metric': "Micro Distance (3D ROC)",
+        'minmax': 'min',
         'model_options': {'kernel': 'rbf', 'nu': 0.5, }
     },
     {
         'id': 3,
         'architecture': "Separated Rejector",
         'model_class': OneClassSVM,
-        'bounds': (0, 40),
+        'bounds': (0,2000),
         'key_metric': "Combined Quality",
+        'minmax': 'max',
         'model_options': {'kernel': 'rbf', 'nu': 0.5, }
     },
 ]
 
-def run_experiment_one_class_svm(experiment_id, architecture, model_class, bounds, key_metric, model_options, train_x, test_x, test_set, file_path, metrics_results, experiment_names):
+def run_experiment_one_class_svm(experiment_id, architecture, model_class, bounds, key_metric, minmax, model_options, train_x, test_x, test_set, file_path, metrics_results, experiment_names):
     with open(file_path, 'a') as file:
-        file.write(f"\nRunning Experiment {experiment_id} - {architecture} - {model_class.__name__} with optimizing {key_metric}")
+        file.write(f"\n\nRunning Experiment {experiment_id} - {architecture} - {model_class.__name__} with optimizing {key_metric}")
     experiment_names.update({experiment_id: f"{architecture} - {model_class.__name__} with optimizing {key_metric}"})
 
-    execute_one_class_classification_experiment(train_x, model_class, test_x, bounds, test_set, file_path, key_metric, metrics_results, model_options)
+    execute_one_class_classification_experiment(train_x, model_class, test_x, bounds, test_set, file_path, key_metric, minmax, metrics_results, model_options)
 
 # Execute experiments
 for experiment in experiments:
     run_experiment_one_class_svm(experiment['id'], experiment['architecture'], experiment['model_class'], 
-                   experiment['bounds'], experiment['key_metric'], experiment['model_options'], train_x, test_x, test_set, 
+                   experiment['bounds'], experiment['key_metric'], experiment['minmax'], experiment['model_options'], train_x, test_x, test_set, 
                    file_path, metrics_results, experiment_names, )
 
 #######################################################################################################################
@@ -274,19 +278,20 @@ for experiment in experiments:
 
 #######################################################################################################################
 # ARCHITECTURE TYPE 2: DEPENDENT
-# Probabilities symetric upper and under bound // Experiment 3
+# Probabilities symetric upper and under bound
 architecture="Dependent architecture"
-model_class_name =  "Rejection based on probabilities: symetric symmetric upper & under bound"
+model_class_name =  "Rejection based on probabilities: symmetric upper & under bound"
 key_metric = "Micro Distance (3D ROC)"
+minmax = 'min'
 
 experiment_names.update({4: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
+with open(file_path, 'a') as file:
+    file.write(f"\n\nRunning Experiment {4} - {architecture} - {model_class_name} with optimizing {key_metric}")
 
     # Step 3 Optimize the threshold
-result = minimize_scalar(calculate_objective_threedroc_single_variable, bounds=(0.5, 1), method='bounded', args=(test_set, file_path), options={'disp': False})
+result = minimize_scalar(calculate_objective, bounds=(0.5, 1), method='bounded', args=(test_set, file_path, key_metric, minmax), options={'disp': False})
 prob_reject_upper_bound = result.x
 prob_reject_under_bound = 1 - prob_reject_upper_bound
-with open(file_path, 'a') as file:
-    file.write(f"\nITE values witht a probability between the optimal underbound {prob_reject_under_bound} and the optimal upperbound {prob_reject_upper_bound} are rejected ")
 
     # Step 4 Apply rejector to the code
 test_set['y_t1_reject_prob'] = test_set.apply(lambda row: True if prob_reject_under_bound < row['y_t1_prob'] < prob_reject_upper_bound else False, axis=1)
@@ -298,19 +303,45 @@ test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] 
 calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
 
 #######################################################################################################################
-# Probabilities asymetric upper and under bound // Experiment 4
+# Probabilities symetric upper and under bound
 architecture="Dependent architecture"
-model_class_name =  "Rejection based on probabilities: asymetric symmetric upper & under bound"
-key_metric = "Micro Distance (3D ROC)"
+model_class_name =  "Rejection based on probabilities: symmetric upper & under bound"
+key_metric = "Combined Quality"
+minmax = 'max'
 
 experiment_names.update({5: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
+with open(file_path, 'a') as file:
+    file.write(f"\n\nRunning Experiment {5} - {architecture} - {model_class_name} with optimizing {key_metric}")
+
+    # Step 3 Optimize the threshold
+result = minimize_scalar(calculate_objective, bounds=(0.5, 1), method='bounded', args=(test_set, file_path, key_metric, minmax), options={'disp': False})
+prob_reject_upper_bound = result.x
+prob_reject_under_bound = 1 - prob_reject_upper_bound
+
+    # Step 4 Apply rejector to the code
+test_set['y_t1_reject_prob'] = test_set.apply(lambda row: True if prob_reject_under_bound < row['y_t1_prob'] < prob_reject_upper_bound else False, axis=1)
+test_set['y_t0_reject_prob'] = test_set.apply(lambda row: True if prob_reject_under_bound < row['y_t0_prob'] < prob_reject_upper_bound else False, axis=1)
+test_set['y_reject'] = test_set.apply(lambda row: True if row['y_t0_reject_prob'] and row['y_t1_reject_prob'] else False, axis=1)
+test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] else row['ite_pred'], axis=1)
+
+    # Step 5 Calculate and report the performance metrics
+calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
+
+
+#######################################################################################################################
+# Probabilities asymetric upper and under bound
+architecture="Dependent architecture"
+model_class_name =  "Rejection based on probabilities: asymetric upper & under bound"
+key_metric = "Micro Distance (3D ROC)"
+
+experiment_names.update({6: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
+with open(file_path, 'a') as file:
+    file.write(f"\n\nRunning Experiment {6} - {architecture} - {model_class_name} with optimizing {key_metric}")
 
     # Step 3 Optimize the threshold
 initial_guess = [0.45, 0.55]
 result = minimize(calculate_objective_threedroc_double_variable, initial_guess, args=(test_set, file_path), bounds=[(0, 0.5), (0.5, 1)])
 prob_reject_under_bound, prob_reject_upper_bound = result.x
-with open(file_path, 'a') as file:
-    file.write(f"\nITE values witht a probability between the optimal underbound {prob_reject_under_bound} and the optimal upperbound {prob_reject_upper_bound} are rejected ")
 
     # Step 4 Apply rejector to the code
 test_set['y_t1_reject_prob'] = test_set.apply(lambda row: True if prob_reject_under_bound < row['y_t1_prob'] < prob_reject_upper_bound else False, axis=1)
@@ -324,10 +355,12 @@ calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results,
 #######################################################################################################################
 # Rejection based on probabilities: symetric symmetric upper & under bound by min MISCLASSIFICATION COSTS
 architecture="Dependent architecture"
-model_class_name =  "Rejection based on probabilities: symetric symmetric upper & under bound"
+model_class_name =  "Rejection based on probabilities: symmetric upper & under bound"
 key_metric = "Misclassification Cost"
 
-experiment_names.update({6: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
+experiment_names.update({7: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
+with open(file_path, 'a') as file:
+    file.write(f"\n\nRunning Experiment {7} - {architecture} - {model_class_name} with optimizing {key_metric}")
 
     # Step 3 Optimize the threshold
 result = minimize_scalar(calculate_objective_misclassificationcost_single_variable, bounds=(0.5, 1), method='bounded', args=(test_set, file_path), options={'disp': True})

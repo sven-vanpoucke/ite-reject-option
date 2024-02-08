@@ -90,6 +90,7 @@ def evaluation_binary_roc(treated_y_test, treated_y_prob, control_y_test, contro
     treated_fpr, treated_tpr, _ = roc_curve(treated_y_test, treated_y_prob)
     control_fpr, control_tpr, _ = roc_curve(control_y_test, control_y_prob)
 
+    """
     # Plot ROC curve
     plt.figure(figsize=(8, 6))
     plt.plot(treated_fpr, treated_tpr, label='Treated group')
@@ -102,3 +103,4 @@ def evaluation_binary_roc(treated_y_test, treated_y_prob, control_y_test, contro
     file_path = "output/roc_curve_plot.png"
     # Save the plot as a PNG image
     plt.savefig(file_path, format='png')
+    """
