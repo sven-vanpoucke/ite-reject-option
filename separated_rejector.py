@@ -306,7 +306,7 @@ calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results,
 # Probabilities symetric upper and under bound
 architecture="Dependent architecture"
 model_class_name =  "Rejection based on probabilities: symmetric upper & under bound"
-key_metric = "Combined Quality"
+key_metric = "Accuracy"
 minmax = 'max'
 
 experiment_names.update({5: f"{architecture} - {model_class_name} with optimizing {key_metric}"})

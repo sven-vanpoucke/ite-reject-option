@@ -1,0 +1,401 @@
+CHAPTER 1: INTRODUCTION
+# This section introduces the purpose and background of the analysis.
+
+In this analysis, we aim to evaluate the performance of different reject options for Information Treatment Effect (ITE) models.The ITE model predicts the individual treatment effects in a given dataset, providing valuable insights into the impact of interventions.
+For your information, this file has been automatically generated on: 2024-02-08 23:05
+\Chapter 2: Preprocessing
+
+# This section executes the data retrieval, preprocessing and splitting in a training and dataset.During the whole file, the used dataset is: TWINS
+
+CHAPTER 3: Training of the ITE Model
+
+# This section provides details about the model selection, training process, and any hyperparameter tuning.
+The trained ITE model is a T-LEARNER.
+The two individually trained models are: LogisticRegression
+
+CHAPTER 4: Evaluate treated and control groups seperately
+
+# This section evaluates the individually trained models (two as we used a T-learner).
+The used performance measures are:
+
+ - Confusion Matrix
+ - Accuracy: overall correctness of the model ((TP + TN) / (TP + TN + FP + FN))
+ - Precision: It measures the accuracy of positive predictions (TP / (TP + FP))
+ - Recall: ability of the model to capture all the relevant cases (TP / (TP + FN))
+ - F1 Score: It balances precision and recall, providing a single metric for model evaluation (2 * (Precision * Recall) / (Precision + Recall))
+ - ROC
+
+Evaluation of the individual models based on the **training data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |     3711      |     3591      |
+| False Positives |      120      |      129      |
+| False Negatives |      347      |      429      |
+| True Negatives  |      383      |      410      |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |      0.9      |     0.88      |
+| Precision |     0.76      |     0.76      |
+|  Recall   |     0.52      |     0.49      |
+|    F1     |     0.62      |      0.6      |
+|    AUC    |     0.75      |     0.73      |
++-----------+---------------+---------------+
+
+
+Evaluation of the individual models based on the **test data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |      939      |      903      |
+| False Positives |      38       |      38       |
+| False Negatives |      84       |      99       |
+| True Negatives  |      98       |      81       |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |     0.89      |     0.88      |
+| Precision |     0.72      |     0.68      |
+|  Recall   |     0.54      |     0.45      |
+|    F1     |     0.62      |     0.54      |
+|    AUC    |     0.75      |      0.7      |
++-----------+---------------+---------------+
+
+Chapter 4: Evaluate overall ITE Model: Performance 
+
+# This section evaluates the overal performance of the ITE model.
+The used performance measures are: 
+
+ - Root Mean Squared Error (RMSE) of the ITE 
+ - Accurate estimate of the ATE 
+ - Accurancy of ITE
+
+
+CHAPTER 7: EVALUATE OVERALL ITE MODEL: COST 
+
+# This section evaluates the overal misclassification costs of the ITE model.
+
+CHAPTER 7: REJECTION 
+
+# This section executes and reports metrics for ITE models with rejection.
+
+
+Running Experiment 1 - Separated Rejector - NearestNeighbors with optimizing Micro Distance (3D ROC)
+ Current value for the metric: 1.0642159527774 with threshold: 3.819660112501051
+ Current value for the metric: 0.995672204073875 with threshold: 6.180339887498947
+ Current value for the metric: 0.9931168051538959 with threshold: 7.639320225002102
+ Current value for the metric: 0.9937200728265794 with threshold: 7.032431147722344
+ Current value for the metric: 0.9929607263418284 with threshold: 7.894982852476136
+ Current value for the metric: 0.9926897488091774 with threshold: 8.6990278559289
+ Current value for the metric: 0.9925907299339238 with threshold: 8.949985608828763
+ Current value for the metric: 0.9925406181724734 with threshold: 9.351055417579648
+ Current value for the metric: 0.9925484857160247 with threshold: 9.301600057571035
+ Current value for the metric: 0.9925363723928223 with threshold: 9.598930191249115
+ Current value for the metric: 0.9925041872055992 with threshold: 9.492931188816017
+ Current value for the metric: 0.9925110858179369 with threshold: 9.478780855322233
+ Current value for the metric: 0.9925041872055992 with threshold: 9.522874820220158
+ Current value for the metric: 0.9925041872055992 with threshold: 9.551925386926236
+ Current value for the metric: 0.9925041872055992 with threshold: 9.569879624543038
+ Current value for the metric: 0.9925041872055992 with threshold: 9.580975953632313
+ Current value for the metric: 0.9925041872055992 with threshold: 9.58783386215984
+ Current value for the metric: 0.9925363723928223 with threshold: 9.592072282721588
+ Current value for the metric: 0.9925041872055992 with threshold: 9.585214374194063
+ Current value for the metric: 0.9925041872055992 with threshold: 9.58359544159809
+ Current value for the metric: 0.9925041872055992 with threshold: 9.582594886228284
+ Current value for the metric: 0.9925041872055992 with threshold: 9.581976509002118
+ Current value for the metric: 0.9925041872055992 with threshold: 9.58159433085848
+ Current value for the metric: 0.9925041872055992 with threshold: 9.581358131775954
+ Current value for the metric: 0.9925041872055992 with threshold: 9.58121215271484
+ Current value for the metric: 0.9925041872055992 with threshold: 9.581121932693426
+ Current value for the metric: 0.9925041872055992 with threshold: 9.581066173653726
+ Current value for the metric: 0.9925041872055992 with threshold: 9.581031712672011
+ Current value for the metric: 0.9925041872055992 with threshold: 9.581010414614028
+ Current value for the metric: 0.9925041872055992 with threshold: 9.580997251690299
+ Current value for the metric: 0.9925041872055992 with threshold: 9.580989116556042
+ Current value for the metric: 0.9925041872055992 with threshold: 9.580984088766568
+ Current value for the metric: 0.9925041872055992 with threshold: 9.580980613324275
+
+Running Experiment 2 - Separated Rejector - OneClassSVM with optimizing Micro Distance (3D ROC)
+Mode of the experiment Micro Distance (3D ROC): min
+Current value for the metric: 0.9926110949488256 with threshold: 763.9320225002102
+Current value for the metric: 0.9926110949488256 with threshold: 1236.0679774997895
+Current value for the metric: 0.9926110949488256 with threshold: 1527.8640450004204
+Current value for the metric: 0.9926110949488256 with threshold: 1708.2039324993689
+Current value for the metric: 0.9926110949488256 with threshold: 1819.6601125010513
+Current value for the metric: 0.9926110949488256 with threshold: 1888.5438199983175
+Current value for the metric: 0.9926110949488256 with threshold: 1931.1162925027338
+Current value for the metric: 0.9926110949488256 with threshold: 1957.4275274955835
+Current value for the metric: 0.9926110949488256 with threshold: 1973.6887650071503
+Current value for the metric: 0.9926110949488256 with threshold: 1983.7387624884334
+Current value for the metric: 0.9926110949488256 with threshold: 1989.9500025187172
+Current value for the metric: 0.9926110949488256 with threshold: 1993.7887599697165
+Current value for the metric: 0.9926110949488256 with threshold: 1996.161242549001
+Current value for the metric: 0.9926110949488256 with threshold: 1997.6275174207155
+Current value for the metric: 0.9926110949488256 with threshold: 1998.5337251282851
+Current value for the metric: 0.9926110949488256 with threshold: 1999.0937922924304
+Current value for the metric: 0.9926110949488256 with threshold: 1999.439932835855
+Current value for the metric: 0.9926110949488256 with threshold: 1999.6538594565757
+Current value for the metric: 0.9926110949488256 with threshold: 1999.7860733792795
+Current value for the metric: 0.9926110949488256 with threshold: 1999.8677860772964
+Current value for the metric: 0.9926110949488256 with threshold: 1999.9182873019831
+Current value for the metric: 0.9926110949488256 with threshold: 1999.949498775313
+Current value for the metric: 0.9926110949488256 with threshold: 1999.9687885266699
+Current value for the metric: 0.9926110949488256 with threshold: 1999.980710248643
+Current value for the metric: 0.9926110949488256 with threshold: 1999.9880782780267
+Current value for the metric: 0.9926110949488256 with threshold: 1999.992631970616
+Current value for the metric: 0.9926110949488256 with threshold: 1999.9954463074105
+Current value for the metric: 0.9926110949488256 with threshold: 1999.9971856632053
+Current value for the metric: 0.9926110949488256 with threshold: 1999.9982606442052
+Current value for the metric: 0.9926110949488256 with threshold: 1999.9989250190004
+Current value for the metric: 0.9926110949488256 with threshold: 1999.999335625205
+Current value for the metric: 0.9926110949488256 with threshold: 1999.9995893937955
+Current value for the metric: 0.9926110949488256 with threshold: 1999.9997462314097
+Current value for the metric: 0.9926110949488256 with threshold: 1999.999843162386
+Current value for the metric: 0.9926110949488256 with threshold: 1999.9999030690237
+Current value for the metric: 0.9926110949488256 with threshold: 1999.999940093362
+
+Running Experiment 3 - Separated Rejector - OneClassSVM with optimizing Combined Quality
+Mode of the experiment Combined Quality: max
+Current value for the metric: -0.8912280701754386 with threshold: 763.9320225002102
+Current value for the metric: -0.8912280701754386 with threshold: 1236.0679774997895
+Current value for the metric: -0.8912280701754386 with threshold: 1527.8640450004204
+Current value for the metric: -0.8912280701754386 with threshold: 1708.2039324993689
+Current value for the metric: -0.8912280701754386 with threshold: 1819.6601125010513
+Current value for the metric: -0.8912280701754386 with threshold: 1888.5438199983175
+Current value for the metric: -0.8912280701754386 with threshold: 1931.1162925027338
+Current value for the metric: -0.8912280701754386 with threshold: 1957.4275274955835
+Current value for the metric: -0.8912280701754386 with threshold: 1973.6887650071503
+Current value for the metric: -0.8912280701754386 with threshold: 1983.7387624884334
+Current value for the metric: -0.8912280701754386 with threshold: 1989.9500025187172
+Current value for the metric: -0.8912280701754386 with threshold: 1993.7887599697165
+Current value for the metric: -0.8912280701754386 with threshold: 1996.161242549001
+Current value for the metric: -0.8912280701754386 with threshold: 1997.6275174207155
+Current value for the metric: -0.8912280701754386 with threshold: 1998.5337251282851
+Current value for the metric: -0.8912280701754386 with threshold: 1999.0937922924304
+Current value for the metric: -0.8912280701754386 with threshold: 1999.439932835855
+Current value for the metric: -0.8912280701754386 with threshold: 1999.6538594565757
+Current value for the metric: -0.8912280701754386 with threshold: 1999.7860733792795
+Current value for the metric: -0.8912280701754386 with threshold: 1999.8677860772964
+Current value for the metric: -0.8912280701754386 with threshold: 1999.9182873019831
+Current value for the metric: -0.8912280701754386 with threshold: 1999.949498775313
+Current value for the metric: -0.8912280701754386 with threshold: 1999.9687885266699
+Current value for the metric: -0.8912280701754386 with threshold: 1999.980710248643
+Current value for the metric: -0.8912280701754386 with threshold: 1999.9880782780267
+Current value for the metric: -0.8912280701754386 with threshold: 1999.992631970616
+Current value for the metric: -0.8912280701754386 with threshold: 1999.9954463074105
+Current value for the metric: -0.8912280701754386 with threshold: 1999.9971856632053
+Current value for the metric: -0.8912280701754386 with threshold: 1999.9982606442052
+Current value for the metric: -0.8912280701754386 with threshold: 1999.9989250190004
+Current value for the metric: -0.8912280701754386 with threshold: 1999.999335625205
+Current value for the metric: -0.8912280701754386 with threshold: 1999.9995893937955
+Current value for the metric: -0.8912280701754386 with threshold: 1999.9997462314097
+Current value for the metric: -0.8912280701754386 with threshold: 1999.999843162386
+Current value for the metric: -0.8912280701754386 with threshold: 1999.9999030690237
+Current value for the metric: -0.8912280701754386 with threshold: 1999.999940093362
+
+Running Experiment 4 - Dependent architecture - Rejection based on probabilities: symmetric upper & under bound with optimizing Micro Distance (3D ROC)
+Current value for the metric: 1.0046868438196643 with threshold: 0.6909830056250525
+Current value for the metric: 1.0204104547448847 with threshold: 0.8090169943749475
+Current value for the metric: 0.9927829755062137 with threshold: 0.6180339887498949
+Current value for the metric: 0.9924731974436163 with threshold: 0.5729490168751578
+Current value for the metric: 0.992532667330353 with threshold: 0.5928972631599642
+Current value for the metric: 0.9924731974436163 with threshold: 0.5732904688517627
+Current value for the metric: 0.9924731974436163 with threshold: 0.5731197428634602
+Current value for the metric: 0.9924731974436163 with threshold: 0.5730545313386916
+Current value for the metric: 0.9924731974436163 with threshold: 0.5730142283999263
+Current value for the metric: 0.9924731974436163 with threshold: 0.572989319813923
+Current value for the metric: 0.9924731974436163 with threshold: 0.5729739254611612
+Current value for the metric: 0.9924731974436163 with threshold: 0.5729644112279196
+Current value for the metric: 0.9924731974436163 with threshold: 0.5729585311083994
+Current value for the metric: 0.9924731974436163 with threshold: 0.572954896994678
+
+Running Experiment 5 - Dependent architecture - Rejection based on probabilities: symmetric upper & under bound with optimizing Combined Quality
+Current value for the metric: -0.855701754385965 with threshold: 0.6909830056250525
+Current value for the metric: -0.7934210526315789 with threshold: 0.8090169943749475
+Current value for the metric: -0.8855263157894737 with threshold: 0.6180339887498949
+Current value for the metric: -0.8912280701754386 with threshold: 0.5729490168751578
+Current value for the metric: -0.8907894736842106 with threshold: 0.5690595900330141
+Current value for the metric: -0.887719298245614 with threshold: 0.58254673220573
+Current value for the metric: -0.8912280701754386 with threshold: 0.5725940332412743
+Current value for the metric: -0.8912280701754386 with threshold: 0.572771525058216
+Current value for the metric: -0.8912280701754386 with threshold: 0.5727037292168693
+Current value for the metric: -0.8912280701754386 with threshold: 0.5726618290826211
+Current value for the metric: -0.8912280701754386 with threshold: 0.5726359333755225
+Current value for the metric: -0.8912280701754386 with threshold: 0.5726199289483729
+Current value for the metric: -0.8912280701754386 with threshold: 0.572610037668424
+Current value for the metric: -0.8912280701754386 with threshold: 0.5726039245212233
+Current value for the metric: -0.8912280701754386 with threshold: 0.572600146388475
+
+Running Experiment 6 - Dependent architecture - Rejection based on probabilities: asymetric upper & under bound with optimizing Micro Distance (3D ROC)
+
+Running Experiment 7 - Dependent architecture - Rejection based on probabilities: symmetric upper & under bound with optimizing Misclassification Cost
+ITE values witht a probability between the optimal underbound 0.16504849479027417 and the optimal upperbound 0.8349515052097258 are rejected 
+
+Table of test_set (First 20 rows)
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+-----+------------+---------------+--------------+------------+-------------------------+--------------+----------+-----------------+-----------------+-------+------------------+------------------+---------------+----------+
+| treatment | y_t1_pred | y_t1_prob | y_t0_pred | y_t0_prob | ite_pred | ite_prob | y_t0 | y_t1 | ite |  category  | category_pred | category_rej | ite_reject | ite_correctly_predicted | ite_rejected | cost_ite | category_reject | cost_ite_reject |  ood  | y_t1_reject_prob | y_t0_reject_prob | y_reject_prob | y_reject |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+-----+------------+---------------+--------------+------------+-------------------------+--------------+----------+-----------------+-----------------+-------+------------------+------------------+---------------+----------+
+|     1     |    0.0    |   0.019   |    0.0    |  0.0474   |   0.0    | -0.0284  | 0.0  | 0.0  | 0.0 | Lost Cause |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.0041   |    0.0    |  0.0152   |   0.0    | -0.0112  | 0.0  | 0.0  | 0.0 | Lost Cause |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.0286   |    0.0    |  0.0421   |   0.0    | -0.0135  | 0.0  | 0.0  | 0.0 | Lost Cause |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.0119   |    0.0    |  0.0194   |   0.0    | -0.0075  | 0.0  | 0.0  | 0.0 | Lost Cause |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.1196   |    0.0    |  0.1294   |   0.0    | -0.0097  | 0.0  | 0.0  | 0.0 | Lost Cause |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.1523   |    0.0    |  0.2291   |   0.0    | -0.0768  | 0.0  | 0.0  | 0.0 | Lost Cause |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        | False |      False       |       True       |     False     |  False   |
+|     1     |    0.0    |  0.0122   |    0.0    |  0.0337   |   0.0    | -0.0215  | 0.0  | 0.0  | 0.0 | Lost Cause |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.1923   |    0.0    |  0.2875   |   0.0    | -0.0952  | 1.0  | 1.0  | 0.0 | Sure Thing |  Lost Cause   |  Lost Cause  |     R      |          True           |     True     |    0     |        2        |        2        | False |       True       |       True       |     True      |   True   |
+|     1     |    0.0    |  0.0162   |    0.0    |   0.03    |   0.0    | -0.0138  | 0.0  | 0.0  | 0.0 | Lost Cause |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.1912   |    0.0    |  0.2286   |   0.0    | -0.0374  | 0.0  | 0.0  | 0.0 | Lost Cause |  Lost Cause   |  Lost Cause  |     R      |          True           |     True     |    0     |        2        |        2        | False |       True       |       True       |     True      |   True   |
+|     1     |    1.0    |  0.8665   |    1.0    |   0.867   |   0.0    | -0.0005  | 1.0  | 1.0  | 0.0 | Sure Thing |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |  0.0639   |    0.0    |  0.1361   |   0.0    | -0.0721  | 0.0  | 0.0  | 0.0 | Lost Cause |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.3047   |    0.0    |  0.3574   |   0.0    | -0.0527  | 0.0  | 0.0  | 0.0 | Lost Cause |  Lost Cause   |  Lost Cause  |     R      |          True           |     True     |    0     |        2        |        2        | False |       True       |       True       |     True      |   True   |
+|     0     |    1.0    |  0.7998   |    1.0    |  0.8194   |   0.0    | -0.0196  | 0.0  | 0.0  | 0.0 | Lost Cause |  Sure Thing   |  Sure Thing  |     R      |          True           |     True     |    0     |        2        |        2        | False |       True       |       True       |     True      |   True   |
+|     1     |    1.0    |   0.723   |    1.0    |  0.7109   |   0.0    |  0.0121  | 1.0  | 1.0  | 0.0 | Sure Thing |  Sure Thing   |  Sure Thing  |     R      |          True           |     True     |    0     |        2        |        2        | False |       True       |       True       |     True      |   True   |
+|     0     |    0.0    |  0.1185   |    0.0    |  0.1559   |   0.0    | -0.0374  | 0.0  | 0.0  | 0.0 | Lost Cause |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    1.0    |  0.9352   |    1.0    |  0.8891   |   0.0    |  0.0461  | 1.0  | 1.0  | 0.0 | Sure Thing |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        | False |      False       |      False       |     False     |  False   |
+|     0     |    0.0    |  0.1278   |    0.0    |  0.2151   |   0.0    | -0.0874  | 0.0  | 0.0  | 0.0 | Lost Cause |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        | False |      False       |       True       |     False     |  False   |
+|     0     |    0.0    |  0.0983   |    0.0    |  0.1305   |   0.0    | -0.0322  | 0.0  | 0.0  | 0.0 | Lost Cause |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        | False |      False       |      False       |     False     |  False   |
+|     1     |    0.0    |   0.014   |    0.0    |  0.0234   |   0.0    | -0.0094  | 0.0  | 0.0  | 0.0 | Lost Cause |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        | False |      False       |      False       |     False     |  False   |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+-----+------------+---------------+--------------+------------+-------------------------+--------------+----------+-----------------+-----------------+-------+------------------+------------------+---------------+----------+
+# Experiment 0: No Rejector - Baseline Model
+# Experiment 1: Separated Rejector - NearestNeighbors with optimizing Micro Distance (3D ROC)
+# Experiment 2: Separated Rejector - OneClassSVM with optimizing Micro Distance (3D ROC)
+# Experiment 3: Separated Rejector - OneClassSVM with optimizing Combined Quality
+# Experiment 4: Dependent architecture - Rejection based on probabilities: symmetric upper & under bound with optimizing Micro Distance (3D ROC)
+# Experiment 5: Dependent architecture - Rejection based on probabilities: symmetric upper & under bound with optimizing Combined Quality
+# Experiment 6: Dependent architecture - Rejection based on probabilities: asymetric upper & under bound with optimizing Micro Distance (3D ROC)
+# Experiment 7: Dependent architecture - Rejection based on probabilities: symmetric upper & under bound with optimizing Misclassification Cost
+
+Table of results of the experiments
+╭─────────────────────────┬───────────┬───────────┬───────────┬───────────┬───────────┬───────────┬───────────┬───────────╮
+│                         │         0 │         1 │         2 │         3 │         4 │         5 │         6 │         7 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Rejection Rate          │    0      │    0.0154 │    0      │    0      │    0.0211 │    0.0211 │    0.0136 │    0.2325 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Accuracy                │    0.9355 │    0.9363 │    0.9355 │    0.9355 │    0.9409 │    0.9409 │    0.9386 │    0.9554 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ RMSE                    │    0.3151 │    0.3142 │    0.3151 │    0.3151 │    0.3115 │    0.3115 │    0.3131 │    0.2577 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ ATE Accuracy            │   -1.087  │   -1.0465 │   -1.087  │   -1.087  │   -1.1364 │   -1.1364 │   -1.1087 │   -1      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Micro TPR               │    0.0074 │    0.0076 │    0.0074 │    0.0074 │    0.0078 │    0.0078 │    0.0076 │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Micro FPR               │    0.0061 │    0.0061 │    0.0061 │    0.0061 │    0.0019 │    0.0019 │    0.0033 │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Micro F1 Score          │    0.0134 │    0.0138 │    0.0134 │    0.0134 │    0.0149 │    0.0149 │    0.0143 │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Micro Distance (3D ROC) │    0.9926 │    0.9925 │    0.9926 │    0.9926 │    0.9925 │    0.9925 │    0.9925 │    1.0267 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Macro TPR               │    0.0025 │    0.0025 │    0.0025 │    0.0025 │    0.0026 │    0.0026 │    0.0025 │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Macro FPR               │    0.002  │    0.002  │    0.002  │    0.002  │    0.0006 │    0.0006 │    0.0011 │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Macro F1 Score          │    0.0045 │    0.0046 │    0.0045 │    0.0045 │    0.005  │    0.005  │    0.0048 │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Macro Distance (3D ROC) │    0.9975 │    0.9976 │    0.9975 │    0.9975 │    0.9976 │    0.9976 │    0.9976 │    1.0267 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ True Accepted           │ 2032      │ 2004      │ 2032      │ 2032      │ 2008      │ 2008      │ 2016      │ 1634      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ False Accepted          │  248      │  241      │  248      │  248      │  224      │  224      │  233      │  116      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ True Rejected           │    0      │    7      │    0      │    0      │   24      │   24      │   15      │  132      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ False Rejected          │    0      │   28      │    0      │    0      │   24      │   24      │   16      │  398      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Accuracy with Rejection │    0.8912 │    0.8927 │    0.8912 │    0.8912 │    0.8996 │    0.8996 │    0.8964 │    0.9337 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Coverage with Rejection │    1      │    0.9846 │    1      │    1      │    0.9789 │    0.9789 │    0.9864 │    0.7675 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Prediction Quality      │    0.8912 │    0.8927 │    0.8912 │    0.8912 │    0.8996 │    0.8996 │    0.8964 │    0.9337 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Rejection Quality       │    9.1935 │    2.0484 │    9.1935 │    9.1935 │    8.1935 │    8.1935 │    7.6815 │    2.7175 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Combined Quality        │    0.8912 │    0.882  │    0.8912 │    0.8912 │    0.8912 │    0.8912 │    0.8908 │    0.7746 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Misclassification Cost  │ 2710      │ 2740      │ 2710      │ 2710      │ 2686      │ 2686      │ 2692      │ 2200      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Correct Prediction      │ 1903      │ 1877      │ 1903      │ 1903      │ 1889      │ 1889      │ 1892      │ 1596      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Same Treatment Given    │  274      │  302      │  274      │  274      │  293      │  293      │  288      │  595      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Lost Potential          │   87      │   87      │   87      │   87      │   88      │   88      │   88      │   89      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Wasted Treatment        │   14      │   12      │   14      │   14      │    8      │    8      │   10      │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
+│ Opposite Effect         │    2      │    2      │    2      │    2      │    2      │    2      │    2      │    0      │
+╰─────────────────────────┴───────────┴───────────┴───────────┴───────────┴───────────┴───────────┴───────────┴───────────╯
+# Experiment 0: No Rejector - Baseline Model
+# Experiment 1: Separated Rejector - NearestNeighbors with optimizing Micro Distance (3D ROC)
+# Experiment 2: Separated Rejector - OneClassSVM with optimizing Micro Distance (3D ROC)
+# Experiment 3: Separated Rejector - OneClassSVM with optimizing Combined Quality
+# Experiment 4: Dependent architecture - Rejection based on probabilities: symmetric upper & under bound with optimizing Micro Distance (3D ROC)
+# Experiment 5: Dependent architecture - Rejection based on probabilities: symmetric upper & under bound with optimizing Combined Quality
+# Experiment 6: Dependent architecture - Rejection based on probabilities: asymetric upper & under bound with optimizing Micro Distance (3D ROC)
+# Experiment 7: Dependent architecture - Rejection based on probabilities: symmetric upper & under bound with optimizing Misclassification Cost
+
+Table of change (%) of each experiment in comparision with the baseline model
+╭─────────────────────────┬─────┬────────┬─────┬─────┬────────┬────────┬────────┬─────────╮
+│                         │   0 │      1 │   2 │   3 │      4 │      5 │      6 │       7 │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Rejection Rate          │ nan │ inf    │ nan │ nan │ inf    │ inf    │ inf    │  inf    │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Accuracy                │   0 │   0.09 │   0 │   0 │   0.58 │   0.58 │   0.33 │    2.13 │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ RMSE                    │   0 │  -0.29 │   0 │   0 │  -1.14 │  -1.14 │  -0.63 │  -18.22 │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ ATE Accuracy            │  -0 │  -3.73 │  -0 │  -0 │   4.54 │   4.54 │   2    │   -8    │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Micro TPR               │   0 │   2.7  │   0 │   0 │   5.41 │   5.41 │   2.7  │ -100    │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Micro FPR               │   0 │   0    │   0 │   0 │ -68.85 │ -68.85 │ -45.9  │ -100    │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Micro F1 Score          │   0 │   2.99 │   0 │   0 │  11.19 │  11.19 │   6.72 │ -100    │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Micro Distance (3D ROC) │   0 │  -0.01 │   0 │   0 │  -0.01 │  -0.01 │  -0.01 │    3.44 │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Macro TPR               │   0 │   0    │   0 │   0 │   4    │   4    │   0    │ -100    │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Macro FPR               │   0 │   0    │   0 │   0 │ -70    │ -70    │ -45    │ -100    │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Macro F1 Score          │   0 │   2.22 │   0 │   0 │  11.11 │  11.11 │   6.67 │ -100    │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Macro Distance (3D ROC) │   0 │   0.01 │   0 │   0 │   0.01 │   0.01 │   0.01 │    2.93 │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ True Accepted           │   0 │  -1.38 │   0 │   0 │  -1.18 │  -1.18 │  -0.79 │  -19.59 │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ False Accepted          │   0 │  -2.82 │   0 │   0 │  -9.68 │  -9.68 │  -6.05 │  -53.23 │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ True Rejected           │ nan │ inf    │ nan │ nan │ inf    │ inf    │ inf    │  inf    │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ False Rejected          │ nan │ inf    │ nan │ nan │ inf    │ inf    │ inf    │  inf    │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Accuracy with Rejection │   0 │   0.17 │   0 │   0 │   0.94 │   0.94 │   0.58 │    4.77 │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Coverage with Rejection │   0 │  -1.54 │   0 │   0 │  -2.11 │  -2.11 │  -1.36 │  -23.25 │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Prediction Quality      │   0 │   0.17 │   0 │   0 │   0.94 │   0.94 │   0.58 │    4.77 │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Rejection Quality       │   0 │ -77.72 │   0 │   0 │ -10.88 │ -10.88 │ -16.45 │  -70.44 │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Combined Quality        │   0 │  -1.03 │   0 │   0 │   0    │   0    │  -0.04 │  -13.08 │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Misclassification Cost  │   0 │   1.11 │   0 │   0 │  -0.89 │  -0.89 │  -0.66 │  -18.82 │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Correct Prediction      │   0 │  -1.37 │   0 │   0 │  -0.74 │  -0.74 │  -0.58 │  -16.13 │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Same Treatment Given    │   0 │  10.22 │   0 │   0 │   6.93 │   6.93 │   5.11 │  117.15 │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Lost Potential          │   0 │   0    │   0 │   0 │   1.15 │   1.15 │   1.15 │    2.3  │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Wasted Treatment        │   0 │ -14.29 │   0 │   0 │ -42.86 │ -42.86 │ -28.57 │ -100    │
+├─────────────────────────┼─────┼────────┼─────┼─────┼────────┼────────┼────────┼─────────┤
+│ Opposite Effect         │   0 │   0    │   0 │   0 │   0    │   0    │   0    │ -100    │
+╰─────────────────────────┴─────┴────────┴─────┴─────┴────────┴────────┴────────┴─────────╯

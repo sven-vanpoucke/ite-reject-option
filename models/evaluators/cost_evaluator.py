@@ -42,7 +42,7 @@ def categorize(row, is_pred=True):
     elif y_t0 == 1 and y_t1 == 1:
         return 'Sure Thing'
 
-def define_cost_matrix(cost_correct=0, cost_same_treatment=0, cost_wasted_treatment=5, cost_potential_improvement=10):
+def define_cost_matrix(cost_correct=0, cost_same_treatment=0, cost_wasted_treatment=5, cost_potential_improvement=30):
     cost_matrix = {
         'Lost Cause': {
             'Lost Cause': cost_correct, # Correct
@@ -83,7 +83,7 @@ def calculate_cost_ite(row):
 def calculate_misclassification_cost(data, rejection_cost=2):
     data['category_rej'] = data.apply(categorize, axis=1)
     data['cost_ite'] = data.apply(calculate_cost_ite, axis=1)
-    data['category_reject'] = data.apply(lambda row: rejection_cost if row['ite_reject']=="R" else row['category_rej'], axis=1)
+    data['category_reject'] = data.apply(lambda row: "R" if row['ite_reject']=="R" else row['category_rej'], axis=1)
 
     data['cost_ite_reject'] = data.apply(lambda row: rejection_cost if row['ite_reject']=="R" else row['cost_ite'], axis=1)
     total_cost_ite = data['cost_ite_reject'].sum()
@@ -92,12 +92,14 @@ def calculate_misclassification_cost(data, rejection_cost=2):
 def calculate_cost_metrics(value, value_pred, data, file_path, print=False):
 
     total_cost_ite = calculate_misclassification_cost(data)
+    data['category_reject'] = data.apply(lambda row: "R" if row['ite_reject']=="R" else row['category_rej'], axis=1)
 
     correct = 0
     same_treatment = 0
     lost_potential = 0
     wasted_treatment = 0
     opposite_effect = 0
+    rejected = 0
     for index, row in data.iterrows():
         if row['category'] == row['category_reject']:
             correct += 1
@@ -109,8 +111,41 @@ def calculate_cost_metrics(value, value_pred, data, file_path, print=False):
             lost_potential += 1
         elif row['category'] == 'Sure Thing' and row['category_reject'] == 'Persuadable':
             wasted_treatment += 1
+        elif row['category_reject'] == 'R':
+            rejected += 1
         else:
             same_treatment += 1
+    
+    data['category_correctly_predicted'] = data.apply(lambda row: True if row['cost_ite']==0 else False, axis=1)
+
+    # Prediction correct: yes-no
+    # Rejection: yes-no
+    # Assuming ite_correct and ite_rejected are boolean columns
+    correctly_accepted = data[(data['category_correctly_predicted'] == True) & (data['ite_rejected'] == False)].copy() # TA Prediction is correct, and the item is not rejected = True accepted
+    incorrectly_accepted = data[(data['category_correctly_predicted'] == False) & (data['ite_rejected'] == False)].copy() # FA Prediction is incorrect, and the item is not rejected
+    correctly_rejected = data[(data['category_correctly_predicted'] == False) & (data['ite_rejected'] == True)].copy() # TR Prediction is incorrect, and the item is rejected
+    incorrectly_rejected = data[(data['category_correctly_predicted'] == True) & (data['ite_rejected'] == True)].copy() # FR Prediction is correct, but the item is rejected
+
+    TA = len(correctly_accepted)
+    FA = len(incorrectly_accepted)
+    TR = len(correctly_rejected)
+    FR = len(incorrectly_rejected)
+
+    accurancy_rejection = TA / (TA + FA) if (TA + FA) != 0 else 0
+    coverage_rejection = (TA+FA) / (TA+FA+FR+TR)
+
+    #Evaluating models with a fixed rejection rate
+    prediction_quality = TA / (TA + FA) if (TA + FA) != 0 else 0
+    if (FR) == 0:
+        rejection_quality = 1 / ( (FA+TR) / (TA+FA) ) if (TA+FR) != 0 else 0
+    else:
+        rejection_quality = (TR/FR) / ( (FA+TR) / (TA+FR) ) if (TA+FR) != 0 else 0
+    combined_quality = (TA+TR) / (TA+FA+FR+TR)
+
+    #accurancy_rejection, coverage_rejection, prediction_quality, rejection_quality, combined_quality, TA, FA, TR, FR
+
+
+    accuracy_classification = (correct+same_treatment) / len(data)
 
     metrics_dict = {
         'Misclassification Cost': total_cost_ite,
@@ -118,8 +153,18 @@ def calculate_cost_metrics(value, value_pred, data, file_path, print=False):
         'Same Treatment Given': same_treatment,
         'Lost Potential': lost_potential,
         'Wasted Treatment': wasted_treatment,
-        'Opposite Effect': opposite_effect
-
+        'Opposite Effect': opposite_effect,
+        'Rejected': rejected,
+        'Accuracy Classification': accuracy_classification,
+        'TA Cost': TA,
+        'FA Cost': FA,
+        'TR Cost': TR,
+        'FR Cost': FR,
+        'Accuracy Rejection Cost': accurancy_rejection,
+        'Coverage Rejection Cost': coverage_rejection,
+        'Prediction Quality Cost': prediction_quality,
+        'Rejection Quality Cost': rejection_quality,
+        'Combined Quality Cost': combined_quality,  
     }
 
     return metrics_dict
