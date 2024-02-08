@@ -306,7 +306,7 @@ calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results,
 # Probabilities symetric upper and under bound
 architecture="Dependent architecture"
 model_class_name =  "Rejection based on probabilities: symmetric upper & under bound"
-key_metric = "Accuracy"
+key_metric = "Combined Quality Cost"
 minmax = 'max'
 
 experiment_names.update({5: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
@@ -326,7 +326,6 @@ test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] 
 
     # Step 5 Calculate and report the performance metrics
 calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
-
 
 #######################################################################################################################
 # Probabilities asymetric upper and under bound

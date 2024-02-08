@@ -1,7 +1,7 @@
 from sklearn.neighbors import NearestNeighbors
 import pandas as pd 
 from models.evaluators.performance_evaluator import calculate_performance_metrics
-from models.evaluators.cost_evaluator import calculate_misclassification_cost
+from models.evaluators.cost_evaluator import calculate_misclassification_cost, calculate_cost_metrics
 def nbrs_train(train_data, n_neighbors=5):
     nbrs_train = NearestNeighbors(n_neighbors=n_neighbors, algorithm='auto').fit(train_data)
     return nbrs_train
@@ -57,13 +57,16 @@ def calculate_objective(prob_reject_upper_bound, *args):
     test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] else row['ite_pred'], axis=1)
 
     metrics_dict = calculate_performance_metrics('ite', 'ite_reject', test_set, file_path)
-    
+
     # Check if key_metric is in metrics_dict
     if key_metric in metrics_dict:
         metric = metrics_dict[key_metric]
     else:
-        metric = 100
-    
+        metrics_dict = calculate_cost_metrics('ite', 'ite_reject', test_set, file_path)
+        if key_metric in metrics_dict:
+            metric = metrics_dict[key_metric]
+        else:
+            100
     if minmax == 'min':
         metric = metric
     else:
