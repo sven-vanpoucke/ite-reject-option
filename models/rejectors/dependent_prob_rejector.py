@@ -66,7 +66,7 @@ def calculate_objective(prob_reject_upper_bound, *args):
         if key_metric in metrics_dict:
             metric = metrics_dict[key_metric]
         else:
-            100
+            metric = 100
     if minmax == 'min':
         metric = metric
     else:

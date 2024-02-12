@@ -190,9 +190,9 @@ with open(file_path, 'a') as file:
     
 #######################################################################################################################
 # Baseline Model - No Rejection // Experiment 0
-
+experiment_id = 0
 experiment_names = {}
-experiment_names.update({0: f"No Rejector - Baseline Model"})
+experiment_names.update({experiment_id: f"No Rejector - Baseline Model"})
 
     # Step 4 Apply rejector to the code
 test_set['ite_reject'] = test_set.apply(lambda row: row['ite_pred'], axis=1)
@@ -203,10 +203,13 @@ calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results,
 
 #######################################################################################################################
 # Architecture Type = Separated
+#######################################################################################################################
+# OOD - KNN
 
+experiment_id += 1
 experiments = [
     {
-        'id': 1,
+        'id': experiment_id,
         'architecture': "Separated Rejector",
         'model_class': NearestNeighbors,
         'bounds': (0,10),
@@ -222,7 +225,7 @@ def run_experiment_ood(experiment_id, architecture, model_class, bounds, key_met
         file.write(f"\n\nRunning Experiment {experiment_id} - {architecture} - {model_class.__name__} with optimizing {key_metric}")
     experiment_names.update({experiment_id: f"{architecture} - {model_class.__name__} with optimizing {key_metric}"})
 
-    execute_ood_experiment(train_x, model_class, test_x, bounds, test_set, file_path, key_metric, minmax, metrics_results, model_options)
+    execute_ood_experiment(train_x, model_class, test_x, bounds, test_set, train_set, file_path, key_metric, minmax, metrics_results, model_options)
 
 # Execute experiments
 for experiment in experiments:
@@ -232,18 +235,22 @@ for experiment in experiments:
 
 #######################################################################################################################
 # One Class Classification - OCSVM
+experiment_id += 1
 experiments = [
     {
-        'id': 2,
+        'id': experiment_id,
         'architecture': "Separated Rejector",
         'model_class': OneClassSVM,
         'bounds': (0, 2000),
         'key_metric': "Micro Distance (3D ROC)",
         'minmax': 'min',
         'model_options': {'kernel': 'rbf', 'nu': 0.5, }
-    },
+    },]
+experiment_id += 1
+
+experiments +=  [
     {
-        'id': 3,
+        'id': experiment_id,
         'architecture': "Separated Rejector",
         'model_class': OneClassSVM,
         'bounds': (0,2000),
@@ -253,17 +260,18 @@ experiments = [
     },
 ]
 
-def run_experiment_one_class_svm(experiment_id, architecture, model_class, bounds, key_metric, minmax, model_options, train_x, test_x, test_set, file_path, metrics_results, experiment_names):
+def run_experiment_one_class_svm(experiment_id, architecture, model_class, bounds, key_metric, minmax, model_options, train_x, test_x, test_set, train_set, file_path, metrics_results, experiment_names):
     with open(file_path, 'a') as file:
         file.write(f"\n\nRunning Experiment {experiment_id} - {architecture} - {model_class.__name__} with optimizing {key_metric}")
+    
     experiment_names.update({experiment_id: f"{architecture} - {model_class.__name__} with optimizing {key_metric}"})
+    execute_one_class_classification_experiment(train_x, model_class, test_x, bounds, test_set, train_set, file_path, key_metric, minmax, metrics_results, model_options)
 
-    execute_one_class_classification_experiment(train_x, model_class, test_x, bounds, test_set, file_path, key_metric, minmax, metrics_results, model_options)
 
 # Execute experiments
 for experiment in experiments:
     run_experiment_one_class_svm(experiment['id'], experiment['architecture'], experiment['model_class'], 
-                   experiment['bounds'], experiment['key_metric'], experiment['minmax'], experiment['model_options'], train_x, test_x, test_set, 
+                   experiment['bounds'], experiment['key_metric'], experiment['minmax'], experiment['model_options'], train_x, test_x, test_set, train_set,
                    file_path, metrics_results, experiment_names, )
 
 #######################################################################################################################
@@ -282,14 +290,15 @@ for experiment in experiments:
 #######################################################################################################################
 # ARCHITECTURE TYPE 2: DEPENDENT
 # Probabilities symetric upper and under bound
+experiment_id += 1
 architecture="Dependent architecture"
 model_class_name =  "Rejection based on probabilities: symmetric upper & under bound"
 key_metric = "Micro Distance (3D ROC)"
 minmax = 'min'
 
-experiment_names.update({4: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
+experiment_names.update({experiment_id: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
 with open(file_path, 'a') as file:
-    file.write(f"\n\nRunning Experiment {4} - {architecture} - {model_class_name} with optimizing {key_metric}")
+    file.write(f"\n\nRunning Experiment {experiment_id} - {architecture} - {model_class_name} with optimizing {key_metric}")
 
     # Step 3 Optimize the threshold
 result = minimize_scalar(calculate_objective, bounds=(0.5, 1), method='bounded', args=(test_set, file_path, key_metric, minmax), options={'disp': False})
@@ -308,14 +317,15 @@ calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results,
 
 #######################################################################################################################
 # Probabilities symetric upper and under bound
+experiment_id += 1
 architecture="Dependent architecture"
 model_class_name =  "Rejection based on probabilities: symmetric upper & under bound"
 key_metric = "Micro Distance (3D ROC)"
 minmax = 'max'
 
-experiment_names.update({5: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
+experiment_names.update({experiment_id: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
 with open(file_path, 'a') as file:
-    file.write(f"\n\nRunning Experiment {5} - {architecture} - {model_class_name} with optimizing {key_metric}")
+    file.write(f"\n\nRunning Experiment {experiment_id} - {architecture} - {model_class_name} with optimizing {key_metric}")
 
     # Step 3 Optimize the threshold
 result = minimize_scalar(calculate_objective, bounds=(0.5, 1), method='bounded', args=(test_set, file_path, key_metric, minmax), options={'disp': False})
@@ -333,13 +343,13 @@ calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results,
 
 #######################################################################################################################
 # Probabilities asymetric upper and under bound
-architecture="Dependent architecture"
+experiment_id += 1
 model_class_name =  "Rejection based on probabilities: asymetric upper & under bound"
 key_metric = "Micro Distance (3D ROC)"
 
-experiment_names.update({6: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
+experiment_names.update({experiment_id: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
 with open(file_path, 'a') as file:
-    file.write(f"\n\nRunning Experiment {6} - {architecture} - {model_class_name} with optimizing {key_metric}")
+    file.write(f"\n\nRunning Experiment {experiment_id} - {architecture} - {model_class_name} with optimizing {key_metric}")
 
     # Step 3 Optimize the threshold
 initial_guess = [0.45, 0.55]
@@ -357,13 +367,13 @@ calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results,
 
 #######################################################################################################################
 # Rejection based on probabilities: symetric symmetric upper & under bound by min MISCLASSIFICATION COSTS
-architecture="Dependent architecture"
+experiment_id += 1
 model_class_name =  "Rejection based on probabilities: symmetric upper & under bound"
 key_metric = "Misclassification Cost"
 
-experiment_names.update({7: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
+experiment_names.update({experiment_id: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
 with open(file_path, 'a') as file:
-    file.write(f"\n\nRunning Experiment {7} - {architecture} - {model_class_name} with optimizing {key_metric}")
+    file.write(f"\n\nRunning Experiment {experiment_id} - {architecture} - {model_class_name} with optimizing {key_metric}")
 
     # Step 3 Optimize the threshold
 result = minimize_scalar(calculate_objective_misclassificationcost_single_variable, bounds=(0.5, 1), method='bounded', args=(test_set, file_path), options={'disp': True})
