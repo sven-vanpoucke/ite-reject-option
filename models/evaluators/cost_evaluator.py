@@ -168,13 +168,3 @@ def calculate_cost_metrics(value, value_pred, data, file_path, print=False):
     }
 
     return metrics_dict
-
-
-
-
-
-    metrics_dict = {
-        'Misclassification Cost': total_cost_ite,
-    }
-
-    return metrics_dict

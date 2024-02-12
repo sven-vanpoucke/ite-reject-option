@@ -361,6 +361,7 @@ Table of results of the experiments
 ├─────────────────────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┼───────────┤
 │ Combined Quality Cost   │    0.9452 │    0.9325 │    0.9452 │    0.9452 │    0.9285 │    0.9465 │    0.9404 │    0.739  │
 ╰─────────────────────────┴───────────┴───────────┴───────────┴───────────┴───────────┴───────────┴───────────┴───────────╯
+
 # Experiment 0: No Rejector - Baseline Model
 # Experiment 1: Separated Rejector - NearestNeighbors with optimizing Micro Distance (3D ROC)
 # Experiment 2: Separated Rejector - OneClassSVM with optimizing Micro Distance (3D ROC)

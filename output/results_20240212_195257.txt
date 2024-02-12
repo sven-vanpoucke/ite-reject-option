@@ -1,0 +1,92 @@
+CHAPTER 1: INTRODUCTION
+# This section introduces the purpose and background of the analysis.
+
+In this analysis, we aim to evaluate the performance of different reject options for Information Treatment Effect (ITE) models.The ITE model predicts the individual treatment effects in a given dataset, providing valuable insights into the impact of interventions.
+For your information, this file has been automatically generated on: 2024-02-12 19:52
+\Chapter 2: Preprocessing
+
+# This section executes the data retrieval, preprocessing and splitting in a training and dataset.During the whole file, the used dataset is: TWINS
+
+CHAPTER 3: Training of the ITE Model
+
+# This section provides details about the model selection, training process, and any hyperparameter tuning.
+The trained ITE model is a T-LEARNER.
+The two individually trained models are: LogisticRegression
+
+CHAPTER 4: Evaluate treated and control groups seperately
+
+# This section evaluates the individually trained models (two as we used a T-learner).
+The used performance measures are:
+
+ - Confusion Matrix
+ - Accuracy: overall correctness of the model ((TP + TN) / (TP + TN + FP + FN))
+ - Precision: It measures the accuracy of positive predictions (TP / (TP + FP))
+ - Recall: ability of the model to capture all the relevant cases (TP / (TP + FN))
+ - F1 Score: It balances precision and recall, providing a single metric for model evaluation (2 * (Precision * Recall) / (Precision + Recall))
+ - ROC
+
+Evaluation of the individual models based on the **training data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |     3740      |     3615      |
+| False Positives |      130      |      110      |
+| False Negatives |      374      |      419      |
+| True Negatives  |      368      |      364      |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |     0.89      |     0.88      |
+| Precision |     0.74      |     0.77      |
+|  Recall   |      0.5      |     0.46      |
+|    F1     |     0.59      |     0.58      |
+|    AUC    |     0.73      |     0.72      |
++-----------+---------------+---------------+
+
+
+Evaluation of the individual models based on the **test data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |      907      |      916      |
+| False Positives |      29       |      35       |
+| False Negatives |      94       |      112      |
+| True Negatives  |      82       |      105      |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |     0.89      |     0.87      |
+| Precision |     0.74      |     0.75      |
+|  Recall   |     0.47      |     0.48      |
+|    F1     |     0.57      |     0.59      |
+|    AUC    |     0.72      |     0.72      |
++-----------+---------------+---------------+
+
+Chapter 4: Evaluate overall ITE Model: Performance 
+
+# This section evaluates the overal performance of the ITE model.
+The used performance measures are: 
+
+ - Root Mean Squared Error (RMSE) of the ITE 
+ - Accurate estimate of the ATE 
+ - Accurancy of ITE
+
+
+CHAPTER 7: EVALUATE OVERALL ITE MODEL: COST 
+
+# This section evaluates the overal misclassification costs of the ITE model.
+
+CHAPTER 7: REJECTION 
+
+# This section executes and reports metrics for ITE models with rejection.
+
+
+Running Experiment 1 - Separated Rejector - NearestNeighbors with optimizing Micro Distance (3D ROC)

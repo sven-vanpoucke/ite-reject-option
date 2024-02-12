@@ -58,6 +58,8 @@ def execute_ood_experiment(train_x, model_class, test_x, bounds, test_set, file_
     trained_model = train_model(train_x, model_class=model_class, **model_options)
     distances = distance_test_to_train(trained_model, test_x)
     # Step 2: Train rejector: optimize the threshold
+    
+    # Here should i give the train_set instead of test_set?
     result = minimize_scalar(calculate_objective, bounds=bounds, method='bounded', args=(test_set, file_path, distances, key_metric, minmax), options={'disp': False})
     threshold_distance = result.x
     # Step 3: Apply rejector to the code

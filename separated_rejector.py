@@ -126,6 +126,7 @@ treated_model, control_model = predictor_t_model(train_treated_x, train_treated_
 ## Training and Testing predictions to evaluate individual models
 train_treated_y_pred, train_treated_y_prob, train_control_y_pred, train_control_y_prob = predictor_train_predictions(treated_model, control_model, train_treated_x, train_control_x)
 test_treated_y_pred, test_treated_y_prob, test_control_y_pred, test_control_y_prob = predictor_test_predictions(treated_model, control_model, test_treated_x, test_control_x)
+train_y_t1_pred, train_y_t0_pred, train_y_t1_prob, train_y_t0_prob, train_ite_prob, train_ite_pred = predictor_ite_predictions(treated_model, control_model, train_x)
 
 # Testing Predictions to evaluate ITE
 test_y_t1_pred, test_y_t0_pred, test_y_t1_prob, test_y_t0_prob, test_ite_prob, test_ite_pred = predictor_ite_predictions(treated_model, control_model, test_x)
@@ -165,6 +166,7 @@ with open(file_path, 'a') as file:
 
 ## Chapter 5B: Preprocessing of the test_set
 test_set = pd.concat([test_t, test_y_t1_pred, test_y_t1_prob, test_y_t0_pred, test_y_t0_prob, test_ite_pred, test_ite_prob, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
+train_set = pd.concat([test_t, train_y_t1_pred, train_y_t1_prob, train_y_t0_pred, train_y_t0_prob, train_ite_pred, train_ite_prob, train_potential_y["y_t0"], train_potential_y["y_t1"], train_ite], axis=1)
 
 # Chapter 6: Evaluate overall ITE Model: Costs
 ## Chapter 6A: Output to file
@@ -194,6 +196,7 @@ experiment_names.update({0: f"No Rejector - Baseline Model"})
 
     # Step 4 Apply rejector to the code
 test_set['ite_reject'] = test_set.apply(lambda row: row['ite_pred'], axis=1)
+train_set['ite_reject'] = test_set.apply(lambda row: row['ite_pred'], axis=1)
 
     # Step 5 Calculate the performance metrics
 calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
@@ -302,11 +305,12 @@ test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] 
     # Step 5 Calculate and report the performance metrics
 calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
 
+
 #######################################################################################################################
 # Probabilities symetric upper and under bound
 architecture="Dependent architecture"
 model_class_name =  "Rejection based on probabilities: symmetric upper & under bound"
-key_metric = "Combined Quality Cost"
+key_metric = "Micro Distance (3D ROC)"
 minmax = 'max'
 
 experiment_names.update({5: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
@@ -414,6 +418,13 @@ with open(file_path, 'a') as file:
 
     file.write("\nTable of change (%) of each experiment in comparision with the baseline model\n")
     file.write(tabulate(improvement_matrix.T, headers='keys', tablefmt='rounded_grid', showindex=True))
+
+    # Category != category_pred
+    file.write("\n\nTable of test_set with wrong classification\n")
+    file.write(tabulate(test_set[test_set['category'] != test_set['category_pred']], headers='keys', tablefmt='pretty', showindex=False))
+
+
+
 
 # Select numeric columns excluding the "experiment" column
 numeric_columns = metrics_results.select_dtypes(include=['number'])
