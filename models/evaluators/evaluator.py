@@ -15,23 +15,21 @@ def append_all_metrics(metrics_results, metrics_dict):
     return metrics_results
 
 def calculate_all_metrics(value, value_pred, data, file_path, metrics_results, append_metrics_results=True, print=False):
-    pass
     #
     metrics_dict = calculate_performance_metrics(value, value_pred, data, file_path, print)
-        
-    if append_metrics_results:
-        metrics_results = append_all_metrics(metrics_results, metrics_dict)
-
+    for key, value in metrics_dict.items():
+        if key not in metrics_results:
+            metrics_results[key] = []  # Initialize the key if it doesn't exist
+        metrics_results[key].append(round(value, 4))
     if print:
         pass
-    
+
     # 
-
     metrics_dict = calculate_cost_metrics(value, value_pred, data, file_path, print)
-
-    if append_metrics_results:
-        metrics_results = append_all_metrics(metrics_results, metrics_dict)
-
+    for key, value in metrics_dict.items():
+        if key not in metrics_results:
+            metrics_results[key] = []  # Initialize the key if it doesn't exist
+        metrics_results[key].append(round(value, 4))
     if print:
         pass
 

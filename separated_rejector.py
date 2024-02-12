@@ -76,6 +76,7 @@ from sklearn.svm import OneClassSVM
 ## REJECTION PROBABILITIES
 from scipy.optimize import minimize_scalar, minimize
 from models.rejectors.dependent_prob_rejector import calculate_objective_threedroc_double_variable, calculate_objective_misclassificationcost_single_variable, calculate_objective
+from models.evaluators.evaluator import calculate_performance_metrics
 
 # Chapter 1: Initialization
 ## Parameters
@@ -212,10 +213,9 @@ experiments = [
         'id': experiment_id,
         'architecture': "Separated Rejector",
         'model_class': NearestNeighbors,
-        'bounds': (0,10),
-        'key_metric': "Micro Distance (3D ROC)",
-        'minmax': 'min',
-
+        'bounds': (0,25),
+        'key_metric': "Combined Quality",
+        'minmax': 'max',
         'model_options': {'n_neighbors': 5, 'algorithm': 'auto', 'leaf_size': 30, 'metric': 'minkowski', 'p': 2, 'n_jobs': None}
     },
 ]
@@ -232,7 +232,85 @@ for experiment in experiments:
     run_experiment_ood(experiment['id'], experiment['architecture'], experiment['model_class'], 
                    experiment['bounds'], experiment['key_metric'], experiment['minmax'], experiment['model_options'], train_x, test_x, test_set, 
                    file_path, metrics_results, experiment_names, )
+#######################################################################################################################
+# Rejection based on Logistic Regression Prediction of Rejection
+experiment_id += 1
+architecture="Dependent architecture"
+model_class_name =  "Rejection based on Logistic Regression Prediction of Rejection"
 
+def train_model(train_x, ite_correctly_predicted, model_class=LogisticRegression, **model_options):
+    # Train the model
+    model = model_class(**model_options)
+    model.fit(train_x, ite_correctly_predicted)
+    return model
+
+train_set['ite_mistake'] = train_set.apply(lambda row: 0 if row['ite_pred']==row['ite'] else 1, axis=1)
+
+model = train_model(train_x, train_set['ite_mistake'], LogisticRegression, max_iter=10000, solver='saga', random_state=42)
+
+train_reject_pred = pd.Series(model.predict(train_x), name='train_treated_y_pred')
+test_set['test_reject_pred'] = pd.Series(model.predict(test_x), name='test_reject_pred')
+
+test_set['y_reject'] = test_set.apply(lambda row: True if row['test_reject_pred'] else False, axis=1)
+test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
+experiment_names.update({experiment_id: f"{architecture} - {model_class.__name__}"})
+
+calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
+
+#######################################################################################################################
+from sklearn.model_selection import GridSearchCV
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import make_scorer, f1_score
+import pandas as pd
+
+# Increment experiment_id
+experiment_id += 1
+
+# Set experiment details
+architecture = "Dependent architecture"
+model_class_name = "Rejection based on GridsearchCV Prediction of Rejection"
+
+# Define a custom scorer (use your own metric)
+custom_scorer = make_scorer(f1_score)
+# Define a custom scorer using the calculated metric
+metrics_dict = calculate_performance_metrics('ite', 'ite_reject', train_set, file_path)
+custom_metric_train = metrics_dict['Combined Quality']
+
+custom_scorer = make_scorer(lambda y_true, y_pred: custom_metric_train, greater_is_better=True)
+
+
+# Define the parameter grid for GridSearchCV
+param_grid = {
+    'max_iter': [10000],
+    'solver': ['saga'],
+    'random_state': [42]
+}
+
+# Instantiate the model class
+model = LogisticRegression()
+
+# Use GridSearchCV for hyperparameter tuning
+grid_search = GridSearchCV(model, param_grid, scoring=custom_scorer, cv=5)
+grid_search.fit(train_x, train_set['ite_mistake'])
+
+# Get the best model from GridSearchCV
+best_model = grid_search.best_estimator_
+
+# Predictions on training and test sets
+train_reject_pred = pd.Series(best_model.predict(train_x), name='train_treated_y_pred')
+test_set['test_reject_pred'] = pd.Series(best_model.predict(test_x), name='test_reject_pred')
+
+# Create additional columns in the test set
+test_set['y_reject'] = test_set.apply(lambda row: True if row['test_reject_pred'] else False, axis=1)
+test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
+
+# Update experiment names
+experiment_names.update({experiment_id: f"{architecture} - {model_class_name}"})
+
+# Calculate metrics
+calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
+
+"""
 #######################################################################################################################
 # One Class Classification - OCSVM
 experiment_id += 1
@@ -320,7 +398,7 @@ calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results,
 experiment_id += 1
 architecture="Dependent architecture"
 model_class_name =  "Rejection based on probabilities: symmetric upper & under bound"
-key_metric = "Micro Distance (3D ROC)"
+key_metric = "Combined Quality"
 minmax = 'max'
 
 experiment_names.update({experiment_id: f"{architecture} - {model_class_name} with optimizing {key_metric}"})
@@ -391,6 +469,7 @@ test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] 
     # Step 5 Calculate and report the performance metrics
 calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
 
+"""
 #######################################################################################################################
 metrics_results = pd.DataFrame(metrics_results)
 improvement_matrix = metrics_results.copy()
@@ -398,16 +477,7 @@ for col in improvement_matrix.columns[0:]:
     improvement_matrix[col] = round((improvement_matrix[col] - improvement_matrix[col].iloc[0]) / improvement_matrix[col].iloc[0] * 100, 2)
 improvement_matrix = pd.DataFrame(improvement_matrix)
 
-"""
-experiment_descriptions = {
-    0: "No Rejector: Baseline Model",
-    1: "Separated Rejector - O.O.D.: K-Nearest Neighbors",
-    2: "Separated Rejector - One Class Classification: OCSVM",
-    3: "Dependent Rejector - Rejection based on probabilities: symetric symmetric upper & under bound (minimization of 3D ROC)",
-    4: "Dependent Rejector - Rejection based on probabilities: asymmetric upper & under bound (minimization of 3D ROC)",
-    5: "Dependent Rejector - Rejection based on probabilities: symmetric upper & under bound (minimization of misclassification costs)"
-}
-"""
+
 
 # Chapter 8: Output to file
 with open(file_path, 'a') as file:

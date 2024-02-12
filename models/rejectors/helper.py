@@ -24,7 +24,7 @@ def calculate_objective(threshold_distance, *args):
     train_set['ite_reject'] = train_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
 
     metrics_dict = calculate_performance_metrics('ite', 'ite_reject', train_set, file_path)
-    
+
     # Check if key_metric is in metrics_dict
     if key_metric in metrics_dict:
         metric = metrics_dict[key_metric]

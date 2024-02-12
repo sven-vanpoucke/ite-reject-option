@@ -112,6 +112,6 @@ def calculate_objective_misclassificationcost_single_variable(prob_reject_upper_
     test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject_prob'] else row['ite_pred'], axis=1)
     
     # Calculate total misclassification cost
-    total_cost_ite_2 = calculate_misclassification_cost(test_set, 2)
+    total_cost_ite_2 = calculate_misclassification_cost(test_set, 5)
 
     return total_cost_ite_2
