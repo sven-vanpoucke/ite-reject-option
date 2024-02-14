@@ -4,6 +4,56 @@ from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve
 from contextlib import redirect_stdout
+import numpy as np
+from math import sqrt
+
+def calculate_rmse(y_true, y_pred):
+    """Calculates the Root Mean Squared Error (RMSE) between two numpy arrays.
+
+    Args:
+        y_true (np.ndarray): The array of true values.
+        y_pred (np.ndarray): The array of predicted values.
+
+    Returns:
+        float: The RMSE value.
+
+    Raises:
+        ValueError: If the input arrays have different shapes.
+    """
+
+    # Check for input array shapes
+    # if y_true.shape != y_pred.shape:
+    #     raise ValueError("Input arrays must have the same shape.")
+
+    # Calculate RMSE efficiently using vectorized operations
+    squared_errors = np.square(y_true - y_pred)
+    mean_squared_error = np.mean(squared_errors)
+    rmse = np.sqrt(mean_squared_error)
+
+    return rmse
+
+def evaluation_continuous(treated_y, treated_y_pred, control_y, control_y_pred, file_path):
+    treated_rmse = calculate_rmse(treated_y, treated_y_pred) 
+    control_rmse = calculate_rmse(control_y, control_y_pred)
+
+    metrics = {
+    "RMSE": [treated_rmse, control_rmse],
+    }
+
+    # Convert dictionary to table format
+    table = []
+    for metric, values in metrics.items():
+        table.append([metric, values[0], values[1]])
+    
+    # Display the table
+    with open(file_path, 'a') as file:
+        file.write("Metrics:\n")
+        # Redirecting stdout to the file
+        with redirect_stdout(file):
+            print(tabulate(table, headers=["Metric", "Treated Group", "Control Group"], tablefmt="pretty"))
+        file.write("\n")
+
+    return treated_rmse, control_rmse
 
 def evaluation_binary(treated_y, treated_y_pred, treated_y_prob, control_y, control_y_pred, control_y_prob, file_path):
     evaluation_binary_confusion_table(treated_y, treated_y_pred, control_y, control_y_pred, file_path)
@@ -44,10 +94,8 @@ def evaluation_binary_metrics(treated_y_test, treated_y_pred, control_y_test, co
         table.append([metric, values[0], values[1]])
     
     # Display the table
-        
     with open(file_path, 'a') as file:
         file.write("Metrics:\n")
-
         # Redirecting stdout to the file
         with redirect_stdout(file):
             print(tabulate(table, headers=["Metric", "Treated Group", "Control Group"], tablefmt="pretty"))

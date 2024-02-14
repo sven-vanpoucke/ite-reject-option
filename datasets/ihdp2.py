@@ -30,14 +30,14 @@ def preprocessing_get_data_ihdp():
         train_data.drop(columns=["treatment", "observed_outcome", "y_factual", "y_cfactual", "y_t0", "y_t1", "mu0", "mu1"]),
         train_data["treatment"],
         train_data["observed_outcome"],
-        train_data["y_t0"]
+        train_data[["y_t0", "y_t1"]]
     ])
 
     test_x, test_t, test_y, test_potential_y = reset_index_and_copy([
         test_data.drop(columns=["y_factual", "y_cfactual", "mu0", "mu1"]),
         test_data["treatment"],
         test_data["observed_outcome"],
-        test_data["y_t0"]
+        test_data[["y_t0", "y_t1"]]
     ])
 
     return train_x, train_t, train_y, train_potential_y, test_x, test_t, test_y, test_potential_y

@@ -57,11 +57,11 @@ from datasets.ihdp2 import preprocessing_get_data_ihdp, preprocessing_transform_
 
 ## MODEL T-LEARNER
 from models.predictor import predictor_t_model
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LogisticRegression, LinearRegression
 ## PREDICT 
 from models.predictor import predictor_train_predictions, predictor_test_predictions, predictor_ite_predictions
 ## EVALUATE INDIVIDUAL MODELS
-from models.model_evaluator import evaluation_binary
+from models.model_evaluator import evaluation_binary, evaluation_continuous
 # EVALUATE OVERALL ITE MODEL: PERFORMANCE
 from models.evaluators.cost_evaluator import categorize # calculate_performance_metrics
 ## EVALUATE OVERALL ITE MODEL: COSTS
@@ -108,37 +108,24 @@ elif dataset == "TWINS":
     # Calculate ITE
     test_ite = pd.DataFrame({'ite': test_potential_y["y_t1"] - test_potential_y["y_t0"]})
     train_ite = pd.DataFrame({'ite': train_potential_y["y_t1"] - train_potential_y["y_t0"]})
-
     # split the data in treated and controlled
     train_treated_x, train_control_x, train_treated_y, train_control_y, test_treated_x, test_control_x, test_treated_y, test_control_y = preprocessing_split_t_c_data(train_x, train_y, train_t, test_x, test_y, test_t)
     # Set the model class for the T-learner
     model_class = LogisticRegression # Which two models do we want to generate in the t-models
-
+    model_params = {"max_iter": 10000, "solver": "saga", "random_state": 42}
 elif dataset == "IHDP":
     # Step 1: Load and preprocess IHDP data
     train_x, train_t, train_y, train_potential_y, test_x, test_t, test_y, test_potential_y = preprocessing_get_data_ihdp()
-
-
     # Step 2: Transform the data
     train_x, train_t, train_y, train_potential_y, test_x, test_t, test_y, test_potential_y = preprocessing_transform_data_ihdp(train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y)
-
-    # Define the folder path
-    csv_folder = 'csvihdp/'
-    # Save train_treated_x to CSV in the 'csv' folder
-    train_x.copy().to_csv(csv_folder + 'train_x.csv', index=False)
-    train_t.copy().to_csv(csv_folder + 'train_t.csv', index=False)
-    train_y.copy().to_csv(csv_folder + 'train_y.csv', index=False)
-    train_potential_y.copy().to_csv(csv_folder + 'train_potential_y.csv', index=False)
-
+    # Step 3: Split the data in treated and controlled
     train_treated_x, train_control_x, train_treated_y, train_control_y, test_treated_x, test_control_x, test_treated_y, test_control_y = preprocessing_split_t_c_data(train_x, train_y, train_t, test_x, test_y, test_t)
-
-    # Step 3: Calculate ITE
+    # Step 4: Calculate ITE
     test_ite = pd.DataFrame({'ite': test_potential_y["y_t1"] - test_potential_y["y_t0"]})
     train_ite = pd.DataFrame({'ite': train_potential_y["y_t1"] - train_potential_y["y_t0"]})
-
     # Set the model class for the T-learner
-    model_class = LogisticRegression # Which two models do we want to generate in the t-models
-
+    model_class = LinearRegression # Which two models do we want to generate in the t-models
+    model_params = {"fit_intercept": True}
 
 # Chapter 3: Training of the ITE Model
 ## Chapter 3A: Output to file
@@ -150,7 +137,7 @@ with open(file_path, 'a') as file:
 
 ## Chapter 3B: Training of the ITE Model
 ## We adopt an T-learner as our ITE model. This model is trained on the treated and control groups separately.
-treated_model, control_model = predictor_t_model(train_treated_x, train_treated_y, train_control_x, train_control_y, model_class=model_class, max_iter=10000, solver='saga', random_state=42)
+treated_model, control_model = predictor_t_model(train_treated_x, train_treated_y, train_control_x, train_control_y, model_class, model_params)
 
 ## Chapter 3C: Predicting the ITE and related variables (y_t0 and y_t1)
 
@@ -178,12 +165,18 @@ with open(file_path, 'a') as file:
 ## Chapter 4B: Evaluation of the individual models based on the training data
 with open(file_path, 'a') as file:
     file.write("Evaluation of the individual models based on the **training data**\n")
-evaluation_binary(train_treated_y, train_treated_y_pred, train_treated_y_prob, train_control_y, train_control_y_pred, train_control_y_prob, file_path)
+if train_treated_y_prob != None:
+    evaluation_binary(train_treated_y, train_treated_y_pred, train_treated_y_prob, train_control_y, train_control_y_pred, train_control_y_prob, file_path)
+else:
+    evaluation_continuous(train_treated_y, train_treated_y_pred, train_control_y, train_control_y_pred, file_path)
 
 ## Chapter 4C: Evaluation of the individual models based on the training data
 with open(file_path, 'a') as file:
     file.write("\nEvaluation of the individual models based on the **test data**\n")
-evaluation_binary(test_treated_y, test_treated_y_pred, test_treated_y_prob, test_control_y, test_control_y_pred, test_control_y_prob, file_path)
+if test_treated_y_prob != None:
+    evaluation_binary(test_treated_y, test_treated_y_pred, test_treated_y_prob, test_control_y, test_control_y_pred, test_control_y_prob, file_path)
+else:
+    evaluation_continuous(train_treated_y, train_treated_y_pred, train_control_y, train_control_y_pred, file_path)
 
 # Chapter 5: Evaluate overall ITE Model: Performance
 ## Chapter 5A: Output to file
@@ -196,8 +189,12 @@ with open(file_path, 'a') as file:
     file.write(f" - Accurancy of ITE\n")
 
 ## Chapter 5B: Preprocessing of the test_set
-test_set = pd.concat([test_t, test_y_t1_pred, test_y_t1_prob, test_y_t0_pred, test_y_t0_prob, test_ite_pred, test_ite_prob, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
-train_set = pd.concat([test_t, train_y_t1_pred, train_y_t1_prob, train_y_t0_pred, train_y_t0_prob, train_ite_pred, train_ite_prob, train_potential_y["y_t0"], train_potential_y["y_t1"], train_ite], axis=1)
+if test_treated_y_prob != None:
+    test_set = pd.concat([test_t, test_y_t1_pred, test_y_t1_prob, test_y_t0_pred, test_y_t0_prob, test_ite_pred, test_ite_prob, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
+    train_set = pd.concat([test_t, train_y_t1_pred, train_y_t1_prob, train_y_t0_pred, train_y_t0_prob, train_ite_pred, train_ite_prob, train_potential_y["y_t0"], train_potential_y["y_t1"], train_ite], axis=1)
+else:
+    test_set = pd.concat([test_t, test_y_t1_pred, test_y_t0_pred, test_ite_pred, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
+    train_set = pd.concat([test_t, train_y_t1_pred, train_y_t0_pred, train_ite_pred, train_potential_y["y_t0"], train_potential_y["y_t1"], train_ite], axis=1)
 
 # Chapter 6: Evaluate overall ITE Model: Costs
 ## Chapter 6A: Output to file
@@ -230,8 +227,12 @@ test_set['ite_reject'] = test_set.apply(lambda row: row['ite_pred'], axis=1)
 train_set['ite_reject'] = test_set.apply(lambda row: row['ite_pred'], axis=1)
 
     # Step 5 Calculate the performance metrics
-calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
+if test_treated_y_prob != None:
+    calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
+else:
+    pass
 
+"""
 #######################################################################################################################
 # Architecture Type = Separated
 #######################################################################################################################
@@ -262,6 +263,8 @@ for experiment in experiments:
     run_experiment_ood(experiment['id'], experiment['architecture'], experiment['model_class'], 
                    experiment['bounds'], experiment['key_metric'], experiment['minmax'], experiment['model_options'], train_x, test_x, test_set, 
                    file_path, metrics_results, experiment_names, )
+
+
 #######################################################################################################################
 # Rejection based on Logistic Regression Prediction of Rejection
 experiment_id += 1
@@ -285,7 +288,10 @@ test_set['y_reject'] = test_set.apply(lambda row: True if row['test_reject_pred'
 test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
 experiment_names.update({experiment_id: f"{architecture} - {model_class.__name__}"})
 
-calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
+if test_treated_y_prob != None:
+    calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
+else:
+    pass
 
 #######################################################################################################################
 from sklearn.model_selection import GridSearchCV
@@ -340,7 +346,7 @@ experiment_names.update({experiment_id: f"{architecture} - {model_class_name}"})
 # Calculate metrics
 calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
 
-"""
+
 #######################################################################################################################
 # One Class Classification - OCSVM
 experiment_id += 1
@@ -533,13 +539,11 @@ with open(file_path, 'a') as file:
     file.write("\n\nTable of test_set with wrong classification\n")
     file.write(tabulate(test_set[test_set['category'] != test_set['category_pred']], headers='keys', tablefmt='pretty', showindex=False))
 
-
-
-
 # Select numeric columns excluding the "experiment" column
 numeric_columns = metrics_results.select_dtypes(include=['number'])
 # numeric_columns = metrics_results.select_dtypes(include=['number']).drop(columns=['Experiment'])
 
+"""
 # Create a heatmap
 plt.figure(figsize=(10, 8))
 heatmap = sns.heatmap(numeric_columns, annot=True, cmap='coolwarm', fmt=".2f")
@@ -549,3 +553,4 @@ plt.title("Heatmap of Numeric Columns in DataFrame")
 # Save the heatmap as an image file (e.g., PNG)
 plt.savefig("output/heatmap.png")
 plt.close()
+"""
