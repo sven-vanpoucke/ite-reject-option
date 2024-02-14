@@ -1,6 +1,3 @@
-
-
-
 About the matrix: Lost Cause, Sleeping Dog, Persuadable, Sure Thing
 Comment:
  - Upper left cell: amount of cases that have outcome 0: no matter if you would treat or not
