@@ -31,7 +31,7 @@ from models.helper import improvement
 # REJECTION PROBABILITIES
 # ...
 # PARAMETERS
-dataset = "ihdp" # Choose out of twins or lalonde
+dataset = "ihdp" # Choose out of twins or lalonde or ihdp
 model_class = LinearRegression # Which two models do we want to generate in the t-models, for ihdp, we cannot use logistic regression!
 rejection_type = "ood" # Choose out of ood or prob
 prob_reject_upper_bound = 0.55
@@ -69,12 +69,14 @@ elif dataset == "ihdp":
     train_t.columns = ['treatment']
 else:
     pass
+
 '''
 # MODEL T-LEARNER
 with open(file_path, 'w', encoding='utf-8') as file:
     file.write(f"CHAPTER 3: MODEL T-LEARNER\n\n")
     #file.write(f"The used model is: {model_class._name_}\n\n")
 '''
+
 # Training separate models for treated and control groups
     #first: separate treated vs control using treatment == 0 or 1
 #then us the processing function to get train_treated_x and so forth

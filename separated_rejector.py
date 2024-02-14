@@ -53,6 +53,8 @@ from models.helper import helper_output
 from datasets.lalonde import processing_get_data_lalonde, processing_transform_data_lalonde
 from datasets.twins import preprocessing_get_data_twin, preprocessing_transform_data_twin
 from datasets.processing import preprocessing_split_t_c_data
+from datasets.ihdp import processing_get_data_ihdp, processing_transform_data_ihdp
+
 ## MODEL T-LEARNER
 from models.predictor import predictor_t_model
 from sklearn.linear_model import LogisticRegression
@@ -81,7 +83,7 @@ from models.evaluators.evaluator import calculate_performance_metrics
 # Chapter 1: Initialization
 ## Parameters
 folder_path = 'output/'
-dataset = "TWINS" # Choose out of TWINS or LALONDE
+dataset = "TWINS" # Choose out of TWINS or LALONDE or IHDP
 model_class = LogisticRegression # Which two models do we want to generate in the t-models
 rejection_architecture = 'dependent' # dependent_rejector or separated_rejector
 prob_reject_upper_bound = 0.55
@@ -109,6 +111,25 @@ elif dataset == "TWINS":
     train_ite = pd.DataFrame({'ite': train_potential_y["y_t1"] - train_potential_y["y_t0"]})
     # split the data in treated and controlled
     train_treated_x, train_control_x, train_treated_y, train_control_y, test_treated_x, test_control_x, test_treated_y, test_control_y = preprocessing_split_t_c_data(train_x, train_y, train_t, test_x, test_y, test_t)
+
+elif dataset == "IHDP":
+    train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y = preprocessing_get_data_twin()
+    train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y = preprocessing_transform_data_twin(train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y)
+    # Calculate ITE
+    test_ite = pd.DataFrame({'ite': test_potential_y["y_t1"] - test_potential_y["y_t0"]})
+    train_ite = pd.DataFrame({'ite': train_potential_y["y_t1"] - train_potential_y["y_t0"]})
+    # split the data in treated and controlled
+    train_treated_x, train_control_x, train_treated_y, train_control_y, test_treated_x, test_control_x, test_treated_y, test_control_y = preprocessing_split_t_c_data(train_x, train_y, train_t, test_x, test_y, test_t)
+
+    ## This is the code from Justine
+    all_data = processing_get_data_ihdp()
+    train_x, test_x, train_y, test_y, train_t, test_t = processing_transform_data_ihdp(all_data)
+    test_t = pd.DataFrame(test_t)
+    test_t.columns = ['treatment']
+    train_t = pd.DataFrame(train_t)
+    train_t.columns = ['treatment']
+
+
 
 # Chapter 3: Training of the ITE Model
 ## Chapter 3A: Output to file
