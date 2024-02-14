@@ -20,29 +20,29 @@ def predictor_t_model(train_treated_x, train_treated_y, train_control_x, train_c
 
 def predictor_train_predictions(treated_model, control_model, train_treated_x, train_control_x):
     # Training predictions for treated & control group
-    train_treated_y_pred = pd.Series(treated_model.predict(train_treated_x), name='train_treated_y_pred')
-    train_control_y_pred = pd.Series(control_model.predict(train_control_x), name='train_control_y_pred')
+    train_treated_y_pred = pd.Series(treated_model.predict(train_treated_x), name='treated_y_pred')
+    train_control_y_pred = pd.Series(control_model.predict(train_control_x), name='control_y_pred')
     
     # Getting probabilities to certain class
     train_treated_y_prob = None
     train_control_y_prob = None
     if hasattr(treated_model, 'predict_proba'):
-        train_treated_y_prob = pd.Series(treated_model.predict_proba(train_treated_x)[:, 1], name='train_treated_y_prob')
-        train_control_y_prob = pd.Series(control_model.predict_proba(train_control_x)[:, 1], name='train_control_y_prob')
+        train_treated_y_prob = pd.Series(treated_model.predict_proba(train_treated_x)[:, 1], name='treated_y_prob')
+        train_control_y_prob = pd.Series(control_model.predict_proba(train_control_x)[:, 1], name='control_y_prob')
     
     return train_treated_y_pred, train_treated_y_prob, train_control_y_pred, train_control_y_prob
 
 def predictor_test_predictions(treated_model, control_model, test_treated_x, test_control_x):
     # Testing predictions for treated & control group
-    test_treated_y_pred = pd.Series(treated_model.predict(test_treated_x), name='test_treated_y_pred')
-    test_control_y_pred = pd.Series(control_model.predict(test_control_x), name='test_control_y_pred')
+    test_treated_y_pred = pd.Series(treated_model.predict(test_treated_x), name='treated_y_pred')
+    test_control_y_pred = pd.Series(control_model.predict(test_control_x), name='control_y_pred')
 
     # Getting probabilities to certain class
     test_treated_y_prob = None
     test_control_y_prob = None
     if hasattr(treated_model, 'predict_proba'):
-        test_treated_y_prob = pd.Series(treated_model.predict_proba(test_treated_x)[:, 1], name='test_treated_y_prob')
-        test_control_y_prob = pd.Series(control_model.predict_proba(test_control_x)[:, 1], name='test_control_y_prob')
+        test_treated_y_prob = pd.Series(treated_model.predict_proba(test_treated_x)[:, 1], name='treated_y_prob')
+        test_control_y_prob = pd.Series(control_model.predict_proba(test_control_x)[:, 1], name='control_y_prob')
 
     return test_treated_y_pred, test_treated_y_prob, test_control_y_pred, test_control_y_prob
 

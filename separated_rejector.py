@@ -165,7 +165,7 @@ with open(file_path, 'a') as file:
 ## Chapter 4B: Evaluation of the individual models based on the training data
 with open(file_path, 'a') as file:
     file.write("Evaluation of the individual models based on the **training data**\n")
-if train_treated_y_prob != None:
+if train_treated_y_prob is not None and not train_treated_y_prob.isna().all():
     evaluation_binary(train_treated_y, train_treated_y_pred, train_treated_y_prob, train_control_y, train_control_y_pred, train_control_y_prob, file_path)
 else:
     evaluation_continuous(train_treated_y, train_treated_y_pred, train_control_y, train_control_y_pred, file_path)
@@ -173,10 +173,10 @@ else:
 ## Chapter 4C: Evaluation of the individual models based on the training data
 with open(file_path, 'a') as file:
     file.write("\nEvaluation of the individual models based on the **test data**\n")
-if test_treated_y_prob != None:
+if train_treated_y_prob is not None and not train_treated_y_prob.isna().all():
     evaluation_binary(test_treated_y, test_treated_y_pred, test_treated_y_prob, test_control_y, test_control_y_pred, test_control_y_prob, file_path)
 else:
-    evaluation_continuous(train_treated_y, train_treated_y_pred, train_control_y, train_control_y_pred, file_path)
+    evaluation_continuous(test_treated_y, test_treated_y_pred, test_control_y, test_control_y_pred, file_path)
 
 # Chapter 5: Evaluate overall ITE Model: Performance
 ## Chapter 5A: Output to file
@@ -189,7 +189,7 @@ with open(file_path, 'a') as file:
     file.write(f" - Accurancy of ITE\n")
 
 ## Chapter 5B: Preprocessing of the test_set
-if test_treated_y_prob != None:
+if train_treated_y_prob is not None and not train_treated_y_prob.isna().all():
     test_set = pd.concat([test_t, test_y_t1_pred, test_y_t1_prob, test_y_t0_pred, test_y_t0_prob, test_ite_pred, test_ite_prob, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
     train_set = pd.concat([test_t, train_y_t1_pred, train_y_t1_prob, train_y_t0_pred, train_y_t0_prob, train_ite_pred, train_ite_prob, train_potential_y["y_t0"], train_potential_y["y_t1"], train_ite], axis=1)
 else:
@@ -227,14 +227,43 @@ test_set['ite_reject'] = test_set.apply(lambda row: row['ite_pred'], axis=1)
 train_set['ite_reject'] = test_set.apply(lambda row: row['ite_pred'], axis=1)
 
     # Step 5 Calculate the performance metrics
-if test_treated_y_prob != None:
-    calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
-else:
-    pass
+metrics_dict = calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
+metrics_results[experiment_id] = metrics_dict
 
-"""
 #######################################################################################################################
 # Architecture Type = Separated
+#######################################################################################################################
+# OOD - KNN
+
+experiment_id += 1
+experiments = [
+    {
+        'id': experiment_id,
+        'architecture': "Separated Rejector",
+        'model_class': NearestNeighbors,
+        'bounds': (1,3),
+        'key_metric': "RMSE",
+        'minmax': 'min',
+        'model_options': {'n_neighbors': 5, 'algorithm': 'auto', 'leaf_size': 30, 'metric': 'minkowski', 'p': 2, 'n_jobs': None}
+    },
+]
+
+def run_experiment_ood(experiment_id, architecture, model_class, bounds, key_metric, minmax, model_options, train_x, test_x, test_set, file_path, metrics_results, experiment_names):
+    with open(file_path, 'a') as file:
+        file.write(f"\n\nRunning Experiment {experiment_id} - {architecture} - {model_class.__name__} with optimizing {key_metric}")
+    experiment_names.update({experiment_id: f"{architecture} - {model_class.__name__} with optimizing {key_metric}"})
+
+    metrics_dict = execute_ood_experiment(train_x, model_class, test_x, bounds, test_set, train_set, file_path, key_metric, minmax, metrics_results, model_options)
+
+    return metrics_dict
+# Execute experiments
+for experiment in experiments:
+    metrics_dict = run_experiment_ood(experiment['id'], experiment['architecture'], experiment['model_class'], 
+                   experiment['bounds'], experiment['key_metric'], experiment['minmax'], experiment['model_options'], train_x, test_x, test_set, 
+                   file_path, metrics_results, experiment_names, )
+    metrics_results[experiment['id']] = metrics_dict
+
+"""
 #######################################################################################################################
 # OOD - KNN
 
@@ -256,14 +285,15 @@ def run_experiment_ood(experiment_id, architecture, model_class, bounds, key_met
         file.write(f"\n\nRunning Experiment {experiment_id} - {architecture} - {model_class.__name__} with optimizing {key_metric}")
     experiment_names.update({experiment_id: f"{architecture} - {model_class.__name__} with optimizing {key_metric}"})
 
-    execute_ood_experiment(train_x, model_class, test_x, bounds, test_set, train_set, file_path, key_metric, minmax, metrics_results, model_options)
+    metrics_dict = execute_ood_experiment(train_x, model_class, test_x, bounds, test_set, train_set, file_path, key_metric, minmax, metrics_results, model_options)
+    return metrics_dict
 
 # Execute experiments
 for experiment in experiments:
-    run_experiment_ood(experiment['id'], experiment['architecture'], experiment['model_class'], 
+    metrics_dict = run_experiment_ood(experiment['id'], experiment['architecture'], experiment['model_class'], 
                    experiment['bounds'], experiment['key_metric'], experiment['minmax'], experiment['model_options'], train_x, test_x, test_set, 
                    file_path, metrics_results, experiment_names, )
-
+    metrics_results[experiment_id] = metrics_dict
 
 #######################################################################################################################
 # Rejection based on Logistic Regression Prediction of Rejection
@@ -288,10 +318,9 @@ test_set['y_reject'] = test_set.apply(lambda row: True if row['test_reject_pred'
 test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
 experiment_names.update({experiment_id: f"{architecture} - {model_class.__name__}"})
 
-if test_treated_y_prob != None:
-    calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
-else:
-    pass
+metrics_dict = calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
+metrics_results[experiment_id] = metrics_dict
+
 
 #######################################################################################################################
 from sklearn.model_selection import GridSearchCV
@@ -310,10 +339,9 @@ model_class_name = "Rejection based on GridsearchCV Prediction of Rejection"
 custom_scorer = make_scorer(f1_score)
 # Define a custom scorer using the calculated metric
 metrics_dict = calculate_performance_metrics('ite', 'ite_reject', train_set, file_path)
-custom_metric_train = metrics_dict['Combined Quality']
+custom_metric_train = metrics_dict['RMSE']
 
 custom_scorer = make_scorer(lambda y_true, y_pred: custom_metric_train, greater_is_better=True)
-
 
 # Define the parameter grid for GridSearchCV
 param_grid = {
@@ -344,9 +372,10 @@ test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject'] else 
 experiment_names.update({experiment_id: f"{architecture} - {model_class_name}"})
 
 # Calculate metrics
-calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
+metrics_dict = calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
+metrics_results[experiment_id] = metrics_dict
 
-
+"""
 #######################################################################################################################
 # One Class Classification - OCSVM
 experiment_id += 1
@@ -356,7 +385,7 @@ experiments = [
         'architecture': "Separated Rejector",
         'model_class': OneClassSVM,
         'bounds': (0, 2000),
-        'key_metric': "Micro Distance (3D ROC)",
+        'key_metric': "RMSE",
         'minmax': 'min',
         'model_options': {'kernel': 'rbf', 'nu': 0.5, }
     },]
@@ -379,14 +408,15 @@ def run_experiment_one_class_svm(experiment_id, architecture, model_class, bound
         file.write(f"\n\nRunning Experiment {experiment_id} - {architecture} - {model_class.__name__} with optimizing {key_metric}")
     
     experiment_names.update({experiment_id: f"{architecture} - {model_class.__name__} with optimizing {key_metric}"})
-    execute_one_class_classification_experiment(train_x, model_class, test_x, bounds, test_set, train_set, file_path, key_metric, minmax, metrics_results, model_options)
-
+    metrics_dict = execute_one_class_classification_experiment(train_x, model_class, test_x, bounds, test_set, train_set, file_path, key_metric, minmax, metrics_results, model_options)
+    return metrics_dict
 
 # Execute experiments
 for experiment in experiments:
-    run_experiment_one_class_svm(experiment['id'], experiment['architecture'], experiment['model_class'], 
+    metrics_dict = run_experiment_one_class_svm(experiment['id'], experiment['architecture'], experiment['model_class'], 
                    experiment['bounds'], experiment['key_metric'], experiment['minmax'], experiment['model_options'], train_x, test_x, test_set, train_set,
                    file_path, metrics_results, experiment_names, )
+    metrics_results[experiment['id']] = metrics_dict
 
 #######################################################################################################################
 # Rejection based on SCORES MODEL
@@ -401,6 +431,7 @@ for experiment in experiments:
 # examples with high novelty probability.
 """
 
+"""
 #######################################################################################################################
 # ARCHITECTURE TYPE 2: DEPENDENT
 # Probabilities symetric upper and under bound
@@ -507,11 +538,15 @@ calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results,
 
 """
 #######################################################################################################################
+print(f"Metrics Results: {metrics_results}")
 metrics_results = pd.DataFrame(metrics_results)
+#metrics_results = pd.DataFrame.from_dict(metrics_results, orient='index', columns=['Value'])
+
+
 improvement_matrix = metrics_results.copy()
-for col in improvement_matrix.columns[0:]:
-    improvement_matrix[col] = round((improvement_matrix[col] - improvement_matrix[col].iloc[0]) / improvement_matrix[col].iloc[0] * 100, 2)
-improvement_matrix = pd.DataFrame(improvement_matrix)
+# for col in improvement_matrix.columns[0:]:
+#     improvement_matrix[col] = round((improvement_matrix[col] - improvement_matrix[col].iloc[0]) / improvement_matrix[col].iloc[0] * 100, 2)
+# improvement_matrix = pd.DataFrame(improvement_matrix)
 
 
 
@@ -526,14 +561,14 @@ with open(file_path, 'a') as file:
         file.write(f"# Experiment {exp_number}: {description}\n")
 
     file.write("\nTable of results of the experiments\n")
-    file.write(tabulate(metrics_results.T, headers='keys', tablefmt='rounded_grid', showindex=True))
+    file.write(tabulate(metrics_results, headers='keys', tablefmt='rounded_grid', showindex=True))
     
     file.write ("\n")
     for exp_number, description in experiment_names.items():
         file.write(f"# Experiment {exp_number}: {description}\n")
 
     file.write("\nTable of change (%) of each experiment in comparision with the baseline model\n")
-    file.write(tabulate(improvement_matrix.T, headers='keys', tablefmt='rounded_grid', showindex=True))
+    file.write(tabulate(improvement_matrix, headers='keys', tablefmt='rounded_grid', showindex=True))
 
     # Category != category_pred
     file.write("\n\nTable of test_set with wrong classification\n")

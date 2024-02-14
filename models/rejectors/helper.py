@@ -1,5 +1,7 @@
 from models.evaluators.performance_evaluator import calculate_performance_metrics
-
+from models.evaluators.evaluator import calculate_all_metrics
+from math import sqrt
+from tabulate import tabulate
 
 # Function to train a model equal to the one in one_class_classification_rejector.py
 def train_model(train_data, model_class, **model_params):
@@ -14,17 +16,15 @@ def is_too_far(distance, threshold):
 
 # Objective function
 def calculate_objective(threshold_distance, *args):
-    train_set = args[0]
+    data = args[0]
     file_path = args[1]
     distances = args[2]
     key_metric = args[3]
     minmax = args[4]
     
-    train_set['ood'] = distances.apply(is_too_far, threshold=threshold_distance)
-    train_set['ite_reject'] = train_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
-
-    metrics_dict = calculate_performance_metrics('ite', 'ite_reject', train_set, file_path)
-
+    data['ood'] = distances.apply(is_too_far, threshold=threshold_distance)
+    data['ite_reject'] = data.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
+    metrics_dict = calculate_performance_metrics('ite', 'ite_reject', data, file_path)
     # Check if key_metric is in metrics_dict
     if key_metric in metrics_dict:
         metric = metrics_dict[key_metric]
@@ -37,6 +37,7 @@ def calculate_objective(threshold_distance, *args):
         metric = -metric
 
     with open(file_path, 'a') as file:
-        file.write(f"\n Current value for the metric: {metric} with threshold: {threshold_distance}")
-
+        file.write(f"\n Current value for the metric: {round(metric,2)} with threshold: {round(threshold_distance,2)} and rejection rate: {round(metrics_dict['Rejection Rate'],2)}")
+        # file.write("\n")
+        # file.write(tabulate(data.head(50), headers='keys', tablefmt='pretty', showindex=False))
     return metric

@@ -4,6 +4,7 @@ from tabulate import tabulate
 import numpy as np
 from sklearn.metrics import confusion_matrix, classification_report
 import math
+from math import sqrt
 from sklearn.metrics import mean_squared_error
 
 def calculate_rejection_rate(data):
@@ -208,70 +209,77 @@ def calculate_performance_metrics(value, value_pred, data, file_path, print=Fals
             - micro_distance_threedroc (float): The micro-average distance to the 3D ROC curve.
             - macro_distance_threedroc (float): The macro-average distance to the 3D ROC curve.
     """
-    # Step 1: Calculate the metrics (including rejected instances)
-    if print==True:
-        cross_tab = pd.crosstab(data[value], data[value_pred])
-        with open(file_path, 'a') as file:
-            file.write(f"This matrix is the crosstab of the column {value} and {value_pred}.\n")
-            file.write(tabulate(cross_tab, headers='keys', tablefmt='simple_grid'))
-    
     metrics_dict = {}
-    rr = calculate_rejection_rate(data)    
-    
+    rr = calculate_rejection_rate(data)        
     metrics_dict['Rejection Rate'] = rr
 
+    data_not_rejected = data[data['ite_reject'] != 'R'].copy()
+    data_not_rejected['se'] = (data_not_rejected['ite'] - data_not_rejected['ite_reject']) ** 2
+    mse = data_not_rejected['se'].mean()
+    rmse = sqrt(mse)
 
-    accurancy_rejection, coverage_rejection, prediction_quality, rejection_quality, combined_quality, TA, FA, TR, FR = calculate_performance_metrics_penalty_rejection(data)
+    metrics_dict['RMSE'] = rmse
+    metrics_dict['Accuracy'] = 0
 
-    # Step 2: Data Preprocessing 
-    ##  Remove rejected items
-    data = data[data[value_pred] != "R"].copy()
-    data[value_pred] = data[value_pred].astype(int)
-    
-    if len(data[value_pred]) != 0:
-        # Step 3: Calculate the metrics (ignoring rejected instances)
-        unique_labels = np.union1d(np.unique(data[value]), np.unique(data[value_pred]))
-        confusion_matrix_overall = confusion_matrix(data[value], data[value_pred])
-        total_tp, total_fp, total_fn, total_tn, total_tpr, total_fpr, total_specificity, total_precision, unique_labels = calculate_sliced_confusion_matrix_metrics(unique_labels, confusion_matrix_overall)
-        ## Calculate micro metrics
-        accurancy, micro_tpr, micro_fpr, micro_specificity, micro_precision, micro_f1score = calculate_micro_metrics(total_tp, total_fp, total_fn, total_tn)
-        micro_distance_threedroc = calculate_threedroc(micro_tpr, micro_fpr, rr)
-        ## Calculate macro metrics
-        macro_tpr, macro_fpr, macro_specificity, macro_precision, macro_f1score = calculate_macro_metrics(total_tpr, total_fpr, total_specificity, total_precision, unique_labels)
-        macro_distance_threedroc = calculate_threedroc(macro_tpr, macro_fpr, rr)
-        rmse = np.sqrt(mean_squared_error(data['ite'], data['ite_prob'])) # Calculate Root Mean Squared Error (RMSE)
-        #rmse = np.sqrt(mean_squared_error(data['ite'], data['ite_reject'])) # Calculate Root Mean Squared Error (RMSE)
-        ate_accuracy = np.abs(data['ite_reject'].mean() - data['ite'].mean())/data['ite'].mean() # Evaluate ATE accuracy
+    if 'y_t1_prob' in data.columns:
+        # Step 1: Calculate the metrics (including rejected instances)
+        if print==True:
+            cross_tab = pd.crosstab(data[value], data[value_pred])
+            with open(file_path, 'a') as file:
+                file.write(f"This matrix is the crosstab of the column {value} and {value_pred}.\n")
+                file.write(tabulate(cross_tab, headers='keys', tablefmt='simple_grid'))
 
-        # Step 4: Generate Classification Report
-        classificationreport = classification_report(data[value], data[value_pred], zero_division=np.nan)
-        #classificationreport_df = pd.DataFrame.from_dict(classification_report(data[value], data[value_pred], output_dict=True, zero_division=np.nan))
+        accurancy_rejection, coverage_rejection, prediction_quality, rejection_quality, combined_quality, TA, FA, TR, FR = calculate_performance_metrics_penalty_rejection(data)
 
-        metrics_dict['Accuracy'] = accurancy
-        metrics_dict['RMSE'] = rmse
-        metrics_dict['ATE Accuracy'] = ate_accuracy
-        metrics_dict['Rejection Rate'] = rr
-        metrics_dict['Micro TPR'] = micro_tpr
-        metrics_dict['Micro FPR'] = micro_fpr
-        metrics_dict['Micro F1 Score'] = micro_f1score
-        metrics_dict['Micro Distance (3D ROC)'] = micro_distance_threedroc
-        metrics_dict['Macro TPR'] = macro_tpr
-        metrics_dict['Macro FPR'] = macro_fpr
-        metrics_dict['Macro F1 Score'] = macro_f1score
-        metrics_dict['Macro Distance (3D ROC)'] = macro_distance_threedroc
-        metrics_dict['True Accepted'] = TA
-        metrics_dict['False Accepted'] = FA
-        metrics_dict['True Rejected'] = TR
-        metrics_dict['False Rejected'] = FR
-        metrics_dict['Accuracy with Rejection'] = accurancy_rejection
-        metrics_dict['Coverage with Rejection'] = coverage_rejection
-        metrics_dict['Prediction Quality'] = prediction_quality
-        metrics_dict['Rejection Quality'] = rejection_quality
-        metrics_dict['Combined Quality'] = combined_quality
-        
-        
+        # Step 2: Data Preprocessing 
+        ##  Remove rejected items
+        data = data[data[value_pred] != "R"].copy()
+        data[value_pred] = data[value_pred].astype(int)
 
-    return metrics_dict
+        if len(data[value_pred]) != 0:
+            # Step 3: Calculate the metrics (ignoring rejected instances)
+            unique_labels = np.union1d(np.unique(data[value]), np.unique(data[value_pred]))
+            confusion_matrix_overall = confusion_matrix(data[value], data[value_pred])
+            total_tp, total_fp, total_fn, total_tn, total_tpr, total_fpr, total_specificity, total_precision, unique_labels = calculate_sliced_confusion_matrix_metrics(unique_labels, confusion_matrix_overall)
+            ## Calculate micro metrics
+            accurancy, micro_tpr, micro_fpr, micro_specificity, micro_precision, micro_f1score = calculate_micro_metrics(total_tp, total_fp, total_fn, total_tn)
+            micro_distance_threedroc = calculate_threedroc(micro_tpr, micro_fpr, rr)
+            ## Calculate macro metrics
+            macro_tpr, macro_fpr, macro_specificity, macro_precision, macro_f1score = calculate_macro_metrics(total_tpr, total_fpr, total_specificity, total_precision, unique_labels)
+            macro_distance_threedroc = calculate_threedroc(macro_tpr, macro_fpr, rr)
+            rmse = np.sqrt(mean_squared_error(data['ite'], data['ite_prob'])) # Calculate Root Mean Squared Error (RMSE)
+            #rmse = np.sqrt(mean_squared_error(data['ite'], data['ite_reject'])) # Calculate Root Mean Squared Error (RMSE)
+            ate_accuracy = np.abs(data['ite_reject'].mean() - data['ite'].mean())/data['ite'].mean() # Evaluate ATE accuracy
+
+            # Step 4: Generate Classification Report
+            classificationreport = classification_report(data[value], data[value_pred], zero_division=np.nan)
+            #classificationreport_df = pd.DataFrame.from_dict(classification_report(data[value], data[value_pred], output_dict=True, zero_division=np.nan))
+
+            metrics_dict['Accuracy'] = accurancy
+            metrics_dict['RMSE'] = rmse
+            metrics_dict['ATE Accuracy'] = ate_accuracy
+            metrics_dict['Rejection Rate'] = rr
+            metrics_dict['Micro TPR'] = micro_tpr
+            metrics_dict['Micro FPR'] = micro_fpr
+            metrics_dict['Micro F1 Score'] = micro_f1score
+            metrics_dict['Micro Distance (3D ROC)'] = micro_distance_threedroc
+            metrics_dict['Macro TPR'] = macro_tpr
+            metrics_dict['Macro FPR'] = macro_fpr
+            metrics_dict['Macro F1 Score'] = macro_f1score
+            metrics_dict['Macro Distance (3D ROC)'] = macro_distance_threedroc
+            metrics_dict['True Accepted'] = TA
+            metrics_dict['False Accepted'] = FA
+            metrics_dict['True Rejected'] = TR
+            metrics_dict['False Rejected'] = FR
+            metrics_dict['Accuracy with Rejection'] = accurancy_rejection
+            metrics_dict['Coverage with Rejection'] = coverage_rejection
+            metrics_dict['Prediction Quality'] = prediction_quality
+            metrics_dict['Rejection Quality'] = rejection_quality
+            metrics_dict['Combined Quality'] = combined_quality
+            
+            return metrics_dict
+    else:
+        return metrics_dict
 
 
 

@@ -26,15 +26,27 @@ def calculate_rmse(y_true, y_pred):
     #     raise ValueError("Input arrays must have the same shape.")
 
     # Calculate RMSE efficiently using vectorized operations
-    squared_errors = np.square(y_true - y_pred)
-    mean_squared_error = np.mean(squared_errors)
-    rmse = np.sqrt(mean_squared_error)
+    # squared_errors = np.square(y_true - y_pred)
+    # mean_squared_error = np.mean(squared_errors)
+    # rmse = np.sqrt(mean_squared_error)
+
+    y_true['se'] = (y_true['observed_outcome'] - y_pred['train_treated_y_pred']) ** 2
+    mse = y_true['se'].mean()
+    rmse = sqrt(mse)
 
     return rmse
 
 def evaluation_continuous(treated_y, treated_y_pred, control_y, control_y_pred, file_path):
-    treated_rmse = calculate_rmse(treated_y, treated_y_pred) 
-    control_rmse = calculate_rmse(control_y, control_y_pred)
+    treated_y = treated_y.copy()
+    treated_y['se'] = (treated_y['observed_outcome'] - treated_y_pred) ** 2
+    treated_mse = treated_y['se'].mean()
+    treated_rmse = sqrt(treated_mse)
+
+    control_y = control_y.copy()
+    control_y['se'] = (control_y['observed_outcome'] - control_y_pred) ** 2
+    control_mse = control_y['se'].mean()
+    control_rmse = sqrt(control_mse)
+
 
     metrics = {
     "RMSE": [treated_rmse, control_rmse],
