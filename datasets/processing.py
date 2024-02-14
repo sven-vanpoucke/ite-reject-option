@@ -13,7 +13,7 @@ def processing_get_data(url_controlled, url_treated, columns):
 def preprocessing_split_t_c_data(train_x, train_y, train_t, test_x, test_y, test_t):
   
   # for training data
-  train_treated_x = train_x[train_t['treatment']  == 1]
+  train_treated_x = train_x[train_t['treatment'] == 1]
   train_control_x = train_x[train_t['treatment'] == 0] # no treatment given...
   train_treated_y = train_y[train_t['treatment'] == 1]
   train_control_y = train_y[train_t['treatment'] == 0]

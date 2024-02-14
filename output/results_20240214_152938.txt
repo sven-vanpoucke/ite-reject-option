@@ -1,0 +1,117 @@
+CHAPTER 1: INTRODUCTION
+# This section introduces the purpose and background of the analysis.
+
+In this analysis, we aim to evaluate the performance of different reject options for Information Treatment Effect (ITE) models.The ITE model predicts the individual treatment effects in a given dataset, providing valuable insights into the impact of interventions.
+For your information, this file has been automatically generated on: 2024-02-14 15:29
+\Chapter 2: Preprocessing
+
+# This section executes the data retrieval, preprocessing and splitting in a training and dataset.During the whole file, the used dataset is: TWINS
+
+CHAPTER 3: Training of the ITE Model
+
+# This section provides details about the model selection, training process, and any hyperparameter tuning.
+The trained ITE model is a T-LEARNER.
+The two individually trained models are: LogisticRegression
+
+CHAPTER 4: Evaluate treated and control groups seperately
+
+# This section evaluates the individually trained models (two as we used a T-learner).
+The used performance measures are:
+
+ - Confusion Matrix
+ - Accuracy: overall correctness of the model ((TP + TN) / (TP + TN + FP + FN))
+ - Precision: It measures the accuracy of positive predictions (TP / (TP + FP))
+ - Recall: ability of the model to capture all the relevant cases (TP / (TP + FN))
+ - F1 Score: It balances precision and recall, providing a single metric for model evaluation (2 * (Precision * Recall) / (Precision + Recall))
+ - ROC
+
+Evaluation of the individual models based on the **training data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |     3679      |     3636      |
+| False Positives |      125      |      121      |
+| False Negatives |      368      |      445      |
+| True Negatives  |      406      |      340      |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |     0.89      |     0.88      |
+| Precision |     0.76      |     0.74      |
+|  Recall   |     0.52      |     0.43      |
+|    F1     |     0.62      |     0.55      |
+|    AUC    |     0.75      |      0.7      |
++-----------+---------------+---------------+
+
+
+Evaluation of the individual models based on the **test data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |      917      |      930      |
+| False Positives |      26       |      25       |
+| False Negatives |      91       |      92       |
+| True Negatives  |      101      |      98       |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |      0.9      |      0.9      |
+| Precision |      0.8      |      0.8      |
+|  Recall   |     0.53      |     0.52      |
+|    F1     |     0.63      |     0.63      |
+|    AUC    |     0.75      |     0.74      |
++-----------+---------------+---------------+
+
+Chapter 4: Evaluate overall ITE Model: Performance 
+
+# This section evaluates the overal performance of the ITE model.
+The used performance measures are: 
+
+ - Root Mean Squared Error (RMSE) of the ITE 
+ - Accurate estimate of the ATE 
+ - Accurancy of ITE
+
+
+CHAPTER 7: EVALUATE OVERALL ITE MODEL: COST 
+
+# This section evaluates the overal misclassification costs of the ITE model.
+
+CHAPTER 7: REJECTION 
+
+# This section executes and reports metrics for ITE models with rejection.
+
+
+Running Experiment 1 - Separated Rejector - NearestNeighbors with optimizing Combined Quality
+ Current value for the metric: -0.30416666666666664 with threshold: 9.549150281252627
+ Current value for the metric: -0.30625 with threshold: 15.45084971874737
+ Current value for the metric: -0.30657894736842106 with threshold: 19.09830056250526
+ Current value for the metric: -0.30657894736842106 with threshold: 18.912949355032744
+ Current value for the metric: -0.30657894736842106 with threshold: 19.005624958769
+ Current value for the metric: -0.30657894736842106 with threshold: 18.970226028069668
+ Current value for the metric: -0.30657894736842106 with threshold: 18.948348285732077
+ Current value for the metric: -0.30657894736842106 with threshold: 18.934827097370334
+ Current value for the metric: -0.30657894736842106 with threshold: 18.926470543394487
+ Current value for the metric: -0.30657894736842106 with threshold: 18.92130590900859
+ Current value for the metric: -0.30657894736842106 with threshold: 18.91811398941864
+ Current value for the metric: -0.30657894736842106 with threshold: 18.916141274622692
+ Current value for the metric: -0.30657894736842106 with threshold: 18.914922069828688
+ Current value for the metric: -0.30657894736842106 with threshold: 18.91416855982675
+ Current value for the metric: -0.30657894736842106 with threshold: 18.913702865034686
+ Current value for the metric: -0.30657894736842106 with threshold: 18.913415049824806
+ Current value for the metric: -0.30657894736842106 with threshold: 18.91323717024262
+ Current value for the metric: -0.30657894736842106 with threshold: 18.913127234614926
+ Current value for the metric: -0.30657894736842106 with threshold: 18.91305929066044
+ Current value for the metric: -0.30657894736842106 with threshold: 18.913017298987235
+ Current value for the metric: -0.30657894736842106 with threshold: 18.91299134670595
+ Current value for the metric: -0.30657894736842106 with threshold: 18.91297530731403
+ Current value for the metric: -0.30657894736842106 with threshold: 18.912965394424667
+ Current value for the metric: -0.30657894736842106 with threshold: 18.912959267922112
+ Current value for the metric: -0.30657894736842106 with threshold: 18.9129554815353

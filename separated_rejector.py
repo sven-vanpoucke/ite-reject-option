@@ -53,7 +53,7 @@ from models.helper import helper_output
 from datasets.lalonde import processing_get_data_lalonde, processing_transform_data_lalonde
 from datasets.twins import preprocessing_get_data_twin, preprocessing_transform_data_twin
 from datasets.processing import preprocessing_split_t_c_data
-from datasets.ihdp import processing_get_data_ihdp, processing_transform_data_ihdp
+from datasets.ihdp2 import preprocessing_get_data_ihdp, preprocessing_transform_data_ihdp
 
 ## MODEL T-LEARNER
 from models.predictor import predictor_t_model
@@ -83,8 +83,7 @@ from models.evaluators.evaluator import calculate_performance_metrics
 # Chapter 1: Initialization
 ## Parameters
 folder_path = 'output/'
-dataset = "TWINS" # Choose out of TWINS or LALONDE or IHDP
-model_class = LogisticRegression # Which two models do we want to generate in the t-models
+dataset = "IHDP" # Choose out of TWINS or LALONDE or IHDP
 rejection_architecture = 'dependent' # dependent_rejector or separated_rejector
 prob_reject_upper_bound = 0.55
 prob_reject_under_bound = 0.45
@@ -109,26 +108,36 @@ elif dataset == "TWINS":
     # Calculate ITE
     test_ite = pd.DataFrame({'ite': test_potential_y["y_t1"] - test_potential_y["y_t0"]})
     train_ite = pd.DataFrame({'ite': train_potential_y["y_t1"] - train_potential_y["y_t0"]})
+
     # split the data in treated and controlled
     train_treated_x, train_control_x, train_treated_y, train_control_y, test_treated_x, test_control_x, test_treated_y, test_control_y = preprocessing_split_t_c_data(train_x, train_y, train_t, test_x, test_y, test_t)
+    # Set the model class for the T-learner
+    model_class = LogisticRegression # Which two models do we want to generate in the t-models
 
 elif dataset == "IHDP":
-    train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y = preprocessing_get_data_twin()
-    train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y = preprocessing_transform_data_twin(train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y)
-    # Calculate ITE
-    test_ite = pd.DataFrame({'ite': test_potential_y["y_t1"] - test_potential_y["y_t0"]})
-    train_ite = pd.DataFrame({'ite': train_potential_y["y_t1"] - train_potential_y["y_t0"]})
-    # split the data in treated and controlled
+    # Step 1: Load and preprocess IHDP data
+    train_x, train_t, train_y, train_potential_y, test_x, test_t, test_y, test_potential_y = preprocessing_get_data_ihdp()
+
+
+    # Step 2: Transform the data
+    train_x, train_t, train_y, train_potential_y, test_x, test_t, test_y, test_potential_y = preprocessing_transform_data_ihdp(train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y)
+
+    # Define the folder path
+    csv_folder = 'csvihdp/'
+    # Save train_treated_x to CSV in the 'csv' folder
+    train_x.copy().to_csv(csv_folder + 'train_x.csv', index=False)
+    train_t.copy().to_csv(csv_folder + 'train_t.csv', index=False)
+    train_y.copy().to_csv(csv_folder + 'train_y.csv', index=False)
+    train_potential_y.copy().to_csv(csv_folder + 'train_potential_y.csv', index=False)
+
     train_treated_x, train_control_x, train_treated_y, train_control_y, test_treated_x, test_control_x, test_treated_y, test_control_y = preprocessing_split_t_c_data(train_x, train_y, train_t, test_x, test_y, test_t)
 
-    ## This is the code from Justine
-    all_data = processing_get_data_ihdp()
-    train_x, test_x, train_y, test_y, train_t, test_t = processing_transform_data_ihdp(all_data)
-    test_t = pd.DataFrame(test_t)
-    test_t.columns = ['treatment']
-    train_t = pd.DataFrame(train_t)
-    train_t.columns = ['treatment']
+    # Step 3: Calculate ITE
+    test_ite = pd.DataFrame({'ite': test_potential_y["y_t1"] - test_potential_y["y_t0"]})
+    train_ite = pd.DataFrame({'ite': train_potential_y["y_t1"] - train_potential_y["y_t0"]})
 
+    # Set the model class for the T-learner
+    model_class = LogisticRegression # Which two models do we want to generate in the t-models
 
 
 # Chapter 3: Training of the ITE Model
@@ -140,7 +149,7 @@ with open(file_path, 'a') as file:
     file.write(f"The two individually trained models are: {model_class.__name__}\n\n")
 
 ## Chapter 3B: Training of the ITE Model
-## We adopt an T-leraner as our ITE model. This model is trained on the treated and control groups separately.
+## We adopt an T-learner as our ITE model. This model is trained on the treated and control groups separately.
 treated_model, control_model = predictor_t_model(train_treated_x, train_treated_y, train_control_x, train_control_y, model_class=model_class, max_iter=10000, solver='saga', random_state=42)
 
 ## Chapter 3C: Predicting the ITE and related variables (y_t0 and y_t1)
