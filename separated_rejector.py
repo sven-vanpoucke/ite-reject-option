@@ -83,7 +83,7 @@ from models.evaluators.evaluator import calculate_performance_metrics
 # Chapter 1: Initialization
 ## Parameters
 folder_path = 'output/'
-dataset = "IHDP" # Choose out of TWINS or LALONDE or IHDP
+dataset = "TWINS" # Choose out of TWINS or LALONDE or IHDP
 rejection_architecture = 'dependent' # dependent_rejector or separated_rejector
 prob_reject_upper_bound = 0.55
 prob_reject_under_bound = 0.45

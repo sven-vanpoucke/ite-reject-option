@@ -1,0 +1,772 @@
+CHAPTER 1: INTRODUCTION
+# This section introduces the purpose and background of the analysis.
+
+In this analysis, we aim to evaluate the performance of different reject options for Information Treatment Effect (ITE) models.The ITE model predicts the individual treatment effects in a given dataset, providing valuable insights into the impact of interventions.
+For your information, this file has been automatically generated on: 2024-02-15 18:47
+\Chapter 2: Preprocessing
+
+# This section executes the data retrieval, preprocessing and splitting in a training and dataset.During the whole file, the used dataset is: TWINS
+
+CHAPTER 3: Training of the ITE Model
+
+# This section provides details about the model selection, training process, and any hyperparameter tuning.
+The trained ITE model is a T-LEARNER.
+The two individually trained models are: LogisticRegression
+
+CHAPTER 4: Evaluate treated and control groups seperately
+
+# This section evaluates the individually trained models (two as we used a T-learner).
+The used performance measures are:
+
+ - Confusion Matrix
+ - Accuracy: overall correctness of the model ((TP + TN) / (TP + TN + FP + FN))
+ - Precision: It measures the accuracy of positive predictions (TP / (TP + FP))
+ - Recall: ability of the model to capture all the relevant cases (TP / (TP + FN))
+ - F1 Score: It balances precision and recall, providing a single metric for model evaluation (2 * (Precision * Recall) / (Precision + Recall))
+ - ROC
+
+Evaluation of the individual models based on the **training data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |     3617      |     3686      |
+| False Positives |      130      |      116      |
+| False Negatives |      387      |      433      |
+| True Negatives  |      347      |      404      |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |     0.88      |     0.88      |
+| Precision |     0.73      |     0.78      |
+|  Recall   |     0.47      |     0.48      |
+|    F1     |     0.57      |      0.6      |
+|    AUC    |     0.72      |     0.73      |
++-----------+---------------+---------------+
+
+
+Evaluation of the individual models based on the **test data**
+Confusion Matrix:
++-----------------+---------------+---------------+
+|     Metric      | Treated Group | Control Group |
++-----------------+---------------+---------------+
+| True Positives  |      923      |      907      |
+| False Positives |      42       |      23       |
+| False Negatives |      87       |      107      |
+| True Negatives  |      91       |      100      |
++-----------------+---------------+---------------+
+
+Metrics:
++-----------+---------------+---------------+
+|  Metric   | Treated Group | Control Group |
++-----------+---------------+---------------+
+| Accuracy  |     0.89      |     0.89      |
+| Precision |     0.68      |     0.81      |
+|  Recall   |     0.51      |     0.48      |
+|    F1     |     0.59      |     0.61      |
+|    AUC    |     0.73      |     0.73      |
++-----------+---------------+---------------+
+
+Chapter 4: Evaluate overall ITE Model: Performance 
+
+# This section evaluates the overal performance of the ITE model.
+The used performance measures are: 
+
+ - Root Mean Squared Error (RMSE) of the ITE 
+ - Accurate estimate of the ATE 
+ - Accurancy of ITE
+
+
+CHAPTER 7: EVALUATE OVERALL ITE MODEL: COST 
+
+# This section evaluates the overal misclassification costs of the ITE model.
+
+CHAPTER 7: REJECTION 
+
+# This section executes and reports metrics for ITE models with rejection.
+
+
+Running Experiment 1 - Separated Rejector - NearestNeighbors with optimizing RMSE
+ Current value for the metric: 0.32 with threshold: 1.76 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2.24 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2.53 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2.71 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2.82 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2.89 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2.93 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2.96 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2.97 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2.98 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2.99 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2.99 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 3.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 3.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 3.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 3.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 3.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 3.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 3.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 3.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 3.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 3.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 3.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 3.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 3.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 3.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 3.0 and rejection rate: 0.0
+
+Running Experiment 2 - Separated Rejector - OneClassSVM with optimizing RMSE
+Mode of the experiment RMSE: min
+ Current value for the metric: 0.32 with threshold: 763.93 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1236.07 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1527.86 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1708.2 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1819.66 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1888.54 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1931.12 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1957.43 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1973.69 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1983.74 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1989.95 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1993.79 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1996.16 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1997.63 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1998.53 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1999.09 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1999.44 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1999.65 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1999.79 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1999.87 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1999.92 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1999.95 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1999.97 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1999.98 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1999.99 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 1999.99 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: 0.32 with threshold: 2000.0 and rejection rate: 0.0
+
+Running Experiment 3 - Separated Rejector - OneClassSVM with optimizing Combined Quality
+Mode of the experiment Combined Quality: max
+ Current value for the metric: -0.88 with threshold: 763.93 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1236.07 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1527.86 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1708.2 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1819.66 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1888.54 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1931.12 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1957.43 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1973.69 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1983.74 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1989.95 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1993.79 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1996.16 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1997.63 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1998.53 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1999.09 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1999.44 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1999.65 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1999.79 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1999.87 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1999.92 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1999.95 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1999.97 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1999.98 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1999.99 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 1999.99 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 2000.0 and rejection rate: 0.0
+ Current value for the metric: -0.88 with threshold: 2000.0 and rejection rate: 0.0
+
+Table of test_set (First 20 rows)
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+--------------+------------+-------------------------+--------------+----------+-----------------+-----------------+------------------------------+--------------------+-------+
+| treatment | y_t1_pred | y_t1_prob | y_t0_pred | y_t0_prob | ite_pred | ite_prob | y_t0 | y_t1 | ite  |   category   | category_pred | category_rej | ite_reject | ite_correctly_predicted | ite_rejected | cost_ite | category_reject | cost_ite_reject | category_correctly_predicted |      distance      |  ood  |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+--------------+------------+-------------------------+--------------+----------+-----------------+-----------------+------------------------------+--------------------+-------+
+|     1     |    0.0    |  0.1123   |    0.0    |  0.0731   |   0.0    |  0.0392  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -566.1377628216958 | False |
+|     1     |    1.0    |  0.5092   |    0.0    |  0.4172   |   1.0    |  0.092   | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    15    |   Persuadable   |       15        |            False             |  41.1808250583133  | False |
+|     0     |    0.0    |  0.0698   |    0.0    |  0.1051   |   0.0    | -0.0353  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 162.27250285429955 | False |
+|     1     |    0.0    |  0.1042   |    0.0    |  0.1376   |   0.0    | -0.0334  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 203.31152262566798 | False |
+|     1     |    0.0    |  0.0679   |    0.0    |   0.09    |   0.0    | -0.0222  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 81.77257997987454  | False |
+|     1     |    0.0    |  0.0563   |    0.0    |  0.0627   |   0.0    | -0.0064  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 159.97314023325725 | False |
+|     0     |    0.0    |  0.2033   |    0.0    |  0.1695   |   0.0    |  0.0338  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 239.89759246419408 | False |
+|     0     |    0.0    |  0.0213   |    0.0    |  0.0188   |   0.0    |  0.0025  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -576.7539398262657 | False |
+|     0     |    0.0    |  0.0109   |    0.0    |  0.0128   |   0.0    | -0.0019  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 102.6730455381296  | False |
+|     0     |    0.0    |  0.0097   |    0.0    |  0.0476   |   0.0    | -0.0379  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -961.6177463677368 | False |
+|     1     |    0.0    |  0.0381   |    0.0    |  0.0512   |   0.0    | -0.0131  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 241.61085337572013 | False |
+|     0     |    0.0    |  0.0816   |    0.0    |  0.1181   |   0.0    | -0.0365  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 125.64779102481066 | False |
+|     1     |    0.0    |  0.0161   |    0.0    |  0.0174   |   0.0    | -0.0013  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -80.83765739228784 | False |
+|     1     |    0.0    |  0.0284   |    0.0    |  0.0279   |   0.0    |  0.0005  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -418.2827216248521 | False |
+|     0     |    0.0    |  0.4775   |    1.0    |  0.6652   |   -1.0   | -0.1877  | 1.0  | 0.0  | -1.0 | Sleeping Dog | Sleeping Dog  | Sleeping Dog |    -1.0    |          True           |    False     |    0     |  Sleeping Dog   |        0        |             True             | -288.738220313856  | False |
+|     1     |    0.0    |  0.1489   |    0.0    |  0.1345   |   0.0    |  0.0143  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 63.09872449772206  | False |
+|     1     |    0.0    |  0.2327   |    0.0    |  0.2049   |   0.0    |  0.0278  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 263.2903678766809  | False |
+|     1     |    1.0    |   0.566   |    1.0    |  0.6391   |   0.0    |  -0.073  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -647.1067182457641 | False |
+|     1     |    0.0    |  0.0181   |    0.0    |   0.032   |   0.0    | -0.0139  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 113.24636559159853 | False |
+|     0     |    0.0    |  0.0039   |    0.0    |  0.0057   |   0.0    | -0.0018  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -451.2053590007515 | False |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+--------------+------------+-------------------------+--------------+----------+-----------------+-----------------+------------------------------+--------------------+-------+
+# Experiment 0: No Rejector - Baseline Model
+# Experiment 1: Separated Rejector - NearestNeighbors with optimizing RMSE
+# Experiment 2: Separated Rejector - OneClassSVM with optimizing RMSE
+# Experiment 3: Separated Rejector - OneClassSVM with optimizing Combined Quality
+
+Table of results of the experiments
+╭─────────────────────────┬───────────┬───────────┬───────────┬───────────╮
+│                         │         0 │         1 │         2 │         3 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Rejection Rate          │    0      │    0.0689 │    0      │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ RMSE                    │    0.3152 │    0.3066 │    0.3152 │    0.3152 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Accuracy                │    0.9316 │    0.9359 │    0.9316 │    0.9316 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ ATE Accuracy            │   -0.7222 │   -0.8148 │   -0.7222 │   -0.7222 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Micro TPR               │    0.0233 │    0.0179 │    0.0233 │    0.0233 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Micro FPR               │    0.0139 │    0.0129 │    0.0139 │    0.0139 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Micro F1 Score          │    0.037  │    0.0286 │    0.037  │    0.037  │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Micro Distance (3D ROC) │    0.9768 │    0.9846 │    0.9768 │    0.9768 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Macro TPR               │    0.0078 │    0.006  │    0.0078 │    0.0078 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Macro FPR               │    0.0046 │    0.0043 │    0.0046 │    0.0046 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Macro F1 Score          │    0.0123 │    0.0095 │    0.0123 │    0.0123 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Macro Distance (3D ROC) │    0.9923 │    0.9964 │    0.9923 │    0.9923 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ True Accepted           │ 2021      │ 1891      │ 2021      │ 2021      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ False Accepted          │  259      │  232      │  259      │  259      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ True Rejected           │    0      │   27      │    0      │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ False Rejected          │    0      │  130      │    0      │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Accuracy with Rejection │    0.8864 │    0.8907 │    0.8864 │    0.8864 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Coverage with Rejection │    1      │    0.9311 │    1      │    1      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Prediction Quality      │    0.8864 │    0.8907 │    0.8864 │    0.8864 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Rejection Quality       │    8.8031 │    1.6206 │    8.8031 │    8.8031 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Combined Quality        │    0.8864 │    0.8412 │    0.8864 │    0.8864 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Misclassification Cost  │ 2830      │ 2904      │ 2830      │ 2830      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Correct Prediction      │ 1907      │ 1790      │ 1907      │ 1907      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Same Treatment Given    │  263      │  231      │  263      │  263      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Lost Potential          │   90      │   90      │   90      │   90      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Wasted Treatment        │   17      │   17      │   17      │   17      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Opposite Effect         │    3      │    3      │    3      │    3      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Rejected                │    0      │  149      │    0      │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Accuracy Classification │    0.9518 │    0.8864 │    0.9518 │    0.9518 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ TA Cost                 │ 2170      │ 2021      │ 2170      │ 2170      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ FA Cost                 │  110      │  102      │  110      │  110      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ TR Cost                 │    0      │    8      │    0      │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ FR Cost                 │    0      │  149      │    0      │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Accuracy Rejection Cost │    0.9518 │    0.952  │    0.9518 │    0.9518 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Coverage Rejection Cost │    1      │    0.9311 │    1      │    1      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Prediction Quality Cost │    0.9518 │    0.952  │    0.9518 │    0.9518 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Rejection Quality Cost  │   20.7273 │    1.0592 │   20.7273 │   20.7273 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Combined Quality Cost   │    0.9518 │    0.8899 │    0.9518 │    0.9518 │
+╰─────────────────────────┴───────────┴───────────┴───────────┴───────────╯
+# Experiment 0: No Rejector - Baseline Model
+# Experiment 1: Separated Rejector - NearestNeighbors with optimizing RMSE
+# Experiment 2: Separated Rejector - OneClassSVM with optimizing RMSE
+# Experiment 3: Separated Rejector - OneClassSVM with optimizing Combined Quality
+
+Table of change (%) of each experiment in comparision with the baseline model
+╭─────────────────────────┬───────────┬───────────┬───────────┬───────────╮
+│                         │         0 │         1 │         2 │         3 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Rejection Rate          │    0      │    0.0689 │    0      │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ RMSE                    │    0.3152 │    0.3066 │    0.3152 │    0.3152 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Accuracy                │    0.9316 │    0.9359 │    0.9316 │    0.9316 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ ATE Accuracy            │   -0.7222 │   -0.8148 │   -0.7222 │   -0.7222 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Micro TPR               │    0.0233 │    0.0179 │    0.0233 │    0.0233 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Micro FPR               │    0.0139 │    0.0129 │    0.0139 │    0.0139 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Micro F1 Score          │    0.037  │    0.0286 │    0.037  │    0.037  │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Micro Distance (3D ROC) │    0.9768 │    0.9846 │    0.9768 │    0.9768 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Macro TPR               │    0.0078 │    0.006  │    0.0078 │    0.0078 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Macro FPR               │    0.0046 │    0.0043 │    0.0046 │    0.0046 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Macro F1 Score          │    0.0123 │    0.0095 │    0.0123 │    0.0123 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Macro Distance (3D ROC) │    0.9923 │    0.9964 │    0.9923 │    0.9923 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ True Accepted           │ 2021      │ 1891      │ 2021      │ 2021      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ False Accepted          │  259      │  232      │  259      │  259      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ True Rejected           │    0      │   27      │    0      │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ False Rejected          │    0      │  130      │    0      │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Accuracy with Rejection │    0.8864 │    0.8907 │    0.8864 │    0.8864 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Coverage with Rejection │    1      │    0.9311 │    1      │    1      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Prediction Quality      │    0.8864 │    0.8907 │    0.8864 │    0.8864 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Rejection Quality       │    8.8031 │    1.6206 │    8.8031 │    8.8031 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Combined Quality        │    0.8864 │    0.8412 │    0.8864 │    0.8864 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Misclassification Cost  │ 2830      │ 2904      │ 2830      │ 2830      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Correct Prediction      │ 1907      │ 1790      │ 1907      │ 1907      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Same Treatment Given    │  263      │  231      │  263      │  263      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Lost Potential          │   90      │   90      │   90      │   90      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Wasted Treatment        │   17      │   17      │   17      │   17      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Opposite Effect         │    3      │    3      │    3      │    3      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Rejected                │    0      │  149      │    0      │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Accuracy Classification │    0.9518 │    0.8864 │    0.9518 │    0.9518 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ TA Cost                 │ 2170      │ 2021      │ 2170      │ 2170      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ FA Cost                 │  110      │  102      │  110      │  110      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ TR Cost                 │    0      │    8      │    0      │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ FR Cost                 │    0      │  149      │    0      │    0      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Accuracy Rejection Cost │    0.9518 │    0.952  │    0.9518 │    0.9518 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Coverage Rejection Cost │    1      │    0.9311 │    1      │    1      │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Prediction Quality Cost │    0.9518 │    0.952  │    0.9518 │    0.9518 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Rejection Quality Cost  │   20.7273 │    1.0592 │   20.7273 │   20.7273 │
+├─────────────────────────┼───────────┼───────────┼───────────┼───────────┤
+│ Combined Quality Cost   │    0.9518 │    0.8899 │    0.9518 │    0.9518 │
+╰─────────────────────────┴───────────┴───────────┴───────────┴───────────╯
+
+Table of test_set with wrong classification
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+--------------+------------+-------------------------+--------------+----------+-----------------+-----------------+------------------------------+---------------------+-------+
+| treatment | y_t1_pred | y_t1_prob | y_t0_pred | y_t0_prob | ite_pred | ite_prob | y_t0 | y_t1 | ite  |   category   | category_pred | category_rej | ite_reject | ite_correctly_predicted | ite_rejected | cost_ite | category_reject | cost_ite_reject | category_correctly_predicted |      distance       |  ood  |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+--------------+------------+-------------------------+--------------+----------+-----------------+-----------------+------------------------------+---------------------+-------+
+|     1     |    1.0    |  0.5092   |    0.0    |  0.4172   |   1.0    |  0.092   | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    15    |   Persuadable   |       15        |            False             |  41.1808250583133   | False |
+|     1     |    1.0    |   0.566   |    1.0    |  0.6391   |   0.0    |  -0.073  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -647.1067182457641  | False |
+|     1     |    0.0    |  0.3838   |    0.0    |  0.3558   |   0.0    |  0.028   | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |   185.11047318953   | False |
+|     0     |    0.0    |  0.0727   |    0.0    |   0.215   |   0.0    | -0.1423  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -852.5301887489948  | False |
+|     1     |    0.0    |  0.4487   |    0.0    |  0.2984   |   0.0    |  0.1502  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -1138.443032446648  | False |
+|     0     |    1.0    |  0.5462   |    0.0    |  0.3639   |   1.0    |  0.1823  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    5     |   Persuadable   |        5        |            False             |  -354.369693293256  | False |
+|     1     |    1.0    |  0.5705   |    1.0    |   0.541   |   0.0    |  0.0295  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | 54.071360863878226  | False |
+|     0     |    0.0    |  0.0771   |    0.0    |  0.1561   |   0.0    | -0.0789  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -193.99598351852876 | False |
+|     0     |    0.0    |  0.0192   |    0.0    |  0.0484   |   0.0    | -0.0292  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -29.587760152700184 | False |
+|     0     |    0.0    |  0.1225   |    0.0    |  0.1709   |   0.0    | -0.0484  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  151.054622990315   | False |
+|     0     |    0.0    |  0.4448   |    0.0    |  0.3468   |   0.0    |  0.098   | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -1093.071343632656  | False |
+|     0     |    0.0    |  0.2263   |    1.0    |  0.5325   |   -1.0   | -0.3062  | 1.0  | 1.0  | 0.0  |  Sure Thing  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | -954.2812818558407  | False |
+|     1     |    1.0    |  0.6496   |    1.0    |  0.5856   |   0.0    |  0.064   | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             | -218.43432501771417 | False |
+|     1     |    0.0    |  0.4259   |    1.0    |  0.6023   |   -1.0   | -0.1764  | 0.0  | 0.0  | 0.0  |  Lost Cause  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             |  4.326316034107549  | False |
+|     0     |    0.0    |  0.0465   |    0.0    |  0.0702   |   0.0    | -0.0237  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  279.2236585316318  | False |
+|     1     |    0.0    |  0.4906   |    1.0    |  0.5277   |   -1.0   | -0.0371  | 0.0  | 0.0  | 0.0  |  Lost Cause  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             |  146.271799694925   | False |
+|     0     |    0.0    |  0.0412   |    0.0    |  0.0415   |   0.0    | -0.0003  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -750.8515843678999  | False |
+|     1     |    1.0    |  0.7577   |    1.0    |  0.6197   |   0.0    |  0.138   | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -927.4867281152863  | False |
+|     1     |    0.0    |  0.2717   |    0.0    |  0.2681   |   0.0    |  0.0036  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  -236.950459038634  | False |
+|     0     |    1.0    |  0.7931   |    1.0    |  0.8772   |   0.0    | -0.0841  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -795.0204926692359  | False |
+|     1     |    0.0    |  0.0255   |    0.0    |  0.0863   |   0.0    | -0.0608  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -400.7045332955453  | False |
+|     0     |    0.0    |  0.1332   |    0.0    |  0.1918   |   0.0    | -0.0586  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 188.48293429804517  | False |
+|     1     |    1.0    |  0.7162   |    1.0    |  0.6901   |   0.0    |  0.0261  | 0.0  | 1.0  | 1.0  | Persuadable  |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    30    |   Sure Thing    |       30        |            False             | -349.7375840001562  | False |
+|     0     |    0.0    |  0.4459   |    0.0    |  0.2564   |   0.0    |  0.1896  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -105.71203655039653 | False |
+|     1     |    0.0    |  0.0558   |    0.0    |  0.0916   |   0.0    | -0.0358  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | 222.06826383154294  | False |
+|     1     |    0.0    |  0.4721   |    1.0    |   0.518   |   -1.0   | -0.0459  | 0.0  | 1.0  | 1.0  | Persuadable  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    30    |  Sleeping Dog   |       30        |            False             | 18.799145661937473  | False |
+|     1     |    0.0    |  0.3013   |    0.0    |  0.3403   |   0.0    |  -0.039  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 117.41801347785736  | False |
+|     1     |    1.0    |  0.9162   |    1.0    |  0.8455   |   0.0    |  0.0707  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             |  39.41729490204557  | False |
+|     1     |    0.0    |  0.2451   |    0.0    |  0.3861   |   0.0    |  -0.141  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -1142.816140636139  | False |
+|     0     |    0.0    |  0.4362   |    1.0    |  0.5705   |   -1.0   | -0.1344  | 1.0  | 1.0  | 0.0  |  Sure Thing  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | -26.705560976606876 | False |
+|     0     |    1.0    |  0.5212   |    0.0    |  0.3515   |   1.0    |  0.1697  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    5     |   Persuadable   |        5        |            False             |  98.34348432115553  | False |
+|     1     |    0.0    |  0.0971   |    0.0    |  0.1067   |   0.0    | -0.0096  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 265.20531878407405  | False |
+|     1     |    0.0    |  0.4415   |    0.0    |  0.4476   |   0.0    | -0.0061  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 212.99279504535843  | False |
+|     0     |    0.0    |  0.1326   |    0.0    |  0.2176   |   0.0    | -0.0849  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -349.7189090450855  | False |
+|     0     |    0.0    |  0.1419   |    0.0    |  0.2012   |   0.0    | -0.0593  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -1142.3873293063123 | False |
+|     0     |    0.0    |   0.043   |    0.0    |  0.0199   |   0.0    |  0.0231  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -1146.8633129056832 | False |
+|     1     |    0.0    |  0.0685   |    0.0    |   0.041   |   0.0    |  0.0275  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -57.508604203539335 | False |
+|     1     |    0.0    |  0.3008   |    0.0    |  0.4401   |   0.0    | -0.1392  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -158.1495301309252  | False |
+|     0     |    0.0    |  0.4262   |    0.0    |  0.4379   |   0.0    | -0.0117  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 151.64923042304235  | False |
+|     1     |    0.0    |  0.0162   |    0.0    |  0.0952   |   0.0    |  -0.079  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -1043.5891534162636 | False |
+|     0     |    0.0    |  0.1212   |    0.0    |   0.135   |   0.0    | -0.0137  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 248.23690083423867  | False |
+|     0     |    0.0    |  0.3452   |    0.0    |  0.2618   |   0.0    |  0.0834  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 221.81426659244653  | False |
+|     0     |    1.0    |  0.5994   |    1.0    |  0.5069   |   0.0    |  0.0926  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             | 53.921059810355246  | False |
+|     0     |    0.0    |  0.0425   |    0.0    |  0.0659   |   0.0    | -0.0234  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 208.30456884006867  | False |
+|     1     |    0.0    |  0.0026   |    0.0    |  0.0036   |   0.0    | -0.0009  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -11.671447611227677 | False |
+|     1     |    0.0    |  0.1077   |    0.0    |  0.2178   |   0.0    | -0.1101  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  49.29941258492545  | False |
+|     0     |    0.0    |  0.3476   |    0.0    |   0.372   |   0.0    | -0.0244  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  99.3691543600014   | False |
+|     0     |    0.0    |  0.4557   |    0.0    |  0.4454   |   0.0    |  0.0103  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -251.72873250194175 | False |
+|     0     |    0.0    |  0.1907   |    0.0    |  0.2882   |   0.0    | -0.0975  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -1141.1993328907845 | False |
+|     1     |    0.0    |  0.1978   |    0.0    |  0.1414   |   0.0    |  0.0563  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -416.4280652915721  | False |
+|     1     |    1.0    |  0.7271   |    1.0    |  0.7258   |   0.0    |  0.0012  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -39.38010948833448  | False |
+|     1     |    0.0    |  0.0117   |    0.0    |  0.0174   |   0.0    | -0.0057  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -1132.0246271644833 | False |
+|     0     |    0.0    |  0.2104   |    0.0    |  0.3211   |   0.0    | -0.1108  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -609.6521409284733  | False |
+|     0     |    0.0    |  0.0177   |    0.0    |  0.0381   |   0.0    | -0.0204  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 236.43887488947894  | False |
+|     1     |    0.0    |  0.0661   |    0.0    |  0.1363   |   0.0    | -0.0702  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 148.36734347671086  | False |
+|     1     |    1.0    |  0.5894   |    1.0    |  0.6632   |   0.0    | -0.0738  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -255.10262731049045 | False |
+|     1     |    1.0    |  0.7405   |    1.0    |  0.6504   |   0.0    |  0.0901  | 0.0  | 1.0  | 1.0  | Persuadable  |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    30    |   Sure Thing    |       30        |            False             | -988.3815325252871  | False |
+|     1     |    1.0    |  0.5988   |    1.0    |  0.5977   |   0.0    |  0.0011  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             |  4.83127702335014   | False |
+|     1     |    1.0    |  0.6488   |    1.0    |  0.7423   |   0.0    | -0.0935  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             | -717.1547961702204  | False |
+|     0     |    1.0    |   0.622   |    1.0    |  0.7431   |   0.0    | -0.1211  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -559.1462686743395  | False |
+|     0     |    0.0    |  0.0087   |    0.0    |  0.0246   |   0.0    | -0.0159  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -469.5566807330763  | False |
+|     1     |    1.0    |  0.5336   |    0.0    |  0.4484   |   1.0    |  0.0852  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    5     |   Persuadable   |        5        |            False             |  -73.9230953431952  | False |
+|     0     |    0.0    |  0.4383   |    0.0    |  0.4237   |   0.0    |  0.0146  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  208.4328372960938  | False |
+|     1     |    0.0    |  0.0526   |    0.0    |  0.0891   |   0.0    | -0.0365  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  97.16395619935975  | False |
+|     1     |    0.0    |  0.1958   |    0.0    |  0.2739   |   0.0    | -0.0781  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  157.4454843490562  | False |
+|     0     |    0.0    |  0.0665   |    0.0    |  0.1002   |   0.0    | -0.0337  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -702.3879411209566  | False |
+|     1     |    0.0    |  0.3751   |    0.0    |  0.4646   |   0.0    | -0.0895  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 232.72217826225983  | False |
+|     1     |    0.0    |  0.0291   |    0.0    |  0.0477   |   0.0    | -0.0186  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | 11.100684109669146  | False |
+|     1     |    0.0    |  0.3082   |    0.0    |  0.2963   |   0.0    |  0.0119  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | 255.60461365445394  | False |
+|     1     |    0.0    |   0.473   |    0.0    |   0.425   |   0.0    |  0.048   | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  74.95232434603508  | False |
+|     0     |    0.0    |  0.3373   |    0.0    |  0.3513   |   0.0    |  -0.014  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  4.323031714289982  | False |
+|     1     |    0.0    |  0.2768   |    0.0    |  0.2961   |   0.0    | -0.0194  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -652.1795498652561  | False |
+|     1     |    0.0    |  0.2327   |    0.0    |  0.2886   |   0.0    | -0.0559  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  333.2727490326911  | False |
+|     0     |    0.0    |  0.3778   |    1.0    |  0.5311   |   -1.0   | -0.1534  | 0.0  | 0.0  | 0.0  |  Lost Cause  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | -220.7244805879709  | False |
+|     1     |    0.0    |   0.023   |    0.0    |  0.0401   |   0.0    | -0.0171  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | 13.567949724582832  | False |
+|     0     |    0.0    |  0.4935   |    0.0    |  0.4162   |   0.0    |  0.0773  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -10.130100977769644 | False |
+|     0     |    0.0    |  0.1301   |    0.0    |  0.1517   |   0.0    | -0.0216  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | 291.39657029099976  | False |
+|     0     |    0.0    |  0.2467   |    0.0    |  0.2778   |   0.0    | -0.0311  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 180.43323502580188  | False |
+|     0     |    1.0    |  0.6204   |    1.0    |  0.5653   |   0.0    |  0.0551  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -30.994756627445895 | False |
+|     0     |    0.0    |  0.1586   |    0.0    |   0.051   |   0.0    |  0.1076  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -858.7008973999516  | False |
+|     1     |    0.0    |  0.0276   |    0.0    |  0.0536   |   0.0    | -0.0259  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | 196.65057760419245  | False |
+|     0     |    0.0    |  0.0673   |    0.0    |  0.1378   |   0.0    | -0.0705  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -180.66579886521026 | False |
+|     0     |    0.0    |  0.1773   |    0.0    |  0.2908   |   0.0    | -0.1135  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -340.3542271791533  | False |
+|     0     |    0.0    |  0.2883   |    1.0    |  0.5879   |   -1.0   | -0.2996  | 0.0  | 1.0  | 1.0  | Persuadable  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    30    |  Sleeping Dog   |       30        |            False             | -998.5194048721534  | False |
+|     0     |    0.0    |  0.0363   |    0.0    |  0.0441   |   0.0    | -0.0078  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  6.004428381650769  | False |
+|     1     |    0.0    |  0.3284   |    1.0    |  0.6988   |   -1.0   | -0.3705  | 0.0  | 0.0  | 0.0  |  Lost Cause  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | -996.7768950402344  | False |
+|     0     |    1.0    |  0.7706   |    1.0    |  0.8051   |   0.0    | -0.0345  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | 38.188455348291654  | False |
+|     1     |    0.0    |  0.2539   |    0.0    |  0.2416   |   0.0    |  0.0123  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -219.54841219419586 | False |
+|     1     |    1.0    |  0.6707   |    1.0    |   0.68    |   0.0    | -0.0094  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | 100.79728816317015  | False |
+|     1     |    0.0    |  0.1926   |    0.0    |  0.2854   |   0.0    | -0.0928  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 122.99416478194917  | False |
+|     0     |    0.0    |  0.3137   |    0.0    |  0.2824   |   0.0    |  0.0313  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 195.68979103978722  | False |
+|     1     |    0.0    |   0.301   |    0.0    |  0.2693   |   0.0    |  0.0317  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -517.9339366397127  | False |
+|     0     |    1.0    |  0.6277   |    0.0    |  0.4736   |   1.0    |  0.154   | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    15    |   Persuadable   |       15        |            False             |  7.353888523674186  | False |
+|     0     |    1.0    |  0.5976   |    0.0    |  0.3931   |   1.0    |  0.2045  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    5     |   Persuadable   |        5        |            False             | -235.28125820009257 | False |
+|     0     |    0.0    |  0.3877   |    0.0    |  0.4302   |   0.0    | -0.0425  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 181.85013231646963  | False |
+|     1     |    0.0    |  0.1588   |    0.0    |  0.1628   |   0.0    | -0.0041  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -732.7430338928987  | False |
+|     1     |    0.0    |  0.0738   |    0.0    |  0.1231   |   0.0    | -0.0493  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 239.15978833332815  | False |
+|     1     |    0.0    |  0.1328   |    0.0    |  0.0812   |   0.0    |  0.0516  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -1079.5478159143076 | False |
+|     0     |    0.0    |  0.2251   |    0.0    |  0.2343   |   0.0    | -0.0092  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -369.1983631010005  | False |
+|     1     |    1.0    |  0.5203   |    1.0    |  0.5926   |   0.0    | -0.0723  | 0.0  | 1.0  | 1.0  | Persuadable  |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    30    |   Sure Thing    |       30        |            False             | -318.8437772558882  | False |
+|     0     |    0.0    |  0.4658   |    1.0    |   0.552   |   -1.0   | -0.0862  | 1.0  | 1.0  | 0.0  |  Sure Thing  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | 143.68767462857977  | False |
+|     0     |    0.0    |  0.1585   |    0.0    |   0.131   |   0.0    |  0.0275  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  226.9103656137836  | False |
+|     0     |    1.0    |  0.5615   |    0.0    |  0.4607   |   1.0    |  0.1008  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    5     |   Persuadable   |        5        |            False             | 212.44064481831242  | False |
+|     1     |    0.0    |  0.2078   |    0.0    |  0.2841   |   0.0    | -0.0763  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -684.7760400117116  | False |
+|     0     |    0.0    |   0.321   |    0.0    |  0.2438   |   0.0    |  0.0772  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -231.33287800128323 | False |
+|     0     |    0.0    |  0.4681   |    0.0    |   0.421   |   0.0    |  0.0471  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  -853.656726587094  | False |
+|     0     |    0.0    |  0.2063   |    0.0    |  0.1726   |   0.0    |  0.0337  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -230.0635648322234  | False |
+|     0     |    0.0    |  0.3799   |    0.0    |  0.2632   |   0.0    |  0.1167  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 38.684599360862194  | False |
+|     1     |    1.0    |  0.7198   |    1.0    |  0.7866   |   0.0    | -0.0668  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             | -244.0517727113712  | False |
+|     1     |    0.0    |  0.3712   |    1.0    |  0.5107   |   -1.0   | -0.1395  | 0.0  | 0.0  | 0.0  |  Lost Cause  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             |  80.2124126342992   | False |
+|     1     |    1.0    |  0.6026   |    1.0    |  0.5456   |   0.0    |  0.0569  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             | -33.05968765165221  | False |
+|     0     |    1.0    |  0.7846   |    1.0    |  0.7313   |   0.0    |  0.0533  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             |  8.73095930476984   | False |
+|     0     |    0.0    |  0.4884   |    0.0    |  0.4137   |   0.0    |  0.0746  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 163.60393813747623  | False |
+|     0     |    0.0    |  0.0243   |    0.0    |  0.0677   |   0.0    | -0.0434  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -979.3151512335594  | False |
+|     0     |    0.0    |  0.3724   |    0.0    |  0.2721   |   0.0    |  0.1003  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -244.89939204500342 | False |
+|     0     |    0.0    |  0.2959   |    0.0    |  0.2792   |   0.0    |  0.0168  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |   234.51398643632   | False |
+|     1     |    0.0    |  0.0365   |    0.0    |  0.0713   |   0.0    | -0.0348  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -9.681725137982994  | False |
+|     0     |    0.0    |  0.0034   |    0.0    |  0.0065   |   0.0    | -0.0031  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  64.21208236169468  | False |
+|     1     |    0.0    |  0.3824   |    1.0    |   0.53    |   -1.0   | -0.1476  | 0.0  | 0.0  | 0.0  |  Lost Cause  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | -314.59732869873835 | False |
+|     1     |    0.0    |  0.3738   |    0.0    |  0.3688   |   0.0    |  0.005   | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  235.9235965194548  | False |
+|     0     |    0.0    |  0.0527   |    0.0    |  0.1019   |   0.0    | -0.0492  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -3.623606784098456  | False |
+|     1     |    0.0    |  0.4985   |    0.0    |  0.4641   |   0.0    |  0.0344  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  144.0386752684076  | False |
+|     1     |    1.0    |  0.6813   |    1.0    |   0.629   |   0.0    |  0.0523  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             |  -756.274303335447  | False |
+|     1     |    0.0    |  0.0105   |    0.0    |  0.0229   |   0.0    | -0.0124  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 33.181477594366925  | False |
+|     0     |    0.0    |  0.0988   |    0.0    |  0.0811   |   0.0    |  0.0177  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  71.3253328864073   | False |
+|     1     |    1.0    |  0.7632   |    1.0    |  0.7159   |   0.0    |  0.0472  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             |  95.25977794746836  | False |
+|     1     |    1.0    |  0.5136   |    1.0    |  0.5795   |   0.0    | -0.0658  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             |  82.87570547307632  | False |
+|     1     |    0.0    |   0.053   |    0.0    |  0.0604   |   0.0    | -0.0074  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -74.81719092229105  | False |
+|     1     |    1.0    |  0.7207   |    1.0    |  0.7484   |   0.0    | -0.0277  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -222.26257239008157 | False |
+|     1     |    1.0    |  0.6501   |    1.0    |  0.5619   |   0.0    |  0.0882  | 0.0  | 1.0  | 1.0  | Persuadable  |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    30    |   Sure Thing    |       30        |            False             | -134.43072805923202 | False |
+|     0     |    0.0    |  0.4632   |    0.0    |  0.4091   |   0.0    |  0.0541  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -12.387943004946464 | False |
+|     0     |    0.0    |  0.0393   |    0.0    |  0.0209   |   0.0    |  0.0184  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -637.2141751778346  | False |
+|     0     |    0.0    |  0.1193   |    0.0    |  0.2273   |   0.0    | -0.1079  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -120.97829426143744 | False |
+|     1     |    0.0    |  0.4382   |    0.0    |  0.3887   |   0.0    |  0.0495  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 158.79640090747648  | False |
+|     0     |    0.0    |  0.1753   |    0.0    |  0.2723   |   0.0    |  -0.097  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | 51.543210941744064  | False |
+|     0     |    0.0    |  0.1933   |    0.0    |  0.1539   |   0.0    |  0.0395  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -174.69999988944642 | False |
+|     1     |    0.0    |  0.4572   |    1.0    |  0.5024   |   -1.0   | -0.0453  | 1.0  | 1.0  | 0.0  |  Sure Thing  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | 51.348667424253335  | False |
+|     1     |    0.0    |  0.1452   |    0.0    |  0.1342   |   0.0    |  0.011   | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 126.45323925631465  | False |
+|     1     |    1.0    |   0.549   |    1.0    |  0.5482   |   0.0    |  0.0008  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -872.8106856606934  | False |
+|     1     |    0.0    |  0.2148   |    0.0    |  0.3065   |   0.0    | -0.0917  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 184.45467489326552  | False |
+|     1     |    1.0    |  0.5297   |    1.0    |  0.6409   |   0.0    | -0.1112  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -422.6631113921844  | False |
+|     0     |    0.0    |  0.0765   |    0.0    |  0.1176   |   0.0    | -0.0412  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  340.4485063935224  | False |
+|     0     |    0.0    |  0.4016   |    1.0    |  0.5088   |   -1.0   | -0.1072  | 1.0  | 1.0  | 0.0  |  Sure Thing  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             |  42.90997569491583  | False |
+|     0     |    0.0    |  0.0229   |    0.0    |  0.0354   |   0.0    | -0.0124  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -835.7725512164915  | False |
+|     1     |    0.0    |  0.4811   |    0.0    |  0.4345   |   0.0    |  0.0466  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -390.9507299155623  | False |
+|     0     |    0.0    |  0.3499   |    0.0    |  0.2866   |   0.0    |  0.0633  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 46.840746545563206  | False |
+|     1     |    0.0    |  0.0014   |    0.0    |  0.0043   |   0.0    | -0.0029  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -591.0388025455944  | False |
+|     0     |    0.0    |  0.2172   |    0.0    |  0.3974   |   0.0    | -0.1802  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  -383.879416743232  | False |
+|     0     |    0.0    |  0.1943   |    0.0    |  0.3941   |   0.0    | -0.1998  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -61.675719877075835 | False |
+|     1     |    0.0    |  0.1472   |    0.0    |  0.2519   |   0.0    | -0.1047  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  9.53688966194909   | False |
+|     1     |    0.0    |  0.0411   |    0.0    |  0.0908   |   0.0    | -0.0497  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -1129.4835267042138 | False |
+|     0     |    0.0    |  0.1146   |    0.0    |  0.1079   |   0.0    |  0.0067  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  63.22653935361882  | False |
+|     1     |    1.0    |   0.513   |    0.0    |  0.4479   |   1.0    |  0.0651  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    5     |   Persuadable   |        5        |            False             | 31.502760858587408  | False |
+|     0     |    0.0    |  0.2138   |    0.0    |  0.2218   |   0.0    | -0.0079  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  335.3507658873052  | False |
+|     0     |    0.0    |  0.1359   |    0.0    |  0.1492   |   0.0    | -0.0133  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  275.2609513599532  | False |
+|     0     |    0.0    |   0.48    |    1.0    |  0.5746   |   -1.0   | -0.0946  | 0.0  | 0.0  | 0.0  |  Lost Cause  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | -316.4676504695277  | False |
+|     1     |    1.0    |  0.5008   |    1.0    |  0.5407   |   0.0    |  -0.04   | 0.0  | 1.0  | 1.0  | Persuadable  |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    30    |   Sure Thing    |       30        |            False             | 116.33047085456496  | False |
+|     1     |    0.0    |   0.306   |    0.0    |   0.247   |   0.0    |  0.059   | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 48.158153147912344  | False |
+|     1     |    0.0    |  0.1992   |    0.0    |  0.3073   |   0.0    | -0.1081  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 178.31641974275044  | False |
+|     1     |    1.0    |  0.6672   |    1.0    |  0.5789   |   0.0    |  0.0884  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             | -164.01341883652003 | False |
+|     1     |    0.0    |  0.0711   |    0.0    |  0.0733   |   0.0    | -0.0022  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -534.8881780768256  | False |
+|     0     |    0.0    |  0.0098   |    0.0    |  0.0167   |   0.0    | -0.0069  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  40.16557228734655  | False |
+|     1     |    1.0    |  0.5945   |    1.0    |  0.5284   |   0.0    |  0.0661  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             | 101.93434939810959  | False |
+|     0     |    0.0    |  0.1672   |    0.0    |  0.2442   |   0.0    |  -0.077  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  193.8099862616773  | False |
+|     1     |    0.0    |  0.3963   |    1.0    |  0.5388   |   -1.0   | -0.1425  | 0.0  | 1.0  | 1.0  | Persuadable  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    30    |  Sleeping Dog   |       30        |            False             | -175.6579990694063  | False |
+|     0     |    1.0    |  0.6671   |    1.0    |  0.6946   |   0.0    | -0.0275  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             | -373.2128580074094  | False |
+|     0     |    0.0    |  0.0003   |    0.0    |  0.0008   |   0.0    | -0.0005  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -258.5067813702635  | False |
+|     0     |    1.0    |  0.5606   |    0.0    |   0.483   |   1.0    |  0.0776  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    5     |   Persuadable   |        5        |            False             | -438.65495226082305 | False |
+|     0     |    0.0    |   0.155   |    0.0    |  0.1117   |   0.0    |  0.0433  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | 142.87627658679912  | False |
+|     0     |    0.0    |  0.3421   |    0.0    |  0.2471   |   0.0    |  0.095   | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -1137.188771493346  | False |
+|     0     |    0.0    |   0.337   |    0.0    |  0.4094   |   0.0    | -0.0725  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | 188.01695993965427  | False |
+|     1     |    0.0    |  0.1515   |    0.0    |  0.1722   |   0.0    | -0.0207  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -604.9119037283086  | False |
+|     0     |    1.0    |  0.5297   |    0.0    |  0.3337   |   1.0    |  0.1961  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    5     |   Persuadable   |        5        |            False             | -442.1129152598023  | False |
+|     0     |    0.0    |  0.4948   |    0.0    |  0.4857   |   0.0    |  0.0092  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -747.9582662751476  | False |
+|     1     |    0.0    |  0.3992   |    1.0    |  0.5951   |   -1.0   |  -0.196  | 1.0  | 1.0  | 0.0  |  Sure Thing  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | -761.3708636444608  | False |
+|     1     |    1.0    |  0.7146   |    1.0    |  0.6746   |   0.0    |   0.04   | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -692.5454734436355  | False |
+|     1     |    0.0    |  0.3429   |    0.0    |   0.305   |   0.0    |  0.0379  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  150.6907533816527  | False |
+|     0     |    0.0    |  0.0676   |    0.0    |  0.0965   |   0.0    |  -0.029  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -1137.2442544560938 | False |
+|     0     |    0.0    |  0.1771   |    0.0    |  0.3001   |   0.0    |  -0.123  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  155.9787802240503  | False |
+|     1     |    0.0    |   0.371   |    0.0    |  0.4081   |   0.0    | -0.0371  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 129.80046638710974  | False |
+|     1     |    0.0    |  0.4434   |    0.0    |  0.3558   |   0.0    |  0.0876  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -135.17063561443763 | False |
+|     1     |    0.0    |  0.4217   |    0.0    |  0.4679   |   0.0    | -0.0462  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  -932.319337240045  | False |
+|     0     |    0.0    |  0.2332   |    0.0    |  0.2341   |   0.0    | -0.0009  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | 185.17189037897742  | False |
+|     1     |    0.0    |  0.0007   |    0.0    |  0.0011   |   0.0    | -0.0004  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -167.60360808395478 | False |
+|     0     |    0.0    |  0.0742   |    0.0    |  0.1698   |   0.0    | -0.0956  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  -63.471614428365   | False |
+|     1     |    0.0    |  0.0652   |    0.0    |  0.0849   |   0.0    | -0.0196  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -47.50421765387409  | False |
+|     1     |    0.0    |  0.4027   |    1.0    |  0.5687   |   -1.0   | -0.1661  | 0.0  | 0.0  | 0.0  |  Lost Cause  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | -392.46522548846383 | False |
+|     1     |    1.0    |  0.6043   |    1.0    |  0.5595   |   0.0    |  0.0448  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | 229.65055069138407  | False |
+|     1     |    0.0    |   0.232   |    0.0    |  0.2915   |   0.0    | -0.0596  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -609.6797046578237  | False |
+|     0     |    0.0    |  0.1924   |    0.0    |  0.1668   |   0.0    |  0.0256  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 206.70764156513246  | False |
+|     1     |    1.0    |  0.5996   |    1.0    |  0.6329   |   0.0    | -0.0334  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             | -431.6855111522285  | False |
+|     1     |    0.0    |   0.146   |    0.0    |  0.1376   |   0.0    |  0.0084  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  215.1117124483485  | False |
+|     1     |    0.0    |  0.0678   |    0.0    |  0.0688   |   0.0    |  -0.001  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -166.74424600610553 | False |
+|     1     |    0.0    |  0.0739   |    0.0    |  0.0592   |   0.0    |  0.0146  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -400.67950170385745 | False |
+|     0     |    0.0    |  0.0672   |    0.0    |  0.0871   |   0.0    | -0.0199  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  301.635059503393   | False |
+|     1     |    0.0    |  0.4021   |    1.0    |  0.5994   |   -1.0   | -0.1973  | 1.0  | 1.0  | 0.0  |  Sure Thing  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | -222.7974867648095  | False |
+|     0     |    1.0    |  0.6029   |    1.0    |  0.6015   |   0.0    |  0.0014  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -51.72718895709568  | False |
+|     1     |    0.0    |  0.0865   |    0.0    |  0.1431   |   0.0    | -0.0566  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  303.6221064767626  | False |
+|     0     |    0.0    |  0.4088   |    0.0    |  0.4384   |   0.0    | -0.0296  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 143.42652680788956  | False |
+|     1     |    0.0    |  0.0662   |    0.0    |  0.1466   |   0.0    | -0.0804  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -690.9235722220062  | False |
+|     0     |    0.0    |  0.4413   |    0.0    |  0.3602   |   0.0    |  0.0811  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 154.35765758445314  | False |
+|     0     |    1.0    |  0.6245   |    1.0    |  0.6597   |   0.0    | -0.0352  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             | 103.89452874902031  | False |
+|     0     |    0.0    |  0.1548   |    0.0    |  0.1759   |   0.0    | -0.0211  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -169.59148864672932 | False |
+|     1     |    0.0    |  0.4076   |    1.0    |  0.5066   |   -1.0   |  -0.099  | 0.0  | 0.0  | 0.0  |  Lost Cause  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | 102.30423029909957  | False |
+|     0     |    0.0    |  0.4949   |    1.0    |  0.5422   |   -1.0   | -0.0473  | 1.0  | 1.0  | 0.0  |  Sure Thing  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             |  160.4238851634268  | False |
+|     1     |    0.0    |  0.3046   |    0.0    |  0.2935   |   0.0    |  0.0111  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -458.32479456938415 | False |
+|     0     |    0.0    |  0.0292   |    0.0    |  0.0503   |   0.0    | -0.0211  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 205.29897852921044  | False |
+|     0     |    0.0    |  0.4793   |    1.0    |   0.532   |   -1.0   | -0.0527  | 1.0  | 1.0  | 0.0  |  Sure Thing  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | -49.64705259793618  | False |
+|     0     |    0.0    |  0.3332   |    0.0    |  0.2861   |   0.0    |  0.0471  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -104.30554141226207 | False |
+|     0     |    0.0    |  0.1016   |    0.0    |   0.138   |   0.0    | -0.0364  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  93.90360248637808  | False |
+|     0     |    0.0    |  0.0315   |    0.0    |  0.0472   |   0.0    | -0.0156  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -578.9854903007162  | False |
+|     0     |    0.0    |  0.1135   |    0.0    |  0.1606   |   0.0    | -0.0471  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 34.448391662725726  | False |
+|     0     |    0.0    |   0.141   |    0.0    |  0.1512   |   0.0    | -0.0103  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  -479.247459326628  | False |
+|     1     |    0.0    |  0.0596   |    0.0    |  0.1008   |   0.0    | -0.0412  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  268.0202758754301  | False |
+|     1     |    1.0    |  0.7962   |    1.0    |  0.7908   |   0.0    |  0.0055  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -789.0415831763232  | False |
+|     0     |    0.0    |  0.0045   |    0.0    |  0.0067   |   0.0    | -0.0022  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  45.98547567571768  | False |
+|     0     |    0.0    |  0.1268   |    0.0    |   0.206   |   0.0    | -0.0792  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  241.5831970791471  | False |
+|     0     |    0.0    |  0.3096   |    0.0    |  0.3968   |   0.0    | -0.0872  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -25.74217920339379  | False |
+|     0     |    0.0    |  0.4079   |    0.0    |   0.429   |   0.0    | -0.0211  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 216.05017821064666  | False |
+|     1     |    0.0    |   0.09    |    0.0    |  0.1198   |   0.0    | -0.0298  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  151.5912379376059  | False |
+|     0     |    1.0    |  0.5347   |    1.0    |   0.517   |   0.0    |  0.0177  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | 174.88067476942115  | False |
+|     0     |    0.0    |  0.4244   |    0.0    |  0.3975   |   0.0    |  0.0269  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 128.10968290484902  | False |
+|     1     |    0.0    |  0.3821   |    0.0    |  0.3927   |   0.0    | -0.0105  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -309.4732219416193  | False |
+|     0     |    0.0    |  0.4216   |    0.0    |   0.245   |   0.0    |  0.1767  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -746.6219336778779  | False |
+|     1     |    0.0    |  0.3895   |    0.0    |  0.4548   |   0.0    | -0.0653  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -953.5849006091099  | False |
+|     0     |    0.0    |  0.1922   |    0.0    |  0.1648   |   0.0    |  0.0275  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 107.61459198374723  | False |
+|     1     |    0.0    |  0.2319   |    0.0    |  0.1694   |   0.0    |  0.0625  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -630.1054895608172  | False |
+|     0     |    1.0    |  0.5947   |    1.0    |  0.5583   |   0.0    |  0.0364  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             | -16.89981397672591  | False |
+|     1     |    1.0    |  0.5776   |    0.0    |  0.4574   |   1.0    |  0.1201  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    5     |   Persuadable   |        5        |            False             | -906.0767242665073  | False |
+|     0     |    1.0    |  0.5338   |    1.0    |  0.6332   |   0.0    | -0.0995  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             | -73.18655540310579  | False |
+|     1     |    0.0    |  0.0492   |    0.0    |   0.043   |   0.0    |  0.0061  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 167.62667596896563  | False |
+|     0     |    1.0    |  0.6111   |    0.0    |  0.3739   |   1.0    |  0.2372  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    5     |   Persuadable   |        5        |            False             | -294.6365563403227  | False |
+|     0     |    1.0    |  0.8789   |    1.0    |  0.8097   |   0.0    |  0.0692  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -345.43284696055014 | False |
+|     0     |    0.0    |  0.2804   |    1.0    |  0.5119   |   -1.0   | -0.2315  | 0.0  | 0.0  | 0.0  |  Lost Cause  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | -931.1725809217611  | False |
+|     0     |    0.0    |  0.0466   |    0.0    |  0.0518   |   0.0    | -0.0052  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  189.2007746092529  | False |
+|     0     |    0.0    |  0.1038   |    0.0    |  0.1299   |   0.0    | -0.0261  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 173.87817007603803  | False |
+|     1     |    0.0    |  0.0088   |    0.0    |  0.0891   |   0.0    | -0.0803  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  -1046.94585594632  | False |
+|     1     |    0.0    |  0.2037   |    0.0    |  0.2123   |   0.0    | -0.0085  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -432.9459108855723  | False |
+|     1     |    0.0    |  0.0918   |    0.0    |  0.1096   |   0.0    | -0.0177  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 299.85743796615793  | False |
+|     1     |    0.0    |  0.2748   |    0.0    |  0.3165   |   0.0    | -0.0417  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | 206.14148323002223  | False |
+|     1     |    0.0    |  0.4324   |    0.0    |  0.4623   |   0.0    | -0.0299  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  52.13071483508293  | False |
+|     1     |    0.0    |    0.3    |    0.0    |  0.3619   |   0.0    | -0.0619  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  71.3059836798202   | False |
+|     0     |    0.0    |   0.12    |    0.0    |  0.1467   |   0.0    | -0.0267  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 146.46634025553385  | False |
+|     1     |    0.0    |  0.3948   |    0.0    |  0.2191   |   0.0    |  0.1757  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -1090.0785669909096 | False |
+|     0     |    1.0    |   0.641   |    1.0    |  0.8237   |   0.0    | -0.1827  | 0.0  | 1.0  | 1.0  | Persuadable  |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    30    |   Sure Thing    |       30        |            False             | -985.1457747924771  | False |
+|     0     |    0.0    |  0.3671   |    1.0    |  0.5748   |   -1.0   | -0.2077  | 1.0  | 1.0  | 0.0  |  Sure Thing  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | -30.282594873111066 | False |
+|     1     |    1.0    |  0.5229   |    1.0    |  0.6409   |   0.0    |  -0.118  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             | -205.57396046717554 | False |
+|     1     |    1.0    |  0.5645   |    1.0    |  0.6568   |   0.0    | -0.0923  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             | -968.1719349983523  | False |
+|     0     |    0.0    |  0.1247   |    0.0    |  0.0222   |   0.0    |  0.1025  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  -1145.92353740256  | False |
+|     1     |    0.0    |  0.0639   |    0.0    |  0.1715   |   0.0    | -0.1076  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -1142.4794640231012 | False |
+|     0     |    0.0    |  0.4334   |    0.0    |  0.4185   |   0.0    |  0.0149  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 218.08181329777403  | False |
+|     0     |    0.0    |  0.0257   |    0.0    |  0.0277   |   0.0    | -0.0019  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -1019.3385900321763 | False |
+|     1     |    0.0    |  0.1365   |    0.0    |  0.1961   |   0.0    | -0.0596  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 0.1300641798977722  | False |
+|     1     |    0.0    |  0.2164   |    0.0    |  0.2207   |   0.0    | -0.0043  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  197.547417146641   | False |
+|     0     |    0.0    |  0.2117   |    0.0    |  0.4325   |   0.0    | -0.2208  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -996.1472599486043  | False |
+|     1     |    0.0    |  0.0057   |    0.0    |  0.0125   |   0.0    | -0.0068  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -129.24716241974045 | False |
+|     0     |    0.0    |  0.1231   |    0.0    |  0.3648   |   0.0    | -0.2417  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -966.2706529869934  | False |
+|     0     |    0.0    |  0.0887   |    0.0    |  0.1033   |   0.0    | -0.0146  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | 266.37316847934244  | False |
+|     0     |    0.0    |  0.3428   |    0.0    |  0.2962   |   0.0    |  0.0466  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  66.36302882520522  | False |
+|     0     |    0.0    |  0.0483   |    0.0    |  0.0603   |   0.0    |  -0.012  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -1076.3821159366003 | False |
+|     1     |    1.0    |  0.5338   |    0.0    |  0.4337   |   1.0    |  0.1001  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    5     |   Persuadable   |        5        |            False             | -199.84536525897613 | False |
+|     0     |    0.0    |  0.0254   |    0.0    |  0.0611   |   0.0    | -0.0358  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | 228.46592114809619  | False |
+|     1     |    0.0    |   0.153   |    0.0    |  0.2225   |   0.0    | -0.0695  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 214.10080735695078  | False |
+|     0     |    1.0    |  0.5046   |    0.0    |   0.415   |   1.0    |  0.0895  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    5     |   Persuadable   |        5        |            False             | -749.1620448268134  | False |
+|     1     |    0.0    |  0.1608   |    0.0    |  0.1318   |   0.0    |  0.029   | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  -557.040006848217  | False |
+|     1     |    0.0    |  0.0066   |    0.0    |  0.0098   |   0.0    | -0.0032  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  94.52994845433841  | False |
+|     0     |    0.0    |  0.3663   |    0.0    |  0.3373   |   0.0    |  0.0291  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  84.8239339605907   | False |
+|     0     |    0.0    |  0.0207   |    0.0    |  0.0424   |   0.0    | -0.0217  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  291.9142356486109  | False |
+|     0     |    1.0    |  0.9138   |    1.0    |  0.8303   |   0.0    |  0.0835  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             | -567.5673161427736  | False |
+|     0     |    0.0    |  0.3618   |    0.0    |  0.3159   |   0.0    |  0.0459  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -91.55709119894527  | False |
+|     0     |    1.0    |  0.6585   |    1.0    |  0.5253   |   0.0    |  0.1332  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -685.0750931183431  | False |
+|     1     |    0.0    |  0.2565   |    0.0    |  0.2868   |   0.0    | -0.0303  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  183.2154458131347  | False |
+|     1     |    0.0    |  0.1317   |    0.0    |  0.2463   |   0.0    | -0.1146  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -107.7579207143749  | False |
+|     0     |    0.0    |  0.1146   |    0.0    |  0.1791   |   0.0    | -0.0645  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 224.36158263522793  | False |
+|     0     |    0.0    |  0.0834   |    0.0    |  0.1516   |   0.0    | -0.0682  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -983.1353099857971  | False |
+|     0     |    0.0    |   0.15    |    0.0    |  0.1218   |   0.0    |  0.0281  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -580.4443438344254  | False |
+|     0     |    0.0    |  0.4912   |    1.0    |  0.5107   |   -1.0   | -0.0195  | 1.0  | 1.0  | 0.0  |  Sure Thing  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             |  98.8028770755202   | False |
+|     1     |    0.0    |  0.3929   |    0.0    |  0.2784   |   0.0    |  0.1145  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -1140.2524030749764 | False |
+|     1     |    0.0    |  0.1653   |    0.0    |  0.1158   |   0.0    |  0.0495  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -89.13290527545291  | False |
+|     1     |    0.0    |  0.2927   |    0.0    |  0.3347   |   0.0    |  -0.042  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -70.38635592776131  | False |
+|     1     |    0.0    |  0.0194   |    0.0    |  0.0306   |   0.0    | -0.0112  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -351.01446216554564 | False |
+|     1     |    1.0    |  0.9666   |    1.0    |  0.9398   |   0.0    |  0.0268  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -119.02118608838373 | False |
+|     1     |    0.0    |  0.1616   |    0.0    |  0.2031   |   0.0    | -0.0416  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -608.4022764144568  | False |
+|     0     |    0.0    |  0.2721   |    0.0    |  0.2613   |   0.0    |  0.0109  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  88.89283695931931  | False |
+|     1     |    0.0    |   0.005   |    0.0    |  0.0078   |   0.0    | -0.0028  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -119.25548405851237 | False |
+|     1     |    0.0    |  0.1288   |    0.0    |  0.1503   |   0.0    | -0.0215  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  300.2587790870118  | False |
+|     0     |    0.0    |  0.3597   |    0.0    |  0.2619   |   0.0    |  0.0978  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -93.91990768999358  | False |
+|     1     |    0.0    |  0.0473   |    0.0    |  0.0751   |   0.0    | -0.0278  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -593.6784333987811  | False |
+|     0     |    0.0    |  0.1786   |    0.0    |  0.2231   |   0.0    | -0.0445  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  183.2718835981309  | False |
+|     0     |    1.0    |  0.7755   |    1.0    |  0.7603   |   0.0    |  0.0152  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             |  32.8654761112075   | False |
+|     1     |    0.0    |  0.3921   |    0.0    |  0.4631   |   0.0    |  -0.071  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  195.3390010294322  | False |
+|     1     |    1.0    |  0.5339   |    0.0    |  0.3966   |   1.0    |  0.1373  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    5     |   Persuadable   |        5        |            False             | -102.36160184337564 | False |
+|     1     |    1.0    |  0.5747   |    1.0    |  0.5879   |   0.0    | -0.0132  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             | -72.50345957493391  | False |
+|     0     |    0.0    |  0.3809   |    1.0    |  0.5611   |   -1.0   | -0.1802  | 0.0  | 0.0  | 0.0  |  Lost Cause  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | -432.8617150418427  | False |
+|     0     |    0.0    |  0.4296   |    0.0    |  0.4868   |   0.0    | -0.0572  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  16.0253282166384   | False |
+|     0     |    0.0    |  0.3548   |    0.0    |  0.3773   |   0.0    | -0.0225  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -659.0022352644933  | False |
+|     0     |    0.0    |  0.4004   |    0.0    |  0.4181   |   0.0    | -0.0177  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  68.12818286344418  | False |
+|     0     |    1.0    |  0.5278   |    0.0    |  0.4942   |   1.0    |  0.0336  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    5     |   Persuadable   |        5        |            False             |  55.80127062902693  | False |
+|     0     |    0.0    |  0.1617   |    0.0    |  0.1956   |   0.0    | -0.0339  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 156.13589028190358  | False |
+|     1     |    0.0    |  0.3959   |    0.0    |  0.4486   |   0.0    | -0.0527  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -12.98813434265412  | False |
+|     1     |    0.0    |  0.4425   |    1.0    |  0.5158   |   -1.0   | -0.0733  | 0.0  | 1.0  | 1.0  | Persuadable  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    30    |  Sleeping Dog   |       30        |            False             | -585.5681017504702  | False |
+|     0     |    0.0    |  0.4288   |    0.0    |  0.4865   |   0.0    | -0.0577  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -791.2882816849451  | False |
+|     1     |    0.0    |  0.3215   |    0.0    |  0.2893   |   0.0    |  0.0322  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 61.946315358028414  | False |
+|     1     |    0.0    |  0.0939   |    0.0    |  0.1816   |   0.0    | -0.0877  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -183.81793656635148 | False |
+|     0     |    0.0    |  0.0588   |    0.0    |  0.0851   |   0.0    | -0.0263  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 172.12031808169377  | False |
+|     1     |    0.0    |  0.4053   |    0.0    |  0.2479   |   0.0    |  0.1574  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -1128.7002308924289 | False |
+|     1     |    0.0    |  0.0561   |    0.0    |  0.0433   |   0.0    |  0.0129  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  114.0562810129718  | False |
+|     1     |    0.0    |  0.0986   |    0.0    |   0.17    |   0.0    | -0.0714  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -45.18269829846872  | False |
+|     0     |    0.0    |  0.0823   |    0.0    |   0.125   |   0.0    | -0.0427  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  74.95739185814546  | False |
+|     1     |    0.0    |  0.2025   |    0.0    |  0.3588   |   0.0    | -0.1563  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -68.65629435854021  | False |
+|     1     |    0.0    |  0.2552   |    0.0    |  0.3545   |   0.0    | -0.0993  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  74.14260795301175  | False |
+|     0     |    0.0    |  0.2818   |    0.0    |  0.2756   |   0.0    |  0.0062  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -481.64650179258786 | False |
+|     0     |    0.0    |  0.0185   |    0.0    |  0.0214   |   0.0    | -0.0028  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -437.39185821365857 | False |
+|     1     |    1.0    |  0.7068   |    1.0    |  0.6799   |   0.0    |  0.027   | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             |  65.95592042641988  | False |
+|     1     |    0.0    |  0.4193   |    1.0    |  0.6389   |   -1.0   | -0.2196  | 1.0  | 1.0  | 0.0  |  Sure Thing  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | -441.3760568515172  | False |
+|     1     |    0.0    |  0.0651   |    0.0    |   0.053   |   0.0    |  0.012   | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -92.24780180969901  | False |
+|     1     |    1.0    |  0.5367   |    0.0    |  0.4642   |   1.0    |  0.0725  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    5     |   Persuadable   |        5        |            False             | -716.6819079766915  | False |
+|     0     |    0.0    |  0.0528   |    0.0    |   0.067   |   0.0    | -0.0141  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 229.82819769536582  | False |
+|     1     |    0.0    |  0.3831   |    1.0    |  0.5557   |   -1.0   | -0.1726  | 1.0  | 1.0  | 0.0  |  Sure Thing  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | -597.0094034429961  | False |
+|     1     |    1.0    |  0.8609   |    1.0    |  0.8021   |   0.0    |  0.0589  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -214.00810427990905 | False |
+|     1     |    0.0    |  0.1493   |    0.0    |  0.1577   |   0.0    | -0.0084  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -645.0483702197382  | False |
+|     0     |    1.0    |  0.6739   |    1.0    |  0.6242   |   0.0    |  0.0497  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             |  124.8780030968253  | False |
+|     0     |    0.0    |  0.0282   |    0.0    |  0.0732   |   0.0    |  -0.045  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -1138.8328835637985 | False |
+|     1     |    0.0    |  0.0117   |    0.0    |  0.0222   |   0.0    | -0.0105  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -735.5550197910004  | False |
+|     0     |    0.0    |  0.3736   |    0.0    |  0.3966   |   0.0    |  -0.023  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  60.38186564491707  | False |
+|     1     |    1.0    |  0.9438   |    1.0    |  0.9206   |   0.0    |  0.0233  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -168.59385269943562 | False |
+|     0     |    0.0    |  0.4254   |    1.0    |  0.6536   |   -1.0   | -0.2282  | 0.0  | 0.0  | 0.0  |  Lost Cause  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | -6.439177702303368  | False |
+|     1     |    0.0    |   0.331   |    0.0    |  0.4312   |   0.0    | -0.1001  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -747.4465295077601  | False |
+|     1     |    0.0    |  0.0077   |    0.0    |  0.0119   |   0.0    | -0.0042  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -1147.3123855572017 | False |
+|     1     |    0.0    |  0.2071   |    0.0    |  0.3389   |   0.0    | -0.1318  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 15.796883878864264  | False |
+|     0     |    0.0    |  0.1778   |    0.0    |  0.2022   |   0.0    | -0.0244  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | 241.64355209051246  | False |
+|     0     |    0.0    |  0.4456   |    0.0    |  0.3271   |   0.0    |  0.1185  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -154.9136248331879  | False |
+|     1     |    0.0    |  0.1542   |    0.0    |  0.1734   |   0.0    | -0.0192  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -479.22747020938266 | False |
+|     1     |    0.0    |  0.0656   |    0.0    |   0.06    |   0.0    |  0.0056  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 159.22739572128967  | False |
+|     0     |    1.0    |  0.6414   |    1.0    |  0.5904   |   0.0    |  0.051   | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             | 125.19508770612197  | False |
+|     1     |    0.0    |   0.467   |    0.0    |  0.4104   |   0.0    |  0.0566  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -507.8769641142203  | False |
+|     1     |    1.0    |   0.833   |    1.0    |   0.874   |   0.0    | -0.0409  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | 28.001299713680055  | False |
+|     0     |    1.0    |  0.7247   |    1.0    |  0.7306   |   0.0    | -0.0059  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -143.37170471566765 | False |
+|     0     |    1.0    |   0.607   |    1.0    |  0.5243   |   0.0    |  0.0827  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | 106.11531776442985  | False |
+|     1     |    0.0    |  0.0216   |    0.0    |  0.0388   |   0.0    | -0.0171  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  301.0863966400889  | False |
+|     1     |    0.0    |  0.0188   |    0.0    |  0.0203   |   0.0    | -0.0015  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  77.30685999846469  | False |
+|     0     |    1.0    |  0.7123   |    1.0    |  0.6282   |   0.0    |  0.0841  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -97.81133522258779  | False |
+|     1     |    0.0    |  0.1034   |    0.0    |   0.086   |   0.0    |  0.0175  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 41.767361805105566  | False |
+|     0     |    0.0    |  0.2583   |    0.0    |  0.3093   |   0.0    |  -0.051  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 101.81799985373254  | False |
+|     0     |    0.0    |  0.1218   |    0.0    |  0.1392   |   0.0    | -0.0174  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  159.1699439858744  | False |
+|     0     |    0.0    |  0.2027   |    0.0    |  0.2889   |   0.0    | -0.0862  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -207.2098915622887  | False |
+|     0     |    1.0    |  0.8589   |    1.0    |  0.9033   |   0.0    | -0.0444  | 0.0  | 1.0  | 1.0  | Persuadable  |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    30    |   Sure Thing    |       30        |            False             | -128.84657472881656 | False |
+|     1     |    0.0    |  0.0061   |    0.0    |  0.0109   |   0.0    | -0.0048  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | 127.97715899283116  | False |
+|     1     |    0.0    |   0.229   |    0.0    |  0.3211   |   0.0    | -0.0921  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  165.6193187509134  | False |
+|     0     |    0.0    |  0.0151   |    0.0    |  0.0444   |   0.0    | -0.0293  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 107.98621209400471  | False |
+|     0     |    1.0    |  0.5073   |    0.0    |  0.4327   |   1.0    |  0.0745  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    5     |   Persuadable   |        5        |            False             | -219.54109897253966 | False |
+|     0     |    0.0    |  0.3559   |    0.0    |  0.2759   |   0.0    |   0.08   | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 146.05244159322024  | False |
+|     1     |    1.0    |   0.576   |    0.0    |  0.4684   |   1.0    |  0.1075  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    15    |   Persuadable   |       15        |            False             | 163.32670383490563  | False |
+|     0     |    0.0    |  0.3334   |    0.0    |  0.3716   |   0.0    | -0.0383  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             |  66.49366116922056  | False |
+|     0     |    0.0    |  0.1374   |    0.0    |  0.2654   |   0.0    |  -0.128  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 158.68125954258062  | False |
+|     0     |    0.0    |  0.2995   |    0.0    |  0.2467   |   0.0    |  0.0528  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -781.5406280139346  | False |
+|     1     |    0.0    |  0.1534   |    0.0    |  0.0997   |   0.0    |  0.0537  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -342.8166152362654  | False |
+|     0     |    1.0    |  0.5968   |    1.0    |  0.5886   |   0.0    |  0.0082  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -933.3691899745437  | False |
+|     0     |    0.0    |  0.2988   |    0.0    |   0.248   |   0.0    |  0.0508  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             | -8.378068247031024  | False |
+|     0     |    1.0    |  0.8404   |    1.0    |  0.8208   |   0.0    |  0.0196  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -110.38157469296402 | False |
+|     1     |    1.0    |  0.9082   |    1.0    |  0.8446   |   0.0    |  0.0636  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Sure Thing   |  Sure Thing  |    0.0     |          True           |    False     |    0     |   Sure Thing    |        0        |             True             | -69.47009503603385  | False |
+|     0     |    0.0    |  0.0343   |    0.0    |  0.1692   |   0.0    | -0.1349  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -1013.7600382996027 | False |
+|     1     |    0.0    |  0.0922   |    0.0    |  0.0896   |   0.0    |  0.0025  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -240.1073917339545  | False |
+|     1     |    0.0    |  0.0146   |    0.0    |  0.0558   |   0.0    | -0.0413  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -430.8102589821491  | False |
+|     1     |    1.0    |  0.5481   |    0.0    |  0.4835   |   1.0    |  0.0645  | 0.0  | 0.0  | 0.0  |  Lost Cause  |  Persuadable  | Persuadable  |    1.0     |          False          |    False     |    5     |   Persuadable   |        5        |            False             |  176.3304974761395  | False |
+|     0     |    1.0    |  0.8304   |    1.0    |   0.817   |   0.0    |  0.0134  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Sure Thing   |  Sure Thing  |    0.0     |          False          |    False     |    0     |   Sure Thing    |        0        |             True             |  29.89158814340908  | False |
+|     1     |    0.0    |  0.4415   |    1.0    |   0.631   |   -1.0   | -0.1895  | 0.0  | 0.0  | 0.0  |  Lost Cause  | Sleeping Dog  | Sleeping Dog |    -1.0    |          False          |    False     |    0     |  Sleeping Dog   |        0        |             True             | 32.863441805960065  | False |
+|     1     |    0.0    |  0.1368   |    0.0    |  0.2544   |   0.0    | -0.1176  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             |  187.6548296821279  | False |
+|     1     |    0.0    |   0.062   |    0.0    |  0.0784   |   0.0    | -0.0164  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 144.39356667909806  | False |
+|     1     |    0.0    |  0.0374   |    0.0    |  0.0608   |   0.0    | -0.0235  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | 177.99603611789803  | False |
+|     1     |    0.0    |  0.3252   |    0.0    |  0.4379   |   0.0    | -0.1128  | 1.0  | 1.0  | 0.0  |  Sure Thing  |  Lost Cause   |  Lost Cause  |    0.0     |          True           |    False     |    0     |   Lost Cause    |        0        |             True             |  88.54432868171239  | False |
+|     1     |    0.0    |  0.0211   |    0.0    |  0.0999   |   0.0    | -0.0788  | 1.0  | 0.0  | -1.0 | Sleeping Dog |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    0     |   Lost Cause    |        0        |             True             | -950.5969455223624  | False |
+|     0     |    0.0    |  0.0064   |    0.0    |  0.0138   |   0.0    | -0.0074  | 0.0  | 1.0  | 1.0  | Persuadable  |  Lost Cause   |  Lost Cause  |    0.0     |          False          |    False     |    30    |   Lost Cause    |       30        |            False             | -511.2167627316313  | False |
++-----------+-----------+-----------+-----------+-----------+----------+----------+------+------+------+--------------+---------------+--------------+------------+-------------------------+--------------+----------+-----------------+-----------------+------------------------------+---------------------+-------+
