@@ -215,10 +215,19 @@ def calculate_performance_metrics(value, value_pred, data, file_path, print=Fals
 
     data_not_rejected = data[data['ite_reject'] != 'R'].copy()
     data_not_rejected['se'] = (data_not_rejected['ite'] - data_not_rejected['ite_reject']) ** 2
-    mse = data_not_rejected['se'].mean()
-    rmse = sqrt(mse)
+    mse_not_rejected = data_not_rejected['se'].mean()
+    rmse_not_rejected = sqrt(mse_not_rejected)
 
-    metrics_dict['RMSE'] = rmse
+    metrics_dict['RMSE'] = rmse_not_rejected
+    
+    data_rejected = data[data['ite_reject'] == 'R'].copy()
+    data_rejected['se'] = (data_rejected['ite'] - data_rejected['ite_pred']) ** 2
+    data_rejected['se'] = (data_rejected['ite'] - data_rejected['ite_pred']) ** 2
+    mse_rejected = data_rejected['se'].mean()
+    rmse_rejected = sqrt(mse_rejected)
+    metrics_dict['RMSE Rejected'] = rmse_rejected
+
+
     metrics_dict['Accuracy'] = 0
 
     if 'y_t1_prob' in data.columns:

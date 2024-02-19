@@ -6,12 +6,17 @@ import matplotlib.pyplot as plt
 from models.evaluators.evaluator import calculate_performance_metrics
 from sklearn.preprocessing import StandardScaler
 
+
+import numpy as np
+from sklearn.ensemble import IsolationForest
+import matplotlib.pyplot as plt
+
 def distance_test_to_train(model, data, n_neighbors=4):
     # Use kneighbors method to get distances and indices of neighbors
     distances, _ = model.kneighbors(data, n_neighbors=n_neighbors)
     return pd.Series(distances[:, 0], index=data.index)
 
-def execute_ood_experiment(train_x, model_class, test_x, bounds, test_set, train_set, file_path, key_metric, minmax, metrics_results, model_options=None):
+def execute_if_experiment(train_x, model_class, test_x, bounds, test_set, train_set, file_path, key_metric, minmax, metrics_results, model_options=None):
     # Step 1: Train Scalar
     scaler = StandardScaler()
     train_x = pd.DataFrame(scaler.fit_transform(train_x))

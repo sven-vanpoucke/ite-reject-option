@@ -263,6 +263,32 @@ for experiment in experiments:
                    file_path, metrics_results, experiment_names, )
     metrics_results[experiment['id']] = metrics_dict
 
+#######################################################################################################################
+# Rejection based on Logistic Regression Prediction of Rejection
+experiment_id += 1
+architecture="Separated Architecture"
+model_class_name =  "Rejection based on IsolationForest"
+
+def train_model(train_x, ite_correctly_predicted, model_class=LogisticRegression, **model_options):
+    # Train the model
+    model = model_class(**model_options)
+    model.fit(train_x, ite_correctly_predicted)
+    return model
+
+train_set['ite_mistake'] = train_set.apply(lambda row: 0 if row['ite_pred']==row['ite'] else 1, axis=1)
+
+model = train_model(train_x, train_set['ite_mistake'], LogisticRegression, max_iter=10000, solver='saga', random_state=42)
+
+train_reject_pred = pd.Series(model.predict(train_x), name='train_treated_y_pred')
+test_set['test_reject_pred'] = pd.Series(model.predict(test_x), name='test_reject_pred')
+
+test_set['y_reject'] = test_set.apply(lambda row: True if row['test_reject_pred'] else False, axis=1)
+test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
+experiment_names.update({experiment_id: f"{architecture} - {model_class.__name__}"})
+
+metrics_dict = calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
+metrics_results[experiment_id] = metrics_dict
+
 """
 #######################################################################################################################
 # OOD - KNN
