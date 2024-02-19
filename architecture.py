@@ -301,7 +301,7 @@ for contamination in range(int(1*detail_factor), int(499*detail_factor) + 1):
     train_set['ite_reject'] = train_set.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
 
     metrics_result = calculate_performance_metrics('ite', 'ite_reject', train_set, file_path)
-    print(f"Contamination: {contamination}: outliers: {sum(train_set['ood'] == -1)}, non-outliers:{sum(train_set['ood'] == 1)}")
+    print(f"Contamination: {contamination}: outliers: {sum(train_set['ood'] == -1)}, non-outliers: {sum(train_set['ood'] == 1)}")
 
     if metrics_result is not None and 'Rejection Rate' in metrics_result:
         reject_rates.append(metrics_result["Rejection Rate"])
@@ -321,7 +321,7 @@ for contamination in range(int(1*detail_factor), int(499*detail_factor) + 1):
 print(rmse_accepted)
 # Graph with reject rate and TR & FR
 plt.plot(reject_rates, rmse_accepted, color='green', label='RMSE of Accepted Samples')
-plt.plot(reject_rates, rmse_rejected, color='red', label='RMSE of Rejected Samples')
+# plt.plot(reject_rates, rmse_rejected, color='red', label='RMSE of Rejected Samples')
 plt.xlabel('Reject Rate')
 plt.title('Impact of Rejection on RMSE')
 plt.legend()
