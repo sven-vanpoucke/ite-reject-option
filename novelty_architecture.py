@@ -84,6 +84,7 @@ from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.svm import OneClassSVM
+import csv
 # Chapter 1: Initialization
 ## Parameters
 folder_path = 'output/'
@@ -238,6 +239,213 @@ def train_model(x, model_class=IsolationForest, **model_options):
     return model
 
 #######################################################################################################################
+
+
+def novelty_rejection_2(max_rr, detail_factor,model_name, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation):
+    # loop over all possible RR
+    reject_rates = []
+    rmse_accepted = []
+    rmse_rejected = []
+
+    for contamination in range(int(1*detail_factor), int(max_rr*detail_factor)):
+        contamination /= (100 * detail_factor) # max of 0.5
+
+        if model_name == IsolationForest:
+            model = train_model(x, IsolationForest, contamination=contamination, random_state=42) # lower contamination, less outliers
+            all_data['ood'] = pd.Series(model.predict(x), name='ood')
+        elif model_name == OneClassSVM:
+            model = train_model(x, OneClassSVM, nu=contamination) # lower contamination, less outliers
+            all_data['ood'] = pd.Series(model.predict(x), name='ood')
+        elif model_name == LocalOutlierFactor:
+            model = train_model(x, LocalOutlierFactor, contamination=contamination, novelty=True)
+            all_data['ood'] = pd.Series(model.predict(x), name='ood')
+
+        all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
+
+        all_data['y_reject'] = all_data.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
+
+        set_rejected = all_data.copy()
+        set_accepted = all_data.copy()
+        set_rejected = set_rejected[set_rejected['y_reject'] == True]
+        set_accepted = set_accepted[set_accepted['y_reject'] == False]
+
+        all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
+
+        metrics_result = calculate_performance_metrics('ite', 'ite_reject', all_data, file_path)
+
+        if metrics_result:
+            reject_rates.append(metrics_result.get('Rejection Rate', None))
+            rmse_accepted.append(metrics_result.get('RMSE', None))
+            rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
+        else:
+            reject_rates.append(None)
+            rmse_accepted.append(None)
+            rmse_rejected.append(None)
+
+    # Graph with reject rate and rmse_accepted & rmse_rejected
+    twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse.png")
+    # twolinegraph(reject_rates, "Reject Rate", rmse_accepted, f"Experiment {experiment_id} ", "blue", rmse_accepted_perfect, "Perfect Rejection", "green", f"RMSE of Accepted Samples ({dataset})", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_PerfRMSEe.png")
+    onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
+    onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
+
+    # optimal model
+    min_rmse = min(rmse_accepted)  # Find the minimum
+    min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
+    optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
+
+    if model_name == IsolationForest:
+        model = train_model(x, IsolationForest, contamination=optimal_reject_rate, random_state=42) # lower contamination, less outliers
+        all_data['ood'] = pd.Series(model.predict(x), name='ood')
+    elif model_name == OneClassSVM:
+        model = train_model(x, OneClassSVM, nu=optimal_reject_rate) # lower contamination, less outliers
+        all_data['ood'] = pd.Series(model.predict(x), name='ood')
+    elif model_name == LocalOutlierFactor:
+        model = train_model(x, LocalOutlierFactor, contamination=contamination, novelty=True)
+        all_data['ood'] = pd.Series(model.predict(x), name='ood')
+
+    all_data['ood'] = pd.Series(model.predict(x), name='ood')
+    all_data['y_reject'] = all_data.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
+    all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
+
+    metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=True, print=False)
+
+    # metrics_results[experiment_id] = metrics_dict
+    return metrics_dict
+
+def f(type, contamination, t_x, ut_x, t_data, ut_data, detail_factor, model_name, all_data):
+    contamination /= (100 * detail_factor)  # max of 0.5
+    if model_name == IsolationForest:
+        t_model = train_model(t_x, IsolationForest, contamination=contamination, random_state=42)
+        ut_model = train_model(ut_x, IsolationForest, contamination=contamination, random_state=42)
+    elif model_name == OneClassSVM:
+        t_model = train_model(t_x, OneClassSVM, nu=contamination)
+        ut_model = train_model(ut_x, OneClassSVM, nu=contamination)
+    elif model_name == LocalOutlierFactor:
+        t_model = train_model(t_x, LocalOutlierFactor, contamination=contamination, novelty=True)
+        ut_model = train_model(ut_x, LocalOutlierFactor, contamination=contamination, novelty=True)
+    
+    if type == 2:
+        t_data['ood'] = pd.Series(ut_model.predict(t_x), name='ood').copy()
+        ut_data['ood'] = pd.Series(t_model.predict(ut_x), name='ood').copy()
+        all_data['amount_of_times_rejected_new'] = all_data.apply(lambda row: 1 if row['ood'] == -1 else 0, axis=1)
+    if type == 3:
+        ut_data['ood-ut'] = pd.Series(t_model.predict(ut_x), name='ood').copy()
+        ut_data['ood-t'] = pd.Series(t_model.predict(ut_x), name='ood').copy()
+        # ut_data['ood'] = (ut_data['ood-ut'] + ut_data['ood-t']) / 2
+        ut_data['ood'] = ut_data[['ood-ut', 'ood-t']].max(axis=1)
+
+    all_data = pd.concat([t_data, ut_data], ignore_index=True).copy()
+    all_data['amount_of_times_rejected_new'] = all_data.apply(lambda row: 1 if row['ood'] == -1 else 0, axis=1)
+    return all_data['amount_of_times_rejected_new']
+
+def novelty_rejection(type_nr, max_rr, detail_factor,model_name, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation):
+    reject_rates = []
+    rmse_accepted = []
+    rmse_rejected = []
+    if type_nr == 1:
+        for contamination in range(int(1*detail_factor), int(max_rr*detail_factor)):
+            contamination /= (100 * detail_factor) # max of 0.5
+
+            if model_name == IsolationForest:
+                model = train_model(x, IsolationForest, contamination=contamination, random_state=42) # lower contamination, less outliers
+                all_data['ood'] = pd.Series(model.predict(x), name='ood')
+            elif model_name == OneClassSVM:
+                model = train_model(x, OneClassSVM, nu=contamination) # lower contamination, less outliers
+                all_data['ood'] = pd.Series(model.predict(x), name='ood')
+            elif model_name == LocalOutlierFactor:
+                model = train_model(x, LocalOutlierFactor, contamination=contamination, novelty=True)
+                all_data['ood'] = pd.Series(model.predict(x), name='ood')
+
+            all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
+
+            all_data['y_reject'] = all_data.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
+
+            set_rejected = all_data.copy()
+            set_accepted = all_data.copy()
+            set_rejected = set_rejected[set_rejected['y_reject'] == True]
+            set_accepted = set_accepted[set_accepted['y_reject'] == False]
+
+            all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
+
+            metrics_result = calculate_performance_metrics('ite', 'ite_reject', all_data, file_path)
+
+            if metrics_result:
+                reject_rates.append(metrics_result.get('Rejection Rate', None))
+                rmse_accepted.append(metrics_result.get('RMSE', None))
+                rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
+            else:
+                reject_rates.append(None)
+                rmse_accepted.append(None)
+                rmse_rejected.append(None)
+    if type_nr == 2 or type_nr == 3:
+        # split the data
+        t_data = all_data[all_data['treatment'] == 1].copy()
+        ut_data = all_data[all_data['treatment'] == 0].copy()
+        t_x = x[all_data['treatment'] == 1].copy()
+        ut_x = x[all_data['treatment'] == 0].copy()
+
+        t_data['amount_of_times_rejected'] = 0
+        ut_data['amount_of_times_rejected'] = 0
+        all_data['amount_of_times_rejected'] = 0
+
+        for contamination in range(int(1 * detail_factor), int(49 * detail_factor)):
+            amount_of_times_rejected_new = f(type_nr, contamination, t_x, ut_x, t_data, ut_data, detail_factor, model_name, all_data)
+            all_data['amount_of_times_rejected'] += amount_of_times_rejected_new
+            all_data['amount_of_times_rejected'].fillna(0, inplace=True)
+            all_data['amount_of_times_rejected'] = all_data['amount_of_times_rejected'].astype(int)
+
+        all_data = all_data.sort_values(by='amount_of_times_rejected', ascending=False).copy()
+        all_data = all_data.reset_index(drop=True)
+
+        for rr in range(0, max_rr*detail_factor):
+            num_to_set = int(rr / (100.0*detail_factor) * len(all_data)) # example: 60/100 = 0.6 * length of the data
+
+            all_data['ite_reject'] = all_data['ite_pred']
+            all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
+            # all_data = all_data.sort_values(by='amount_of_times_rejected', ascending=False).copy()
+            if num_to_set != 0:
+                all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
+
+            metrics_result = calculate_performance_metrics('ite', 'ite_reject', all_data, file_path)
+
+            if metrics_result:
+                reject_rates.append(metrics_result.get('Rejection Rate', None))
+                rmse_accepted.append(metrics_result.get('RMSE', None))
+                rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
+                print(f"RR: {rr / (100*detail_factor) }, RR: {metrics_result['Rejection Rate']}")
+            else:
+                reject_rates.append(None)
+                rmse_accepted.append(None)
+                rmse_rejected.append(None)
+
+    # Graph with reject rate and rmse_accepted & rmse_rejected
+    twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse.png")
+    # twolinegraph(reject_rates, "Reject Rate", rmse_accepted, f"Experiment {experiment_id} ", "blue", rmse_accepted_perfect, "Perfect Rejection", "green", f"RMSE of Accepted Samples ({dataset})", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_PerfRMSEe.png")
+    onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
+    onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
+
+    # optimal model
+    min_rmse = min(rmse_accepted)  # Find the minimum
+    min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
+    optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
+
+    if model_name == IsolationForest:
+        model = train_model(x, IsolationForest, contamination=optimal_reject_rate, random_state=42) # lower contamination, less outliers
+    elif model_name == OneClassSVM:
+        model = train_model(x, OneClassSVM, nu=optimal_reject_rate) # lower contamination, less outliers
+    elif model_name == LocalOutlierFactor:
+        model = train_model(x, LocalOutlierFactor, contamination=optimal_reject_rate, novelty=True)
+    all_data['ood'] = pd.Series(model.predict(x), name='ood')
+
+    all_data['ood'] = pd.Series(model.predict(x), name='ood')
+    all_data['y_reject'] = all_data.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
+    all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
+
+    metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=True, print=False)
+
+    return metrics_dict
+
+#######################################################################################################################
 # Baseline Model - No Rejection // Experiment 0
 experiment_id = 0
 experiment_names = {}
@@ -254,59 +462,67 @@ metrics_results[experiment_id] = metrics_dict
 #######################################################################################################################
 # Architecture Type = Separated
 architecture="Separated Architecture"
+# Variables
+detail_factor = 1 # 1 (no extra detail) or 10 (extra detail)
+max_rr = 19 # (number between 1 and 49)
+
+x_scaling = True # True or False
+
+if x_scaling:
+    # scaling of x
+    scaler = StandardScaler()
+    x = pd.DataFrame(scaler.fit_transform(x), columns=x.columns)
 
 #######################################################################################################################
-# Perfect rejection 
+# Perfect rejection
 experiment_id += 1
 experiment_name =  "Perfect Rejection"
 abbreviation = "Perfect"
 experiment_names.update({experiment_id: f"{experiment_name}"})
 
-# scaling of train_x
-# scaler = StandardScaler()
-# train_x = pd.DataFrame(scaler.fit_transform(train_x))
-
 # loop over all possible RR
-
 reject_rates = []
 rmse_accepted = []
 rmse_rejected = []
-detail_factor = 1 # 1 (no extra detail) or 10 (extra detail)
+change_rmse = []
 
 all_data['se'] = (all_data['ite'] - all_data['ite_pred']) ** 2
 all_data = all_data.sort_values(by='se', ascending=False).copy()
 all_data = all_data.reset_index(drop=True)
 
-detail_factor = 10 # 1 or 10
-for rr in range(0, 50*detail_factor):
+for rr in range(1, max_rr*detail_factor):
     num_to_set = int(rr / (100.0*detail_factor) * len(all_data)) # example: 60/100 = 0.6 * length of the data
 
     all_data['ite_reject'] = all_data['ite_pred']
     all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
-    # all_data = all_data.sort_values(by='amount_of_times_rejected', ascending=False).copy()
-    if num_to_set != 0:
-        all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
+    all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
 
     metrics_result = calculate_performance_metrics('ite', 'ite_reject', all_data, file_path)
 
-    if metrics_result is not None and 'Rejection Rate' in metrics_result:
-        reject_rates.append(metrics_result['Rejection Rate'])
+    if metrics_result:
+        reject_rates.append(metrics_result.get('Rejection Rate', None))
+        rmse_accepted.append(metrics_result.get('RMSE', None))
+        rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
         print(f"RR: {rr / (100*detail_factor) }, RR: {metrics_result['Rejection Rate']}")
     else:
         reject_rates.append(None)
-
-    if metrics_result is not None and 'RMSE' in metrics_result:
-        rmse_accepted.append(metrics_result['RMSE'])
-    else:
         rmse_accepted.append(None)
-
-    if metrics_result is not None and 'RMSE Rejected' in metrics_result:
-        rmse_rejected.append(metrics_result['RMSE Rejected'])
-    else:
         rmse_rejected.append(None)
 
+# Specify the file path
+output_file = "output/perfect_rejection.csv"
+
+rmse_accepted_perfect = rmse_accepted
+# Combine the reject_rates and change_rmse lists into a single list of tuples
+data = list(zip(reject_rates, change_rmse))
+
+# Write the data to the file
+with open(output_file, "w", newline="") as file:
+    writer = csv.writer(file)
+    writer.writerow(["Reject Rate", "Change of RMSE (%)"])  # Write the header
+    writer.writerows(data)  # Write the data rows
+
 # Graph with reject rate and rmse_accepted & rmse_rejected
-        
 twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse.png")
 onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
 onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
@@ -316,17 +532,12 @@ min_rmse = min(rmse_accepted)  # Find the minimum
 min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
 optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
 
-model = train_model(x, IsolationForest, contamination=optimal_reject_rate, random_state=42)
-
-all_data['ood'] = pd.Series(model.predict(x), name='ood')
-all_data['y_reject'] = all_data.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
-all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
+all_data['ite_reject'] = all_data['ite_pred']
+all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
+all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
 
 metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=True, print=False)
 metrics_results[experiment_id] = metrics_dict
-
-#######################################################################################################################
-
 
 #######################################################################################################################
 # Rejection based on Isolation Forest
@@ -334,143 +545,21 @@ experiment_id += 1
 experiment_name =  "Rejection based on IsolationForest - novelty of instance to all data"
 abbreviation = "IF"
 experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(1, max_rr, detail_factor, IsolationForest, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation)
 
-# scaling of train_x
-# scaler = StandardScaler()
-# train_x = pd.DataFrame(scaler.fit_transform(train_x))
-
-# loop over all possible RR
-
-reject_rates = []
-rmse_accepted = []
-rmse_rejected = []
-detail_factor = 1 # 1 (no extra detail) or 10 (extra detail)
-
-for contamination in range(int(1*detail_factor), int(49*detail_factor)):
-    contamination /= (100 * detail_factor) # max of 0.5
-
-    model = train_model(x, IsolationForest, contamination=contamination, random_state=42) # lower contamination, less outliers
-    all_data['ood'] = pd.Series(model.predict(x), name='ood')
-
-    all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
-
-    all_data['y_reject'] = all_data.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
-
-    set_rejected = all_data.copy()
-    set_accepted = all_data.copy()
-    set_rejected = set_rejected[set_rejected['y_reject'] == True]
-    set_accepted = set_accepted[set_accepted['y_reject'] == False]
-
-    all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
-
-    metrics_result = calculate_performance_metrics('ite', 'ite_reject', all_data, file_path)
-
-    if metrics_result is not None and 'Rejection Rate' in metrics_result:
-        reject_rates.append(metrics_result['Rejection Rate'])
-        print(f"Contamination: {contamination}: outliers: {sum(all_data['ood'] == -1)}, non-outliers: {sum(all_data['ood'] == 1)}, RR: {metrics_result['Rejection Rate']}")
-    else:
-        reject_rates.append(None)
-
-    if metrics_result is not None and 'RMSE' in metrics_result:
-        rmse_accepted.append(metrics_result['RMSE'])
-    else:
-        rmse_accepted.append(None)
-
-    if metrics_result is not None and 'RMSE Rejected' in metrics_result:
-        rmse_rejected.append(metrics_result['RMSE Rejected'])
-    else:
-        rmse_rejected.append(None)
-
-# Graph with reject rate and rmse_accepted & rmse_rejected
-twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{abbreviation}_rmse.png")
-onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{abbreviation}_rmse_accepted.png")
-onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{abbreviation}_rmse_rejected.png")
-
-# optimal model
-min_rmse = min(rmse_accepted)  # Find the minimum
-min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
-optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
-
-model = train_model(x, IsolationForest, contamination=optimal_reject_rate, random_state=42)
-
-all_data['ood'] = pd.Series(model.predict(x), name='ood')
-all_data['y_reject'] = all_data.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
-all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
-
-metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=True, print=False)
-metrics_results[experiment_id] = metrics_dict
-
-#######################################################################################################################
 # Rejection based on OCSVM
 experiment_id += 1
-experiment_name =  "Rejection based on OCSVM - novelty of instance to all data (with scaling)"
+experiment_name =  "Rejection based on OCSVM - novelty of instance to all data"
 abbreviation = "OCSVM"
 experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(1, max_rr, detail_factor, OneClassSVM, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation)
 
-# scaling of x
-scaler = StandardScaler()
-scaled_x = pd.DataFrame(scaler.fit_transform(x), columns=x.columns)
-
-# loop over all possible RR
-
-reject_rates = []
-rmse_accepted = []
-rmse_rejected = []
-detail_factor = 1 # 1 (no extra detail) or 10 (extra detail)
-
-for contamination in range(int(1*detail_factor), int(49*detail_factor)):
-    contamination /= (100 * detail_factor) # max of 0.5
-
-    model = train_model(scaled_x, OneClassSVM, nu=contamination) # lower contamination, less outliers
-    all_data['ood'] = pd.Series(model.predict(scaled_x), name='ood')
-
-    all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
-
-    all_data['y_reject'] = all_data.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
-
-    set_rejected = all_data.copy()
-    set_accepted = all_data.copy()
-    set_rejected = set_rejected[set_rejected['y_reject'] == True]
-    set_accepted = set_accepted[set_accepted['y_reject'] == False]
-
-    all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
-
-    metrics_result = calculate_performance_metrics('ite', 'ite_reject', all_data, file_path)
-
-    if metrics_result is not None and 'Rejection Rate' in metrics_result:
-        reject_rates.append(metrics_result['Rejection Rate'])
-        print(f"Contamination: {contamination}: outliers: {sum(all_data['ood'] == -1)}, non-outliers: {sum(all_data['ood'] == 1)}, RR: {metrics_result['Rejection Rate']}")
-    else:
-        reject_rates.append(None)
-
-    if metrics_result is not None and 'RMSE' in metrics_result:
-        rmse_accepted.append(metrics_result['RMSE'])
-    else:
-        rmse_accepted.append(None)
-
-    if metrics_result is not None and 'RMSE Rejected' in metrics_result:
-        rmse_rejected.append(metrics_result['RMSE Rejected'])
-    else:
-        rmse_rejected.append(None)
-
-# Graph with reject rate and rmse_accepted & rmse_rejected
-twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse.png")
-onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
-onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
-
-# optimal model
-min_rmse = min(rmse_accepted)  # Find the minimum
-min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
-optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
-
-model = train_model(scaled_x, OneClassSVM, nu=optimal_reject_rate)
-
-all_data['ood'] = pd.Series(model.predict(scaled_x), name='ood')
-all_data['y_reject'] = all_data.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
-all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
-
-metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=True, print=False)
-metrics_results[experiment_id] = metrics_dict
+# Rejection based on LocalOutlierFactor
+experiment_id += 1
+experiment_name =  "Rejection based on LocalOutlierFactor - novelty of instance to all data"
+abbreviation = "LOF"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(1, max_rr, detail_factor, LocalOutlierFactor, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation)
 
 #######################################################################################################################
 # Rejection based on Isolation Forest (comparing T to UT and UT to T)
@@ -478,324 +567,45 @@ experiment_id += 1
 experiment_name =  "Rejection based on IsolationForest - novelty of T (UT) instance to UT (T) instance"
 abbreviation = "IFTUT"
 experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(2, max_rr, detail_factor, IsolationForest, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation)
 
-# split the data
-all_data = all_data.copy()
-t_data = all_data[all_data['treatment'] == 1].copy()
-ut_data = all_data[all_data['treatment'] == 0].copy()
-t_x = x[all_data['treatment'] == 1].copy()
-ut_x = x[all_data['treatment'] == 0].copy()
-
-# scaling of train_x
-# scaler = StandardScaler()
-# train_x = pd.DataFrame(scaler.fit_transform(train_x))
-
-# loop over all possible RR
-
-reject_rates = []
-rmse_accepted = []
-rmse_rejected = []
-detail_factor = 1 # 1 (no extra detail) or 10 (extra detail)
-
-t_data['amount_of_times_rejected'] = 0
-ut_data['amount_of_times_rejected'] = 0
-
-def f(contamination, t_x, ut_x):
-    contamination /= (100 * detail_factor)  # max of 0.5
-
-    t_model = train_model(t_x, IsolationForest, contamination=contamination, random_state=42)
-    ut_model = train_model(ut_x, IsolationForest, contamination=contamination, random_state=42)
-
-    t_data['ood'] = pd.Series(ut_model.predict(t_x), name='ood').copy()
-    ut_data['ood'] = pd.Series(t_model.predict(ut_x), name='ood').copy()
-    
-    all_data = pd.concat([t_data, ut_data], ignore_index=True).copy()
-
-    all_data['amount_of_times_rejected_new'] = all_data.apply(lambda row: 1 if row['ood'] == -1 else 0, axis=1)
-
-    return all_data['amount_of_times_rejected_new']
-
-all_data['amount_of_times_rejected'] = all_data.apply(lambda row: 0 if -1 == -1 else 0, axis=1)
-
-for contamination in range(int(1 * detail_factor), int(49 * detail_factor)):
-
-    amount_of_times_rejected_new = f(contamination, t_x, ut_x)
-
-    all_data['amount_of_times_rejected'] += amount_of_times_rejected_new
-    all_data['amount_of_times_rejected'].fillna(0, inplace=True)
-    all_data['amount_of_times_rejected'] = all_data['amount_of_times_rejected'].astype(int)
-    print(f"contamination: {contamination}, max times rejected: {sum(all_data['amount_of_times_rejected'])}, {sum(amount_of_times_rejected_new)} ")
-
-all_data = all_data.sort_values(by='amount_of_times_rejected', ascending=False).copy()
-all_data = all_data.reset_index(drop=True)
-
-detail_factor = 10 # 1 or 10
-for rr in range(0, 15*detail_factor):
-    num_to_set = int(rr / (100.0*detail_factor) * len(all_data)) # example: 60/100 = 0.6 * length of the data
-
-    all_data['ite_reject'] = all_data['ite_pred']
-    all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
-    # all_data = all_data.sort_values(by='amount_of_times_rejected', ascending=False).copy()
-    if num_to_set != 0:
-        all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
-
-    metrics_result = calculate_performance_metrics('ite', 'ite_reject', all_data, file_path)
-
-    if metrics_result is not None and 'Rejection Rate' in metrics_result:
-        reject_rates.append(metrics_result['Rejection Rate'])
-        print(f"RR: {rr / (100*detail_factor) }, RR: {metrics_result['Rejection Rate']}")
-    else:
-        reject_rates.append(None)
-
-    if metrics_result is not None and 'RMSE' in metrics_result:
-        rmse_accepted.append(metrics_result['RMSE'])
-    else:
-        rmse_accepted.append(None)
-
-    if metrics_result is not None and 'RMSE Rejected' in metrics_result:
-        rmse_rejected.append(metrics_result['RMSE Rejected'])
-    else:
-        rmse_rejected.append(None)
-
-# Graph with reject rate and rmse_accepted & rmse_rejected
-        
-twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse.png")
-onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
-onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
-
-# optimal model
-min_rmse = min(rmse_accepted)  # Find the minimum
-min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
-optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
-
-model = train_model(x, IsolationForest, contamination=optimal_reject_rate, random_state=42)
-
-all_data['ood'] = pd.Series(model.predict(x), name='ood')
-all_data['y_reject'] = all_data.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
-all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
-
-metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=True, print=False)
-metrics_results[experiment_id] = metrics_dict
-
-#######################################################################################################################
-
-#######################################################################################################################
-# Rejection based on Isolation Forest (comparing T to UT and UT to T)
+# Rejection based on OSCVM (comparing T to UT and UT to T)
 experiment_id += 1
-experiment_name =  "Rejection based on OneClassSVM - novelty of T (UT) instance to UT (T) instance"
+experiment_name =  "Rejection based on OSCVM - novelty of T (UT) instance to UT (T) instance"
 abbreviation = "OCSVMTUT"
 experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(2, max_rr, detail_factor, OneClassSVM, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation)
 
-# split the data
-all_data = all_data.copy()
-t_data = all_data[all_data['treatment'] == 1].copy()
-ut_data = all_data[all_data['treatment'] == 0].copy()
-t_x = x[all_data['treatment'] == 1].copy()
-ut_x = x[all_data['treatment'] == 0].copy()
-
-# scaling of train_x
-# scaler = StandardScaler()
-# train_x = pd.DataFrame(scaler.fit_transform(train_x))
-
-# loop over all possible RR
-
-reject_rates = []
-rmse_accepted = []
-rmse_rejected = []
-detail_factor = 1 # 1 (no extra detail) or 10 (extra detail)
-
-t_data['amount_of_times_rejected'] = 0
-ut_data['amount_of_times_rejected'] = 0
-
-def f(contamination, t_x, ut_x):
-    contamination /= (100 * detail_factor)  # max of 0.5
-
-    t_model = train_model(t_x, OneClassSVM, nu=contamination)
-    ut_model = train_model(ut_x, OneClassSVM, nu=contamination)
-
-    t_data['ood'] = pd.Series(ut_model.predict(t_x), name='ood').copy()
-    ut_data['ood'] = pd.Series(t_model.predict(ut_x), name='ood').copy()
-    
-    all_data = pd.concat([t_data, ut_data], ignore_index=True).copy()
-
-    all_data['amount_of_times_rejected_new'] = all_data.apply(lambda row: 1 if row['ood'] == -1 else 0, axis=1)
-
-    return all_data['amount_of_times_rejected_new']
-
-all_data['amount_of_times_rejected'] = all_data.apply(lambda row: 0 if -1 == -1 else 0, axis=1)
-
-for contamination in range(int(1 * detail_factor), int(49 * detail_factor)):
-
-    amount_of_times_rejected_new = f(contamination, t_x, ut_x)
-
-    all_data['amount_of_times_rejected'] += amount_of_times_rejected_new
-    all_data['amount_of_times_rejected'].fillna(0, inplace=True)
-    all_data['amount_of_times_rejected'] = all_data['amount_of_times_rejected'].astype(int)
-    print(f"contamination: {contamination}, max times rejected: {sum(all_data['amount_of_times_rejected'])}, {sum(amount_of_times_rejected_new)} ")
-
-all_data = all_data.sort_values(by='amount_of_times_rejected', ascending=False).copy()
-all_data = all_data.reset_index(drop=True)
-
-detail_factor = 10 # 1 or 10
-for rr in range(0, 15*detail_factor):
-    num_to_set = int(rr / (100.0*detail_factor) * len(all_data)) # example: 60/100 = 0.6 * length of the data
-
-    all_data['ite_reject'] = all_data['ite_pred']
-    all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
-    # all_data = all_data.sort_values(by='amount_of_times_rejected', ascending=False).copy()
-    if num_to_set != 0:
-        all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
-
-    metrics_result = calculate_performance_metrics('ite', 'ite_reject', all_data, file_path)
-
-    if metrics_result is not None and 'Rejection Rate' in metrics_result:
-        reject_rates.append(metrics_result['Rejection Rate'])
-        print(f"RR: {rr / (100*detail_factor) }, RR: {metrics_result['Rejection Rate']}")
-    else:
-        reject_rates.append(None)
-
-    if metrics_result is not None and 'RMSE' in metrics_result:
-        rmse_accepted.append(metrics_result['RMSE'])
-    else:
-        rmse_accepted.append(None)
-
-    if metrics_result is not None and 'RMSE Rejected' in metrics_result:
-        rmse_rejected.append(metrics_result['RMSE Rejected'])
-    else:
-        rmse_rejected.append(None)
-
-# Graph with reject rate and rmse_accepted & rmse_rejected
-        
-twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse.png")
-onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
-onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
-
-# optimal model
-min_rmse = min(rmse_accepted)  # Find the minimum
-min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
-optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
-
-model = train_model(x, OneClassSVM, nu=optimal_reject_rate)
-
-all_data['ood'] = pd.Series(model.predict(x), name='ood')
-all_data['y_reject'] = all_data.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
-all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
-
-metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=True, print=False)
-metrics_results[experiment_id] = metrics_dict
-
+# Rejection based on LocalOutlierFactor (comparing T to UT and UT to T)
+experiment_id += 1
+experiment_name =  "Rejection based on LocalOutlierFactor - novelty of T (UT) instance to UT (T) instance"
+abbreviation = "LOFTUT"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(2, max_rr, detail_factor, LocalOutlierFactor, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation)
 
 #######################################################################################################################
-# Rejection based on Isolation Forest (comparing T to UT and UT to T)
+# Rejection based on Isolation Forest (comparing T to T&UT + comparint UT to T&UT)
 experiment_id += 1
-experiment_name =  "Rejection based on IsolationForest - two novelties of each instance to UT & T instance"
-abbreviation = "IFTUT"
+experiment_name =  "Rejection based on IsolationForest - novelty of T (UT) instance to UT (T) instance"
+abbreviation = "IFTTUT"
 experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, IsolationForest, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation)
 
-# split the data
-all_data = all_data.copy()
-t_data = all_data[all_data['treatment'] == 1].copy()
-ut_data = all_data[all_data['treatment'] == 0].copy()
-t_x = x[all_data['treatment'] == 1].copy()
-ut_x = x[all_data['treatment'] == 0].copy()
+# Rejection based on OSCVM (comparing T to T&UT + comparint UT to T&UT)
+experiment_id += 1
+experiment_name =  "Rejection based on OSCVM - novelty of T (UT) instance to UT (T) instance"
+abbreviation = "OCSVMTTUT"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, OneClassSVM, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation)
 
-# scaling of train_x
-# scaler = StandardScaler()
-# train_x = pd.DataFrame(scaler.fit_transform(train_x))
+# Rejection based on LocalOutlierFactor (comparing T to T&UT + comparint UT to T&UT)
+experiment_id += 1
+experiment_name =  "Rejection based on LocalOutlierFactor - novelty of T (UT) instance to UT (T) instance"
+abbreviation = "LOFTTUT"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, LocalOutlierFactor, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation)
 
-# loop over all possible RR
 
-reject_rates = []
-rmse_accepted = []
-rmse_rejected = []
-detail_factor = 1 # 1 (no extra detail) or 10 (extra detail)
-
-t_data['amount_of_times_rejected'] = 0
-ut_data['amount_of_times_rejected'] = 0
-
-def f(contamination, t_x, ut_x):
-    contamination /= (100 * detail_factor)  # max of 0.5
-
-    t_model = train_model(t_x, IsolationForest, contamination=contamination, random_state=42)
-    ut_model = train_model(ut_x, IsolationForest, contamination=contamination, random_state=42)
-
-    t_data['ood-ut'] = pd.Series(ut_model.predict(t_x), name='ood').copy()
-    t_data['ood-t'] = pd.Series(ut_model.predict(t_x), name='ood').copy()
-    # t_data['ood'] = (t_data['ood-ut'] + t_data['ood-t']) / 2
-    t_data['ood'] = t_data[['ood-ut', 'ood-t']].max(axis=1)
-
-    ut_data['ood-ut'] = pd.Series(t_model.predict(ut_x), name='ood').copy()
-    ut_data['ood-t'] = pd.Series(t_model.predict(ut_x), name='ood').copy()
-    # ut_data['ood'] = (ut_data['ood-ut'] + ut_data['ood-t']) / 2
-    ut_data['ood'] = ut_data[['ood-ut', 'ood-t']].max(axis=1)
-
-    all_data = pd.concat([t_data, ut_data], ignore_index=True).copy()
-
-    all_data['amount_of_times_rejected_new'] = all_data.apply(lambda row: 1 if row['ood'] == -1 else 0, axis=1)
-
-    return all_data['amount_of_times_rejected_new']
-
-all_data['amount_of_times_rejected'] = all_data.apply(lambda row: 0 if -1 == -1 else 0, axis=1)
-
-for contamination in range(int(1 * detail_factor), int(49 * detail_factor)):
-
-    amount_of_times_rejected_new = f(contamination, t_x, ut_x)
-
-    all_data['amount_of_times_rejected'] += amount_of_times_rejected_new
-    all_data['amount_of_times_rejected'].fillna(0, inplace=True)
-    all_data['amount_of_times_rejected'] = all_data['amount_of_times_rejected'].astype(int)
-    print(f"contamination: {contamination}, max times rejected: {sum(all_data['amount_of_times_rejected'])}, {sum(amount_of_times_rejected_new)} ")
-
-all_data = all_data.sort_values(by='amount_of_times_rejected', ascending=False).copy()
-all_data = all_data.reset_index(drop=True)
-
-detail_factor = 10 # 1 or 10
-for rr in range(0, 15*detail_factor):
-    num_to_set = int(rr / (100.0*detail_factor) * len(all_data)) # example: 60/100 = 0.6 * length of the data
-
-    all_data['ite_reject'] = all_data['ite_pred']
-    all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
-    # all_data = all_data.sort_values(by='amount_of_times_rejected', ascending=False).copy()
-    if num_to_set != 0:
-        all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
-
-    metrics_result = calculate_performance_metrics('ite', 'ite_reject', all_data, file_path)
-
-    if metrics_result is not None and 'Rejection Rate' in metrics_result:
-        reject_rates.append(metrics_result['Rejection Rate'])
-        print(f"RR: {rr / (100*detail_factor) }, RR: {metrics_result['Rejection Rate']}")
-    else:
-        reject_rates.append(None)
-
-    if metrics_result is not None and 'RMSE' in metrics_result:
-        rmse_accepted.append(metrics_result['RMSE'])
-    else:
-        rmse_accepted.append(None)
-
-    if metrics_result is not None and 'RMSE Rejected' in metrics_result:
-        rmse_rejected.append(metrics_result['RMSE Rejected'])
-    else:
-        rmse_rejected.append(None)
-
-# Graph with reject rate and rmse_accepted & rmse_rejected
-        
-twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse.png")
-onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
-onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
-
-# optimal model
-min_rmse = min(rmse_accepted)  # Find the minimum
-min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
-optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
-
-model = train_model(x, IsolationForest, contamination=optimal_reject_rate, random_state=42)
-
-all_data['ood'] = pd.Series(model.predict(x), name='ood')
-all_data['y_reject'] = all_data.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
-all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
-
-metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=True, print=False)
-metrics_results[experiment_id] = metrics_dict
 
 #######################################################################################################################
 
@@ -828,6 +638,7 @@ control_models = []
 
 # Bootstrap loop
 for _ in range(num_bootstraps) :
+    print(f"Bootstrap: {_}")
     # Sample with replacement from the treated and control groups
     bootstrap_treated_x = treated_x.sample(n=len(treated_x), replace=True)
     bootstrap_treated_y = treated_y.loc[bootstrap_treated_x.index]
