@@ -3,10 +3,10 @@ from models.evaluators.performance_evaluator import calculate_performance_metric
 from models.evaluators.cost_evaluator import calculate_misclassification_cost
 
 
-def helper_output(folder_path='output/'):
+def helper_output(dataset, folder_path='output/'):
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     timestamp_print = datetime.now().strftime("%Y-%m-%d %H:%M")
-    filename = f'results_{timestamp}.txt'
+    filename = f'results_{dataset}_{timestamp}.txt'
     file_path = folder_path + filename
 
     with open(file_path, 'a') as file:

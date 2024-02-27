@@ -187,39 +187,30 @@ def calculate_performance_metrics_penalty_rejection(data):
 
 
 def calculate_performance_metrics(value, value_pred, data, file_path, print=False):
-    """
-    Calculate the crosstab of two columns in a DataFrame and perform evaluation metrics.
-    # Info on: https://www.v7labs.com/blog/confusion-matrix-guide
-
-    Args:
-        value (str): The name of the column representing the actual values.
-        value_pred (str): The name of the column representing the predicted values.
-        data (pandas.DataFrame): The DataFrame containing the data.
-        file_path (str): The file path to write the evaluation results.
-        print (bool, optional): Whether to print the evaluation results. Defaults to False.
-
-    Returns:
-        tuple: A tuple containing the following evaluation metrics:
-            - accurancy (float): The accuracy of the predictions.
-            - rr (float): The rejection rate.
-            - micro_tpr (float): The micro-average true positive rate.
-            - micro_fpr (float): The micro-average false positive rate.
-            - macro_tpr (float): The macro-average true positive rate.
-            - macro_fpr (float): The macro-average false positive rate.
-            - micro_distance_threedroc (float): The micro-average distance to the 3D ROC curve.
-            - macro_distance_threedroc (float): The macro-average distance to the 3D ROC curve.
-    """
     metrics_dict = {}
     rr = calculate_rejection_rate(data)        
     metrics_dict['Rejection Rate'] = rr
 
+    # RMSE of original ite
+    data['se'] = (data['ite'] - data['ite_pred']) ** 2
+    mse = data['se'].mean()
+    rmse = sqrt(mse)
+    metrics_dict['Original RMSE'] = rmse
+
+    # RMSE of not Accepted Instances
     data_not_rejected = data[data['ite_reject'] != 'R'].copy()
     data_not_rejected['se'] = (data_not_rejected['ite'] - data_not_rejected['ite_reject']) ** 2
     mse_not_rejected = data_not_rejected['se'].mean()
     rmse_not_rejected = sqrt(mse_not_rejected)
 
     metrics_dict['RMSE'] = rmse_not_rejected
-    
+
+    # improvement of the RMSE (%)
+    metrics_dict['Change of RMSE (%)'] =  (rmse_not_rejected - rmse) / rmse * 100
+
+
+    # RMSE of not Rejected Instances
+
     data_rejected = data[data['ite_reject'] == 'R'].copy()
     data_rejected['se'] = (data_rejected['ite'] - data_rejected['ite_pred']) ** 2
     data_rejected['se'] = (data_rejected['ite'] - data_rejected['ite_pred']) ** 2

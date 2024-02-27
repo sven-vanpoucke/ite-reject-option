@@ -1,0 +1,55 @@
+CHAPTER 1: INTRODUCTION
+# This section introduces the purpose and background of the analysis.
+
+In this analysis, we aim to evaluate the performance of different reject options for Information Treatment Effect (ITE) models.The ITE model predicts the individual treatment effects in a given dataset, providing valuable insights into the impact of interventions.
+For your information, this file has been automatically generated on: 2024-02-27 13:22
+\Chapter 2: Preprocessing
+
+# This section executes the data retrieval, preprocessing and splitting in a training and dataset.During the whole file, the used dataset is: IHDP
+
+CHAPTER 3: Training of the ITE Model
+
+# This section provides details about the model selection, training process, and any hyperparameter tuning.
+The trained ITE model is a T-LEARNER.
+The two individually trained models are: LinearRegression
+
+
+CHAPTER 7: REJECTION 
+
+# This section executes and reports metrics for ITE models with rejection.
+
+
+Table of all_data (First 5 rows)
++-----------+--------------------+--------------------+--------------------+--------------------+------------------+--------------------+-------------------+--------------------+--------------------+-----+----------+
+| treatment |     y_t1_pred      |     y_t0_pred      |      ite_pred      |        y_t0        |       y_t1       |        ite         |    size_of_ci     |     ite_reject     |         se         | ood | y_reject |
++-----------+--------------------+--------------------+--------------------+--------------------+------------------+--------------------+-------------------+--------------------+--------------------+-----+----------+
+|     0     |  5.45377420335185  | 2.7545684336902494 | 2.6992057696616008 |   2.551956358036   | 6.75062479591378 |  4.19866843787778  | 7.076038543489995 | 2.6992057696616008 | 2.248388293373983  |  1  |  False   |
+|     0     |  6.34952642510093  | 2.156214100867314  | 4.193312324233616  |  2.73222486480094  | 8.25292990764208 |  5.52070504284114  | 6.63743984911562  | 4.193312324233616  | 1.7619714294122741 |  1  |  False   |
+|     0     | 6.157001260472184  | 2.4266433451537526 | 3.730357915318432  |  1.20050522136526  | 4.12490993427065 |  2.92440471290539  | 6.453124008144979 | 3.730357915318432  | 0.6495605644798379 |  1  |  False   |
+|     0     | 5.6804469833982045 |  3.8034527257244   | 1.8769942576738043 | -0.260075906393018 | 7.99568586346053 | 8.255761769853548  | 6.373859511956838 | 1.8769942576738043 | 40.688674974439756 |  1  |  False   |
+|     0     | 6.447883457768479  | 2.858530974009572  | 3.589352483758907  |  1.92866089287586  | 4.58037594329943 | 2.6517150504235696 | 6.181635895605067 | 3.589352483758907  | 0.8791639563916793 |  1  |  False   |
++-----------+--------------------+--------------------+--------------------+--------------------+------------------+--------------------+-------------------+--------------------+--------------------+-----+----------+
+# Experiment 0: No Rejector - Baseline Model
+# Experiment 1: Rejection based on IsolationForest - novelty of instance to all data
+# Experiment 2: Rejection based on OCSVM - novelty of instance to all data (with scaling)
+# Experiment 3: Rejection based on IsolationForest - novelty of T (UT) instance to UT (T) instance
+# Experiment 4: Rejection based on OneClassSVM - novelty of T (UT) instance to UT (T) instance
+# Experiment 5: Rejection based on IsolationForest - two novelties of each instance to UT & T instance
+# Experiment 6: Rejection based bootstrapping (confidence interval)
+
+Table of results of the experiments
+╭──────────────────────┬──────────┬────────┬────────┬────────┬─────────┬─────────┬────────╮
+│                      │        0 │      1 │      2 │      3 │       4 │       5 │      6 │
+├──────────────────────┼──────────┼────────┼────────┼────────┼─────────┼─────────┼────────┤
+│ Rejection Rate       │   0      │ 0.4605 │ 0.3802 │ 0.0776 │  0.091  │  0.1218 │ 0.0335 │
+├──────────────────────┼──────────┼────────┼────────┼────────┼─────────┼─────────┼────────┤
+│ Original RMSE        │   1.4916 │ 1.4916 │ 1.4916 │ 1.4916 │  1.4916 │  1.4916 │ 1.9325 │
+├──────────────────────┼──────────┼────────┼────────┼────────┼─────────┼─────────┼────────┤
+│ RMSE                 │   1.4916 │ 1.4082 │ 1.4127 │ 1.4891 │  1.5059 │  1.4917 │ 1.932  │
+├──────────────────────┼──────────┼────────┼────────┼────────┼─────────┼─────────┼────────┤
+│ Improvement RMSE (%) │   0      │ 5.594  │ 5.289  │ 0.1686 │ -0.9604 │ -0.0079 │ 0.0264 │
+├──────────────────────┼──────────┼────────┼────────┼────────┼─────────┼─────────┼────────┤
+│ RMSE Rejected        │ nan      │ 1.5838 │ 1.612  │ 1.5212 │  1.3402 │  1.4908 │ 1.9472 │
+├──────────────────────┼──────────┼────────┼────────┼────────┼─────────┼─────────┼────────┤
+│ Accuracy             │   0      │ 0      │ 0      │ 0      │  0      │  0      │ 0      │
+╰──────────────────────┴──────────┴────────┴────────┴────────┴─────────┴─────────┴────────╯

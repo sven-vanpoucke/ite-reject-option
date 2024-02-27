@@ -38,7 +38,6 @@ Table of contents:
 
 
 # CHAPTER 8: Output to file
-
 """
 
 # Chapter 0: Imports
@@ -85,11 +84,11 @@ from sklearn.ensemble import IsolationForest
 # Chapter 1: Initialization
 ## Parameters
 folder_path = 'output/'
-dataset = "TWINS" # Choose out of TWINS or LALONDE or IHDP
+dataset = "IHDP" # Choose out of TWINS or TWINSC (if you want TWINS to be treated as continuous instead of classification) or LALONDE or IHDP
 rejection_architecture = 'dependent' # dependent_rejector or separated_rejector
 prob_reject_upper_bound = 0.55
 prob_reject_under_bound = 0.45
-timestamp, file_name, file_path = helper_output(folder_path=folder_path)
+timestamp, file_name, file_path = helper_output(dataset, folder_path=folder_path)
 ## Assuming you have the following metrics for each experiment
 metrics_results = {}
 
@@ -104,6 +103,17 @@ with open(file_path, 'a') as file:
 if dataset == "LALONDE":
     all_data = processing_get_data_lalonde()
     train_x, test_x, train_y, test_y, train_t, test_t = processing_transform_data_lalonde(all_data)
+elif dataset == "TWINS" or dataset == "TWINSC":
+    train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y = preprocessing_get_data_twin()
+    train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y = preprocessing_transform_data_twin(train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y)
+    # Calculate ITE
+    test_ite = pd.DataFrame({'ite': test_potential_y["y_t1"] - test_potential_y["y_t0"]})
+    train_ite = pd.DataFrame({'ite': train_potential_y["y_t1"] - train_potential_y["y_t0"]})
+    # split the data in treated and controlled
+    train_treated_x, train_control_x, train_treated_y, train_control_y, test_treated_x, test_control_x, test_treated_y, test_control_y = preprocessing_split_t_c_data(train_x, train_y, train_t, test_x, test_y, test_t)
+    # Set the model class for the T-learner
+    model_class = LogisticRegression # Which two models do we want to generate in the t-models
+    model_params = {"max_iter": 10000, "solver": "saga", "random_state": 42}
 elif dataset == "TWINS":
     train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y = preprocessing_get_data_twin()
     train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y = preprocessing_transform_data_twin(train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y)
@@ -130,73 +140,134 @@ elif dataset == "IHDP":
     model_params = {"fit_intercept": True}
 
 # Chapter 3: Training of the ITE Model
-## Chapter 3A: Output to file
-with open(file_path, 'a') as file:
-    file.write(f"CHAPTER 3: Training of the ITE Model\n\n")
-    file.write("# This section provides details about the model selection, training process, and any hyperparameter tuning.\n")
-    file.write(f"The trained ITE model is a T-LEARNER.\n")
-    file.write(f"The two individually trained models are: {model_class.__name__}\n\n")
-
-## Chapter 3B: Training of the ITE Model
-## We adopt an T-learner as our ITE model. This model is trained on the treated and control groups separately.
 treated_model, control_model = predictor_t_model(train_treated_x, train_treated_y, train_control_x, train_control_y, model_class, model_params)
 
 ## Chapter 3C: Predicting the ITE and related variables (y_t0 and y_t1)
-
-## Training and Testing predictions to evaluate individual models
 train_treated_y_pred, train_treated_y_prob, train_control_y_pred, train_control_y_prob = predictor_train_predictions(treated_model, control_model, train_treated_x, train_control_x)
 test_treated_y_pred, test_treated_y_prob, test_control_y_pred, test_control_y_prob = predictor_test_predictions(treated_model, control_model, test_treated_x, test_control_x)
 train_y_t1_pred, train_y_t0_pred, train_y_t1_prob, train_y_t0_prob, train_ite_prob, train_ite_pred = predictor_ite_predictions(treated_model, control_model, train_x)
-
-# Testing Predictions to evaluate ITE
 test_y_t1_pred, test_y_t0_pred, test_y_t1_prob, test_y_t0_prob, test_ite_prob, test_ite_pred = predictor_ite_predictions(treated_model, control_model, test_x)
 
-# Chapter 4: Evaluate treated and control groups seperately
-## Chapter 4A: Output to file
-with open(file_path, 'a') as file:
-    file.write("CHAPTER 4: Evaluate treated and control groups seperately\n\n")
-    file.write("# This section evaluates the individually trained models (two as we used a T-learner).\n")
-    file.write("The used performance measures are:\n\n")
-    file.write(" - Confusion Matrix\n")
-    file.write(" - Accuracy: overall correctness of the model ((TP + TN) / (TP + TN + FP + FN))\n")
-    file.write(" - Precision: It measures the accuracy of positive predictions (TP / (TP + FP))\n")
-    file.write(" - Recall: ability of the model to capture all the relevant cases (TP / (TP + FN))\n")
-    file.write(" - F1 Score: It balances precision and recall, providing a single metric for model evaluation (2 * (Precision * Recall) / (Precision + Recall))\n")
-    file.write(" - ROC\n\n")
+## Chapter 3B: Training of the ITE Model
+## create bootstraps
+treated_x = pd.concat([train_treated_x, test_treated_x], ignore_index=True).copy()
+treated_y = pd.concat([train_treated_y, test_treated_y], ignore_index=True).copy()
+control_x = pd.concat([train_control_x, test_control_x], ignore_index=True).copy()
+control_y = pd.concat([train_control_y, test_control_y], ignore_index=True).copy()
+x = pd.concat([train_x, test_x], ignore_index=True).copy()
+t = pd.concat([test_t, train_t], ignore_index=True).copy()
+potential_y = pd.concat([test_potential_y, train_potential_y], ignore_index=True).copy()
+ite = pd.concat([test_ite, train_ite], ignore_index=True).copy()
 
-## Chapter 4B: Evaluation of the individual models based on the training data
-with open(file_path, 'a') as file:
-    file.write("Evaluation of the individual models based on the **training data**\n")
-if train_treated_y_prob is not None and not train_treated_y_prob.isna().all():
-    evaluation_binary(train_treated_y, train_treated_y_pred, train_treated_y_prob, train_control_y, train_control_y_pred, train_control_y_prob, file_path)
-else:
-    evaluation_continuous(train_treated_y, train_treated_y_pred, train_control_y, train_control_y_pred, file_path)
+# create bootstraps
+num_bootstraps = 200  # Replace with the desired number
 
-## Chapter 4C: Evaluation of the individual models based on the training data
-with open(file_path, 'a') as file:
-    file.write("\nEvaluation of the individual models based on the **test data**\n")
-if train_treated_y_prob is not None and not train_treated_y_prob.isna().all():
-    evaluation_binary(test_treated_y, test_treated_y_pred, test_treated_y_prob, test_control_y, test_control_y_pred, test_control_y_prob, file_path)
-else:
-    evaluation_continuous(test_treated_y, test_treated_y_pred, test_control_y, test_control_y_pred, file_path)
+# List to store trained models
+treated_models = []
+control_models = []
+
+# Bootstrap loop
+for _ in range(num_bootstraps) :
+    # Sample with replacement from the treated and control groups
+    bootstrap_treated_x = treated_x.sample(n=len(treated_x), replace=True)
+    bootstrap_treated_y = treated_y.loc[bootstrap_treated_x.index]
+
+    bootstrap_control_x = control_x.sample(n=len(control_x), replace=True)
+    bootstrap_control_y = control_y.loc[bootstrap_control_x.index]
+
+    # Train ITE models for the current bootstrap sample
+    treated_model, control_model = predictor_t_model(
+        bootstrap_treated_x, bootstrap_treated_y,
+        bootstrap_control_x, bootstrap_control_y,
+        model_class, model_params
+    )
+
+    # Append trained models to the list
+    treated_models.append(treated_model)
+    control_models.append(control_model)
+
+## Chapter 3C: Predicting the ITE and related variables (y_t0 and y_t1)
+## Training and Testing predictions to evaluate individual models
+# Assuming you have the functions predictor_train_predictions and predictor_ite_predictions defined
+
+# List to store predictions and probabilities
+treated_y_preds, treated_y_probs, control_y_preds, control_y_probs = [], [], [], []
+y_t1_preds, y_t0_preds, y_t1_probs, y_t0_probs, ite_probs, ite_preds = [], [], [], [], [], []
+
+# Loop through the trained models
+for treated_model, control_model in zip(treated_models, control_models):
+    # Predictions
+    treated_y_pred, treated_y_prob, control_y_pred, control_y_prob = predictor_train_predictions(
+        treated_model, control_model, treated_x, control_x
+    )
+    
+    treated_y_preds.append(treated_y_pred)
+    treated_y_probs.append(treated_y_prob)
+    control_y_preds.append(control_y_pred)
+    control_y_probs.append(control_y_prob)
+
+    # ITE predictions
+    y_t1_pred, y_t0_pred, y_t1_prob, y_t0_prob, ite_prob, ite_pred = predictor_ite_predictions(
+        treated_model, control_model, train_x
+    )
+
+    y_t1_preds.append(y_t1_pred)
+    y_t0_preds.append(y_t0_pred)
+    y_t1_probs.append(y_t1_prob)
+    y_t0_probs.append(y_t0_prob)
+    ite_probs.append(ite_prob)
+    ite_preds.append(ite_pred)
+
+# treated_y_pred = np.mean(treated_y_preds, axis=0)
+# treated_y_prob = np.mean(treated_y_probs, axis=0)
+# control_y_pred = np.mean(control_y_preds, axis=0)
+# control_y_prob = np.mean(control_y_probs, axis=0)
+
+# y_t1_pred = np.mean(y_t1_preds, axis=0)
+# y_t0_pred = np.mean(y_t0_preds, axis=0)
+# y_t1_prob = np.mean(y_t1_probs, axis=0)
+# y_t0_prob = np.mean(y_t0_probs, axis=0)
+# ite_prob = np.mean(ite_probs, axis=0)
+# ite_pred = np.mean(ite_preds, axis=0)
+
 
 # Chapter 5: Evaluate overall ITE Model: Performance
-## Chapter 5A: Output to file
-with open(file_path, 'a') as file:
-    file.write(f"Chapter 4: Evaluate overall ITE Model: Performance \n\n")
-    file.write("# This section evaluates the overal performance of the ITE model.\n")
-    file.write(f"The used performance measures are: \n\n")
-    file.write(f" - Root Mean Squared Error (RMSE) of the ITE \n")
-    file.write(f" - Accurate estimate of the ATE \n")
-    file.write(f" - Accurancy of ITE\n")
 
 ## Chapter 5B: Preprocessing of the test_set
-if train_treated_y_prob is not None and not train_treated_y_prob.isna().all():
+if treated_y_prob is not None and not treated_y_prob.isna().all():
+    # Calculate the difference between the max and min values for each array
+    y_t1_pred_diff = np.ptp(y_t1_preds, axis=0)
+    y_t0_pred_diff = np.ptp(y_t0_preds, axis=0)
+    y_t1_prob_diff = np.ptp(y_t1_probs, axis=0)
+    y_t0_prob_diff = np.ptp(y_t0_probs, axis=0)
+    ite_prob_diff = pd.DataFrame({'size_of_ci': np.ptp(ite_probs, axis=0)})
+    ite_pred_diff = pd.DataFrame({'Difference': np.ptp(ite_preds, axis=0)})
+
+    all_data = pd.concat([t, y_t1_pred, y_t1_prob, y_t0_pred, y_t0_prob, ite_pred, ite_prob, potential_y['y_t0'], potential_y['y_t1'], ite, ite_pred_diff, ite_prob_diff], axis=1)
     test_set = pd.concat([test_t, test_y_t1_pred, test_y_t1_prob, test_y_t0_pred, test_y_t0_prob, test_ite_pred, test_ite_prob, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
     train_set = pd.concat([test_t, train_y_t1_pred, train_y_t1_prob, train_y_t0_pred, train_y_t0_prob, train_ite_pred, train_ite_prob, train_potential_y["y_t0"], train_potential_y["y_t1"], train_ite], axis=1)
 else:
+    ite_pred_diff = pd.DataFrame({'size_of_ci': np.ptp(ite_preds, axis=0)})
+
+    all_data = pd.concat([t, y_t1_pred, y_t0_pred, ite_pred, ite_prob, potential_y['y_t0'], potential_y['y_t1'], ite, ite_pred_diff], axis=1)
     test_set = pd.concat([test_t, test_y_t1_pred, test_y_t0_pred, test_ite_pred, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
     train_set = pd.concat([test_t, train_y_t1_pred, train_y_t0_pred, train_ite_pred, train_potential_y["y_t0"], train_potential_y["y_t1"], train_ite], axis=1)
+
+if dataset == "TWINSC":
+    # Delete columns y_t1_pred and y_t0_pred, ite_pred
+    test_set = test_set.drop(['y_t1_pred', 'y_t0_pred', 'ite_pred'], axis=1)
+    # Rename columns y_t1_prob, y_t0_prob, ite_prob to y_t1_pred, y_t0_pred, ite_pred
+    test_set = test_set.rename(columns={'y_t1_prob': 'y_t1_pred', 'y_t0_prob': 'y_t0_pred', 'ite_prob': 'ite_pred'})
+
+    # Delete columns y_t1_pred and y_t0_pred, ite_pred
+    train_set = train_set.drop(['y_t1_pred', 'y_t0_pred', 'ite_pred'], axis=1)
+    # Rename columns y_t1_prob, y_t0_prob, ite_prob to y_t1_pred, y_t0_pred, ite_pred
+    train_set = train_set.rename(columns={'y_t1_prob': 'y_t1_pred', 'y_t0_prob': 'y_t0_pred', 'ite_prob': 'ite_pred'})
+
+    # Delete columns y_t1_pred and y_t0_pred, ite_pred
+    all_data = all_data.drop(['y_t1_pred', 'y_t0_pred', 'ite_pred'], axis=1)
+    # Rename columns y_t1_prob, y_t0_prob, ite_prob to y_t1_pred, y_t0_pred, ite_pred
+    all_data = all_data.rename(columns={'y_t1_prob': 'y_t1_pred', 'y_t0_prob': 'y_t0_pred', 'ite_prob': 'ite_pred'})
 
 # Chapter 6: Evaluate overall ITE Model: Costs
 ## Chapter 6A: Output to file
@@ -218,8 +289,12 @@ with open(file_path, 'a') as file:
     file.write(f"\nCHAPTER 7: REJECTION \n\n")
     file.write("# This section executes and reports metrics for ITE models with rejection.\n")
     
-
 test_set['ite_mistake'] = test_set.apply(lambda row: 0 if row['ite_pred']==row['ite'] else 1, axis=1)
+
+# merge the test_set with the train_set !!
+print(len(test_x))
+print(len(train_x))
+# all_data = pd.concat([train_set, test_set], ignore_index=True).copy()
 
 #######################################################################################################################
 # Baseline Model - No Rejection // Experiment 0
@@ -228,85 +303,62 @@ experiment_names = {}
 experiment_names.update({experiment_id: f"No Rejector - Baseline Model"})
 
     # Step 4 Apply rejector to the code
-test_set['ite_reject'] = test_set.apply(lambda row: row['ite_pred'], axis=1)
-train_set['ite_reject'] = test_set.apply(lambda row: row['ite_pred'], axis=1)
+all_data['ite_reject'] = all_data.apply(lambda row: row['ite_pred'], axis=1)
+all_data['ite_reject'] = all_data.apply(lambda row: row['ite_pred'], axis=1)
 
     # Step 5 Calculate the performance metrics
-metrics_dict = calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
+metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=True, print=False)
 metrics_results[experiment_id] = metrics_dict
 
 #######################################################################################################################
-# Helper for graphs
-
-
-#######################################################################################################################
 # Architecture Type = Separated
-#######################################################################################################################
-# Rejection based on Isolation Forest
-experiment_id += 1
 architecture="Separated Architecture"
-model_class_name =  "Rejection based on IsolationForest"
 
-def train_model(train_x, model_class=IsolationForest, **model_options):
+#######################################################################################################################
+# Rejection based on Isolation Forest (comparing T to UT and UT to T)
+experiment_id += 1
+model_class_name =  "Rejection based bootstrapping (confidence interval)"
+abbreviation = "BSCI"
+
+def train_model(x, model_class=IsolationForest, **model_options):
     # Train the model
     model = model_class(**model_options)
-    model.fit(train_x)
+    model.fit(x)
     return model
 
 # scaling of train_x
 # scaler = StandardScaler()
 # train_x = pd.DataFrame(scaler.fit_transform(train_x))
 
-model = train_model(test_x, IsolationForest, contamination=0.01, random_state=42) # lower contamination, less outliers
-
-#train_reject_pred = pd.Series(model.predict(train_x), name='train_treated_y_pred')
-test_set['ood'] = pd.Series(model.predict(test_x), name='ood')
-
-print(f"Outliers: {sum(test_set['ood'] == -1)}")
-print(f"Not Outliers: {sum(test_set['ood'] == 1)}")
-
-test_set['y_reject'] = test_set.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
-
-test_set_rejected = test_set.copy()
-test_set_accepted = test_set.copy()
-test_set_rejected = test_set_rejected[test_set_rejected['y_reject'] == True]
-test_set_accepted = test_set_accepted[test_set_accepted['y_reject'] == False]
-
-test_set['ite_reject'] = test_set.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
-experiment_names.update({experiment_id: f"{architecture} - {model_class.__name__}"})
-
-metrics_dict = calculate_all_metrics('ite', 'ite_reject', test_set, file_path, metrics_results, append_metrics_results=True, print=False)
-metrics_results[experiment_id] = metrics_dict
+# loop over all possible RR
 
 reject_rates = []
 rmse_accepted = []
 rmse_rejected = []
-detail_factor = 1 # 1 (no extra detail) or 10 (extra detail)
 
-for contamination in range(int(1*detail_factor), int(499*detail_factor) + 1):
-    contamination /= (1000 * detail_factor) # max of 0.5
 
-    model = train_model(train_x, IsolationForest, contamination=contamination, random_state=42) # lower contamination, less outliers
-    train_set['ood'] = pd.Series(model.predict(train_x), name='ood')
+# all_data.sort_values(by='amount_of_times_rejected', ascending=False)
+all_data = all_data.sort_values(by='size_of_ci', ascending=False).copy()
+all_data = all_data.reset_index(drop=True)
 
-    train_set['ite_reject'] = train_set.apply(lambda row: "R" if row['ood'] else row['ite_pred'], axis=1)
+detail_factor = 10 # 1 or 10
+for rr in range(0, 6*detail_factor):
+    num_to_set = int(rr / (100.0*detail_factor) * len(all_data)) # example: 60/100 = 0.6 * length of the data
 
-    train_set['y_reject'] = train_set.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
+    all_data['ite_reject'] = all_data['ite_pred']
+    all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
+    # all_data = all_data.sort_values(by='amount_of_times_rejected', ascending=False).copy()
+    if num_to_set != 0:
+        all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
+    print(all_data.head(30))
 
-    train_set_rejected = train_set.copy()
-    train_set_accepted = train_set.copy()
-    train_set_rejected = train_set_rejected[train_set_rejected['y_reject'] == True]
-    train_set_accepted = train_set_accepted[train_set_accepted['y_reject'] == False]
-
-    train_set['ite_reject'] = train_set.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
-
-    metrics_result = calculate_performance_metrics('ite', 'ite_reject', train_set, file_path)
-    print(f"Contamination: {contamination}: outliers: {sum(train_set['ood'] == -1)}, non-outliers: {sum(train_set['ood'] == 1)}")
+    metrics_result = calculate_performance_metrics('ite', 'ite_reject', all_data, file_path)
 
     if metrics_result is not None and 'Rejection Rate' in metrics_result:
-        reject_rates.append(metrics_result["Rejection Rate"])
+        reject_rates.append(metrics_result['Rejection Rate'])
+        print(f"RR: {rr / (100*detail_factor) }, RR: {metrics_result['Rejection Rate']}")
     else:
-            reject_rates.append(None)
+        reject_rates.append(None)
 
     if metrics_result is not None and 'RMSE' in metrics_result:
         rmse_accepted.append(metrics_result['RMSE'])
@@ -318,16 +370,40 @@ for contamination in range(int(1*detail_factor), int(499*detail_factor) + 1):
     else:
         rmse_rejected.append(None)
 
-print(rmse_accepted)
-# Graph with reject rate and TR & FR
+# Graph with reject rate and rmse_accepted & rmse_rejected
 plt.plot(reject_rates, rmse_accepted, color='green', label='RMSE of Accepted Samples')
-# plt.plot(reject_rates, rmse_rejected, color='red', label='RMSE of Rejected Samples')
+plt.plot(reject_rates, rmse_rejected, color='red', label='RMSE of Rejected Samples')
 plt.xlabel('Reject Rate')
-plt.title('Impact of Rejection on RMSE')
+plt.title(f"Impact of Reject Rate on RMSE for {dataset}")
 plt.legend()
-plt.savefig('output/graph/rmse.png')
+plt.savefig(f"{folder_path}graph/{dataset}_{abbreviation}_rmse.png")
+plt.close()
+plt.cla()
+
+# Graph with reject rate and RMSE of Accepted Samples
+plt.plot(reject_rates, rmse_accepted, color='green', label='RMSE of Accepted Samples')
+plt.xlabel('Reject Rate')
+plt.title(f"Impact of Reject Rate on RMSE for {dataset}")
+plt.legend()
+plt.savefig(f"{folder_path}graph/{dataset}_{abbreviation}_rmse_accepted.png")
+plt.close()
+plt.cla()
+
+# Graph with reject rate and RMSE of Rejected Samples
+plt.plot(reject_rates, rmse_rejected, color='red', label='RMSE of Rejected Samples')
+plt.xlabel('Reject Rate')
+plt.title(f"Impact of Reject Rate on RMSE for {dataset}")
+plt.legend()
+plt.savefig(f"{folder_path}graph/{dataset}_{abbreviation}_rmse_rejected.png")
+plt.close()
+plt.cla()
 
 #######################################################################################################################
+
+
+
+
+
 metrics_results = pd.DataFrame(metrics_results)
 #metrics_results = pd.DataFrame.from_dict(metrics_results, orient='index', columns=['Value'])
 
@@ -340,8 +416,8 @@ improvement_matrix = metrics_results.copy()
 # Chapter 8: Output to file
 with open(file_path, 'a') as file:
 
-    file.write("\n\nTable of test_set (First 20 rows)\n")
-    file.write(tabulate(test_set.head(20), headers='keys', tablefmt='pretty', showindex=False))
+    file.write("\n\nTable of all_data (First 40 rows)\n")
+    file.write(tabulate(all_data.head(40), headers='keys', tablefmt='pretty', showindex=False))
     
     file.write ("\n")
     for exp_number, description in experiment_names.items():
