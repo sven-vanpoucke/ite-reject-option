@@ -342,6 +342,7 @@ def novelty_rejection(type_nr, max_rr, detail_factor,model_name, x, all_data, fi
     reject_rates = []
     rmse_accepted = []
     rmse_rejected = []
+    models = []
     if type_nr == 1:
         for contamination in range(int(1*detail_factor), int(max_rr*detail_factor)):
             contamination /= (100 * detail_factor) # max of 0.5
@@ -373,10 +374,12 @@ def novelty_rejection(type_nr, max_rr, detail_factor,model_name, x, all_data, fi
                 reject_rates.append(metrics_result.get('Rejection Rate', None))
                 rmse_accepted.append(metrics_result.get('RMSE', None))
                 rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
+                models.append(model)
             else:
                 reject_rates.append(None)
                 rmse_accepted.append(None)
                 rmse_rejected.append(None)
+    
     if type_nr == 2 or type_nr == 3:
         # split the data
         t_data = all_data[all_data['treatment'] == 1].copy()
@@ -428,18 +431,18 @@ def novelty_rejection(type_nr, max_rr, detail_factor,model_name, x, all_data, fi
     min_rmse = min(rmse_accepted)  # Find the minimum
     min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
     optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
-
-    if model_name == IsolationForest:
-        model = train_model(x, IsolationForest, contamination=optimal_reject_rate, random_state=42) # lower contamination, less outliers
-    elif model_name == OneClassSVM:
-        model = train_model(x, OneClassSVM, nu=optimal_reject_rate) # lower contamination, less outliers
-    elif model_name == LocalOutlierFactor:
-        model = train_model(x, LocalOutlierFactor, contamination=optimal_reject_rate, novelty=True)
-    all_data['ood'] = pd.Series(model.predict(x), name='ood')
-
-    all_data['ood'] = pd.Series(model.predict(x), name='ood')
-    all_data['y_reject'] = all_data.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
-    all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
+    
+    if type==1:
+        optimal_model = models[min_rmse_index]
+        all_data['ood'] = pd.Series(optimal_model.predict(x), name='ood')
+        all_data['y_reject'] = all_data.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
+        all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
+    elif type==2:
+        num_to_set = int(optimal_reject_rate / 100.0 * len(all_data)) # example: 60/100 = 0.6 * length of the data
+        all_data['ite_reject'] = all_data['ite_pred']
+        all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
+        # all_data = all_data.sort_values(by='amount_of_times_rejected', ascending=False).copy()
+        all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
 
     metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=True, print=False)
 
@@ -464,8 +467,7 @@ metrics_results[experiment_id] = metrics_dict
 architecture="Separated Architecture"
 # Variables
 detail_factor = 1 # 1 (no extra detail) or 10 (extra detail)
-max_rr = 19 # (number between 1 and 49)
-
+max_rr = 25 # (number between 1 and 49)
 x_scaling = True # True or False
 
 if x_scaling:
@@ -604,8 +606,6 @@ experiment_name =  "Rejection based on LocalOutlierFactor - novelty of T (UT) in
 abbreviation = "LOFTTUT"
 experiment_names.update({experiment_id: f"{experiment_name}"})
 metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, LocalOutlierFactor, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation)
-
-
 
 #######################################################################################################################
 
