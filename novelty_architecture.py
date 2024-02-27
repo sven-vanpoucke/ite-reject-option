@@ -251,7 +251,7 @@ def f(type, contamination, t_x, ut_x, t_data, ut_data, detail_factor, model_name
     elif model_name == LocalOutlierFactor:
         t_model = train_model(t_x, LocalOutlierFactor, contamination=contamination, novelty=True)
         ut_model = train_model(ut_x, LocalOutlierFactor, contamination=contamination, novelty=True)
-    
+
     if type == 2:
         t_data['ood'] = pd.Series(ut_model.predict(t_x), name='ood').copy()
         ut_data['ood'] = pd.Series(t_model.predict(ut_x), name='ood').copy()
@@ -361,7 +361,7 @@ def novelty_rejection(type_nr, max_rr, detail_factor,model_name, x, all_data, fi
     optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
     
     if type==1:
-        optimal_model = models[min_rmse_index]
+        optimal_model = models.index[min_rmse_index]
         all_data['ood'] = pd.Series(optimal_model.predict(x), name='ood')
         all_data['y_reject'] = all_data.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
         all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
@@ -373,8 +373,13 @@ def novelty_rejection(type_nr, max_rr, detail_factor,model_name, x, all_data, fi
         all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
 
     metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=False, print=False)
-    metrics_results['min_rmse'] = min_rmse
-    metrics_results['optimal_reject_rate'] = optimal_reject_rate
+    metrics_dict['2/ Optimal RR (%)'] = round(optimal_reject_rate, 4)*100
+
+    original_rmse = metrics_dict.get('Original RMSE', None)
+    metrics_dict['2/ Original RMSE ()'] = original_rmse
+    metrics_dict['2/ Minimum RMSE'] = round(min_rmse, 4)
+
+    metrics_dict['2/ Improvement RMSE (%)'] = (min_rmse - original_rmse) / original_rmse * 100
 
     return metrics_dict
 
