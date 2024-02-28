@@ -1,13 +1,5 @@
 """
 Table of contents:
-# CHAPTER 0: Imports
-
-# CHAPTER 1: Initialization
-
-# CHAPTER 2: Preprocessing
-## Chapter 2A: Output to file
-## Chapter 2B: Retrieval of data
-
 
 """
 
@@ -111,20 +103,6 @@ train_treated_x, train_control_x, train_treated_y, train_control_y, test_treated
 test_ite = pd.DataFrame({'ite': test_potential_y["y_t1"] - test_potential_y["y_t0"]})
 train_ite = pd.DataFrame({'ite': train_potential_y["y_t1"] - train_potential_y["y_t0"]})
 
-## Propensity score matching
-if psm == True:
-    # Calculate propensity scores for the training set
-    train_propensity_scores = calculate_propensity_scores(train_x, train_t)
-
-    # Calculate propensity scores for the test set
-    test_propensity_scores = calculate_propensity_scores(test_x, test_t)
-
-    # Perform KNN matching
-    matched_control_train_x = knn_matching(train_treated_x, train_control_x)
-
-    # Update the variables with the new matched datasets
-    train_control_x = matched_control_train_x
-
 # Chapter 3: Training of the ITE Model
 ## Output to file
 with open(file_path, 'a') as file:
@@ -163,6 +141,7 @@ if dataset == "TWINSC":
     train_set = train_set.drop(['y_t1_pred', 'y_t0_pred', 'ite_pred'], axis=1)
     # Rename columns y_t1_prob, y_t0_prob, ite_prob to y_t1_pred, y_t0_pred, ite_pred
     train_set = train_set.rename(columns={'y_t1_prob': 'y_t1_pred', 'y_t0_prob': 'y_t0_pred', 'ite_prob': 'ite_pred'})
+
 
 # Chapter 6: Evaluate overall ITE Model: Costs
 ## Apply the categorization function to create the 'Category' column
@@ -343,6 +322,265 @@ experiment_names.update({experiment_id: f"{experiment_name}"})
 metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, LocalOutlierFactor, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
 
 # #######################################################################################################################
+# #######################################################################################################################
+# #######################################################################################################################
+# #######################################################################################################################
+# #######################################################################################################################
+# #######################################################################################################################
+
+
+if dataset == "IHDP":
+    # Set the model class for the T-learner
+    model_class = LinearRegression # Which two models do we want to generate in the t-models
+    model_params = {"fit_intercept": True}
+    # Step 1: Load and preprocess IHDP data
+    train_x, train_t, train_y, train_potential_y, test_x, test_t, test_y, test_potential_y = preprocessing_get_data_ihdp()
+    # Step 2: Transform the data
+    train_x, train_t, train_y, train_potential_y, test_x, test_t, test_y, test_potential_y = preprocessing_transform_data_ihdp(train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y)
+
+## Editing of the data
+test_ite = pd.DataFrame({'ite': test_potential_y["y_t1"] - test_potential_y["y_t0"]})
+train_ite = pd.DataFrame({'ite': train_potential_y["y_t1"] - train_potential_y["y_t0"]})
+train_treated_x, train_control_x, train_treated_y, train_control_y, test_treated_x, test_control_x, test_treated_y, test_control_y = preprocessing_split_t_c_data(train_x, train_y, train_t, test_x, test_y, test_t)
+
+# Calculate propensity scores for training data
+train_propensity_scores = calculate_propensity_scores(train_x, train_t)
+test_propensity_scores = calculate_propensity_scores(test_x, test_t)
+
+# Perform KNN matching on training data
+matched_control_x,  matched_control_y = knn_matching(train_treated_x, train_control_x, train_control_y, n_neighbors=5)  # Modify n_neighbors as needed
+
+# train_control_x = matched_control_x
+# train_control_y = matched_control_y
+
+# # Keep original training data separate
+# train_treated_x = train_x[train_t == 1]
+# train_treated_y = train_y[train_t == 1]['observed_outcome']  # Replace 'outcome' with the actual name of your outcome variable
+# train_control_x = train_x[train_t == 0]
+# train_control_y = train_y[train_t == 0]['observed_outcome']
+
+# # Update the variables with the new matched datasets
+# train_control_x = matched_control_train
+
+# Chapter 3: Training of the ITE Model
+## Output to file
+with open(file_path, 'a') as file:
+    file.write(f"CHAPTER 3: Training of the ITE Model\n\n")
+    file.write("# This section provides details about the model selection, training process, and any hyperparameter tuning.\n")
+    file.write(f"The trained ITE model is a T-LEARNER.\n")
+    file.write(f"The two individually trained models are: {model_class.__name__}\n\n")
+
+## Training of the ITE Model (T-learner: This model is trained on the treated and control groups separately)
+treated_model, control_model = predictor_t_model(train_treated_x, train_treated_y, matched_control_x, matched_control_y, model_class, model_params)
+
+# Chapter 4: Predictions
+## Training and Testing predictions to evaluate individual models
+train_treated_y_pred, train_treated_y_prob, train_control_y_pred, train_control_y_prob = predictor_train_predictions(treated_model, control_model, train_treated_x, train_control_x)
+test_treated_y_pred, test_treated_y_prob, test_control_y_pred, test_control_y_prob = predictor_test_predictions(treated_model, control_model, test_treated_x, test_control_x)
+## Testing Predictions to evaluate ITE
+train_y_t1_pred, train_y_t0_pred, train_y_t1_prob, train_y_t0_prob, train_ite_prob, train_ite_pred = predictor_ite_predictions(treated_model, control_model, train_x)
+test_y_t1_pred, test_y_t0_pred, test_y_t1_prob, test_y_t0_prob, test_ite_prob, test_ite_pred = predictor_ite_predictions(treated_model, control_model, test_x)
+
+## Merge the different dataframes
+if train_treated_y_prob is not None and not train_treated_y_prob.isna().all():
+    test_set = pd.concat([test_t, test_y_t1_pred, test_y_t1_prob, test_y_t0_pred, test_y_t0_prob, test_ite_pred, test_ite_prob, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
+    train_set = pd.concat([test_t, train_y_t1_pred, train_y_t1_prob, train_y_t0_pred, train_y_t0_prob, train_ite_pred, train_ite_prob, train_potential_y["y_t0"], train_potential_y["y_t1"], train_ite], axis=1)
+else:
+    test_set = pd.concat([test_t, test_y_t1_pred, test_y_t0_pred, test_ite_pred, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
+    train_set = pd.concat([test_t, train_y_t1_pred, train_y_t0_pred, train_ite_pred, train_potential_y["y_t0"], train_potential_y["y_t1"], train_ite], axis=1)
+
+## Make TWINS (binary) to TWINSC (continuous)
+if dataset == "TWINSC":
+    # Delete columns y_t1_pred and y_t0_pred, ite_pred
+    test_set = test_set.drop(['y_t1_pred', 'y_t0_pred', 'ite_pred'], axis=1)
+    # Rename columns y_t1_prob, y_t0_prob, ite_prob to y_t1_pred, y_t0_pred, ite_pred
+    test_set = test_set.rename(columns={'y_t1_prob': 'y_t1_pred', 'y_t0_prob': 'y_t0_pred', 'ite_prob': 'ite_pred'})
+
+    # Delete columns y_t1_pred and y_t0_pred, ite_pred
+    train_set = train_set.drop(['y_t1_pred', 'y_t0_pred', 'ite_pred'], axis=1)
+    # Rename columns y_t1_prob, y_t0_prob, ite_prob to y_t1_pred, y_t0_pred, ite_pred
+    train_set = train_set.rename(columns={'y_t1_prob': 'y_t1_pred', 'y_t0_prob': 'y_t0_pred', 'ite_prob': 'ite_pred'})
+
+
+# Chapter 6: Evaluate overall ITE Model: Costs
+## Apply the categorization function to create the 'Category' column
+test_set['category'] = test_set.apply(categorize, axis=1, is_pred=False)
+test_set['category_pred'] = test_set.apply(categorize, axis=1)
+test_set['category_rej'] = test_set.apply(categorize, axis=1)
+test_set['ite_mistake'] = test_set.apply(lambda row: 0 if row['ite_pred']==row['ite'] else 1, axis=1)
+
+#######################################################################################################################
+
+# CHAPTER 7: REJECTION
+## Output to file
+with open(file_path, 'a') as file:
+    file.write(f"\nCHAPTER 7: REJECTION \n\n")
+    file.write("# This section executes and reports metrics for ITE models with rejection.\n")
+
+## Merge the test_set with the train_set !!
+x = pd.concat([train_x, test_x], ignore_index=True).copy()
+all_data = pd.concat([train_set, test_set], ignore_index=True).copy()
+
+#######################################################################################################################
+# Baseline Model - No Rejection // Experiment 0
+experiment_id += 1
+experiment_names = {}
+experiment_name = "No Rejector - Baseline Model"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+
+# Step 4 Apply rejector to the code
+all_data['ite_reject'] = all_data.apply(lambda row: row['ite_pred'], axis=1)
+
+# Step 5 Calculate the performance metrics
+metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=False, print=False)
+metrics_results[experiment_id] = metrics_dict
+
+#######################################################################################################################
+# Architecture Type = Separated
+architecture="Separated Architecture"
+
+if x_scaling:
+    scaler = StandardScaler()
+    x = pd.DataFrame(scaler.fit_transform(x), columns=x.columns)
+
+#######################################################################################################################
+# Perfect rejection
+experiment_id += 1
+experiment_name =  "Perfect Rejection"
+abbreviation = "Perfect"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+
+# loop over all possible RR
+reject_rates = []
+rmse_accepted = []
+rmse_rejected = []
+change_rmse = []
+
+all_data['se'] = (all_data['ite'] - all_data['ite_pred']) ** 2
+all_data = all_data.sort_values(by='se', ascending=False).copy()
+all_data = all_data.reset_index(drop=True)
+
+for rr in range(1, max_rr*detail_factor):
+    num_to_set = int(rr / (100.0*detail_factor) * len(all_data)) # example: 60/100 = 0.6 * length of the data
+
+    all_data['ite_reject'] = all_data['ite_pred']
+    all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
+    all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
+
+    metrics_result = calculate_performance_metrics('ite', 'ite_reject', all_data, file_path)
+
+    if metrics_result:
+        reject_rates.append(metrics_result.get('Rejection Rate', None))
+        rmse_accepted.append(metrics_result.get('RMSE', None))
+        rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
+        print(f"RR: {rr / (100*detail_factor) }, RR: {metrics_result['Rejection Rate']}")
+    else:
+        reject_rates.append(None)
+        rmse_accepted.append(None)
+        rmse_rejected.append(None)
+
+# Specify the file path
+output_file = "output/perfect_rejection.csv"
+
+rmse_accepted_perfect = rmse_accepted
+rmse_rejected_perfect = rmse_rejected
+rr_perfect = reject_rates
+# Combine the reject_rates and change_rmse lists into a single list of tuples
+data = list(zip(reject_rates, change_rmse))
+
+# Write the data to the file
+with open(output_file, "w", newline="") as file:
+    writer = csv.writer(file)
+    writer.writerow(["Reject Rate", "Change of RMSE (%)"])  # Write the header
+    writer.writerows(data)  # Write the data rows
+
+# Graph with reject rate and rmse_accepted & rmse_rejected
+twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse.png")
+onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
+onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
+
+# optimal model
+min_rmse = min(rmse_accepted)  # Find the minimum
+min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
+optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
+
+all_data['ite_reject'] = all_data['ite_pred']
+all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
+all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
+
+metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=False, print=False)
+metrics_results[experiment_id] = metrics_dict
+
+#######################################################################################################################
+## Type 1
+# Rejection based on Isolation Forest
+experiment_id += 1
+experiment_name =  "Rejection based on IsolationForest - novelty of instance to all data"
+abbreviation = "IF"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(1, max_rr, detail_factor, IsolationForest, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+
+# Rejection based on OCSVM
+experiment_id += 1
+experiment_name =  "Rejection based on OCSVM - novelty of instance to all data"
+abbreviation = "OCSVM"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(1, max_rr, detail_factor, OneClassSVM, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+
+# Rejection based on LocalOutlierFactor
+experiment_id += 1
+experiment_name =  "Rejection based on LocalOutlierFactor - novelty of instance to all data"
+abbreviation = "LOF"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(1, max_rr, detail_factor, LocalOutlierFactor, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+
+#######################################################################################################################
+## Type 2
+# Rejection based on Isolation Forest (comparing T to UT and UT to T)
+experiment_id += 1
+experiment_name =  "Rejection based on IsolationForest - novelty of T (UT) instance to UT (T) instance"
+abbreviation = "IF"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(2, max_rr, detail_factor, IsolationForest, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+
+# Rejection based on OSCVM (comparing T to UT and UT to T)
+experiment_id += 1
+experiment_name =  "Rejection based on OSCVM - novelty of T (UT) instance to UT (T) instance"
+abbreviation = "OCSVM"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(2, max_rr, detail_factor, OneClassSVM, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+
+# Rejection based on LocalOutlierFactor (comparing T to UT and UT to T)
+experiment_id += 1
+experiment_name =  "Rejection based on LocalOutlierFactor - novelty of T (UT) instance to UT (T) instance"
+abbreviation = "LOF"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(2, max_rr, detail_factor, LocalOutlierFactor, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+
+#######################################################################################################################
+## Type 3
+# Rejection based on Isolation Forest (comparing T to T&UT + comparint UT to T&UT)
+experiment_id += 1
+experiment_name =  "Rejection based on IsolationForest - novelty of T (UT) instance to UT (T) instance"
+abbreviation = "IF"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, IsolationForest, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+
+# Rejection based on OSCVM (comparing T to T&UT + comparint UT to T&UT)
+experiment_id += 1
+experiment_name =  "Rejection based on OSCVM - novelty of T (UT) instance to UT (T) instance"
+abbreviation = "OCSVM"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, OneClassSVM, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+
+# Rejection based on LocalOutlierFactor (comparing T to T&UT + comparint UT to T&UT)
+experiment_id += 1
+experiment_name =  "Rejection based on LocalOutlierFactor - novelty of T (UT) instance to UT (T) instance"
+abbreviation = "LOF"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, LocalOutlierFactor, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+
+
 
 # # Chapter 3: Training of the ITE Model
 # treated_model, control_model = predictor_t_model(train_treated_x, train_treated_y, train_control_x, train_control_y, model_class, model_params)
