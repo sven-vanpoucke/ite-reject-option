@@ -324,19 +324,10 @@ metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, Loc
 # #######################################################################################################################
 # #######################################################################################################################
 # #######################################################################################################################
+# Propensity score matching
 # #######################################################################################################################
 # #######################################################################################################################
 # #######################################################################################################################
-
-
-if dataset == "IHDP":
-    # Set the model class for the T-learner
-    model_class = LinearRegression # Which two models do we want to generate in the t-models
-    model_params = {"fit_intercept": True}
-    # Step 1: Load and preprocess IHDP data
-    train_x, train_t, train_y, train_potential_y, test_x, test_t, test_y, test_potential_y = preprocessing_get_data_ihdp()
-    # Step 2: Transform the data
-    train_x, train_t, train_y, train_potential_y, test_x, test_t, test_y, test_potential_y = preprocessing_transform_data_ihdp(train_x, train_t, train_y, train_potential_y, test_x, test_y, test_t, test_potential_y)
 
 ## Editing of the data
 test_ite = pd.DataFrame({'ite': test_potential_y["y_t1"] - test_potential_y["y_t0"]})
@@ -348,19 +339,7 @@ train_propensity_scores = calculate_propensity_scores(train_x, train_t)
 test_propensity_scores = calculate_propensity_scores(test_x, test_t)
 
 # Perform KNN matching on training data
-matched_control_x,  matched_control_y = knn_matching(train_treated_x, train_control_x, train_control_y, n_neighbors=5)  # Modify n_neighbors as needed
-
-# train_control_x = matched_control_x
-# train_control_y = matched_control_y
-
-# # Keep original training data separate
-# train_treated_x = train_x[train_t == 1]
-# train_treated_y = train_y[train_t == 1]['observed_outcome']  # Replace 'outcome' with the actual name of your outcome variable
-# train_control_x = train_x[train_t == 0]
-# train_control_y = train_y[train_t == 0]['observed_outcome']
-
-# # Update the variables with the new matched datasets
-# train_control_x = matched_control_train
+matched_control_x, matched_control_y = knn_matching(train_treated_x, train_control_x, train_control_y, n_neighbors=5)  # Modify n_neighbors as needed
 
 # Chapter 3: Training of the ITE Model
 ## Output to file
@@ -370,7 +349,12 @@ with open(file_path, 'a') as file:
     file.write(f"The trained ITE model is a T-LEARNER.\n")
     file.write(f"The two individually trained models are: {model_class.__name__}\n\n")
 
-## Training of the ITE Model (T-learner: This model is trained on the treated and control groups separately)
+# ## Training of the ITE Model (T-learner: This model is trained on the treated and control groups separately)
+# model = LinearRegression()
+# model.fit(matched_control_x, matched_control_y)
+# train_y_t1_pred, train_y_t0_pred, 
+# predicted_y = model.predict(test_x) # outcome
+
 treated_model, control_model = predictor_t_model(train_treated_x, train_treated_y, matched_control_x, matched_control_y, model_class, model_params)
 
 # Chapter 4: Predictions

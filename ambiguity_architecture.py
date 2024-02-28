@@ -400,10 +400,6 @@ plt.cla()
 
 #######################################################################################################################
 
-
-
-
-
 metrics_results = pd.DataFrame(metrics_results)
 #metrics_results = pd.DataFrame.from_dict(metrics_results, orient='index', columns=['Value'])
 
