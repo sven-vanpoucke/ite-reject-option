@@ -39,6 +39,17 @@ Table of all_data (First 5 rows)
 |    nan    | 4.522012224992153 | 2.7281500401868897 | 1.7938621848052634 |  1.50519829739236  | 7.72702960004262 |  6.22183130265026   |   nan    |      nan      |     nan      |     nan     | 1.7938621848052634 |  19.606910508589   |  1  |  False   |            0             |              0               |
 |    0.0    | 6.894930888844074 | 4.1417150221382295 | 2.753215866705845  |  2.72920854936937  | 9.49449669072071 |  6.765288141351341  |   nan    |      nan      |     nan      |     nan     |         R          | 16.09672393697909  | -1  |   True   |            0             |              1               |
 +-----------+-------------------+--------------------+--------------------+--------------------+------------------+---------------------+----------+---------------+--------------+-------------+--------------------+--------------------+-----+----------+--------------------------+------------------------------+
+# Experiment 0: No Rejector - Baseline Model
+# Experiment 1: Perfect Rejection
+# Experiment 2: Rejection based on IsolationForest - novelty of instance to all data
+# Experiment 3: Rejection based on OCSVM - novelty of instance to all data
+# Experiment 4: Rejection based on LocalOutlierFactor - novelty of instance to all data
+# Experiment 5: Rejection based on IsolationForest - novelty of T (UT) instance to UT (T) instance
+# Experiment 6: Rejection based on OSCVM - novelty of T (UT) instance to UT (T) instance
+# Experiment 7: Rejection based on LocalOutlierFactor - novelty of T (UT) instance to UT (T) instance
+# Experiment 8: Rejection based on IsolationForest - novelty of T (UT) instance to UT (T) instance
+# Experiment 9: Rejection based on OSCVM - novelty of T (UT) instance to UT (T) instance
+# Experiment 10: Rejection based on LocalOutlierFactor - novelty of T (UT) instance to UT (T) instance
 # Experiment 11: No Rejector - Baseline Model
 # Experiment 12: Perfect Rejection
 # Experiment 13: Rejection based on IsolationForest - novelty of instance to all data
