@@ -1,0 +1,50 @@
+CHAPTER 1: INTRODUCTION
+# This section introduces the purpose and background of the analysis.
+
+In this analysis, we aim to evaluate the performance of different reject options for Information Treatment Effect (ITE) models.The ITE model predicts the individual treatment effects in a given dataset, providing valuable insights into the impact of interventions.
+For your information, this file has been automatically generated on: 2024-02-29 19:00
+\Chapter 2: Preprocessing
+
+# This section executes the data retrieval, preprocessing and splitting in a training and dataset.During the whole file, the used dataset is: IHDP
+
+CHAPTER 3: Training of the ITE Model
+
+# This section provides details about the model selection, training process, and any hyperparameter tuning.
+The trained ITE model is a T-LEARNER.
+The two individually trained models are: LinearRegression
+
+
+CHAPTER 7: REJECTION 
+
+# This section executes and reports metrics for ITE models with rejection.
+
+
+Table of all_data (First 5 rows)
++-----------+-------------------+--------------------+--------------------+------------------+------------------+--------------------+----------+---------------+--------------+-------------+--------------------+----------------------+---------------------+-----+----------+
+| treatment |     y_t1_pred     |     y_t0_pred      |      ite_pred      |       y_t0       |       y_t1       |        ite         | category | category_pred | category_rej | ite_mistake |     ite_reject     |          se          |     size_of_ci      | ood | y_reject |
++-----------+-------------------+--------------------+--------------------+------------------+------------------+--------------------+----------+---------------+--------------+-------------+--------------------+----------------------+---------------------+-----+----------+
+|    nan    | 6.873013608978687 | 2.9250182501365436 | 3.9479953588421437 | 3.16153681797194 | 5.21614030728732 | 2.0546034893153804 |   nan    |      nan      |     nan      |     nan     | 3.9479953588421437 |  3.584932771590052   | 2.2678252051474614  |  1  |  False   |
+|    0.0    | 6.358176699631977 | 1.9675363033624065 |  4.39064039626957  |  2.551956358036  | 6.75062479591378 |  4.19866843787778  |   nan    |      nan      |     nan      |     nan     |  4.39064039626957  | 0.036853232808779335 | 1.8502354497643219  |  1  |  False   |
+|    nan    | 6.790135026650697 |  3.2473419393798   | 3.542793087270897  | 3.37367927914912 | 6.84700940249715 | 3.4733301233480303 |   nan    |      nan      |     nan      |     nan     | 3.542793087270897  | 0.004825103356949459 | 0.8438451612865618  |  1  |  False   |
+|    0.0    | 6.504886559683778 | 2.8612545891674044 | 3.643631970516374  | 1.56848332448807 | 6.38366684568337 | 4.8151835211953005 |          |               |              |     1.0     | 3.643631970516374  |  1.3725330358981973  | 0.5470725253115766  |  1  |  False   |
+|    0.0    | 6.802241818777391 | 2.7826233231134294 | 4.019618495663962  | 1.52826215735933 | 5.92660921723793 |  4.3983470598786   |   nan    |      nan      |     nan      |     nan     | 4.019618495663962  |  0.1434353253520814  | 0.26502486295019023 |  1  |  False   |
++-----------+-------------------+--------------------+--------------------+------------------+------------------+--------------------+----------+---------------+--------------+-------------+--------------------+----------------------+---------------------+-----+----------+
+# Experiment 0: No Rejector - Baseline Model
+# Experiment 1: Rejection based on Random Forest (confidence interval)
+
+Table of results of the experiments
+╭────────────────────┬──────────┬────────╮
+│                    │        0 │      1 │
+├────────────────────┼──────────┼────────┤
+│ Rejection Rate     │   0      │ 0.0107 │
+├────────────────────┼──────────┼────────┤
+│ Original RMSE      │   1.4916 │ 1.4916 │
+├────────────────────┼──────────┼────────┤
+│ RMSE               │   1.4916 │ 1.4936 │
+├────────────────────┼──────────┼────────┤
+│ Change of RMSE (%) │   0      │ 0.1355 │
+├────────────────────┼──────────┼────────┤
+│ RMSE Rejected      │ nan      │ 1.2914 │
+├────────────────────┼──────────┼────────┤
+│ Accuracy           │   0      │ 0      │
+╰────────────────────┴──────────┴────────╯

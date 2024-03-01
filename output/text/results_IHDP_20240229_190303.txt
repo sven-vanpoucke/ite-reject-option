@@ -1,0 +1,50 @@
+CHAPTER 1: INTRODUCTION
+# This section introduces the purpose and background of the analysis.
+
+In this analysis, we aim to evaluate the performance of different reject options for Information Treatment Effect (ITE) models.The ITE model predicts the individual treatment effects in a given dataset, providing valuable insights into the impact of interventions.
+For your information, this file has been automatically generated on: 2024-02-29 19:03
+\Chapter 2: Preprocessing
+
+# This section executes the data retrieval, preprocessing and splitting in a training and dataset.During the whole file, the used dataset is: IHDP
+
+CHAPTER 3: Training of the ITE Model
+
+# This section provides details about the model selection, training process, and any hyperparameter tuning.
+The trained ITE model is a T-LEARNER.
+The two individually trained models are: LinearRegression
+
+
+CHAPTER 7: REJECTION 
+
+# This section executes and reports metrics for ITE models with rejection.
+
+
+Table of all_data (First 5 rows)
++-----------+--------------------+--------------------+--------------------+------------------+------------------+--------------------+----------+---------------+--------------+-------------+------------+---------------------+---------------------+
+| treatment |     y_t1_pred      |     y_t0_pred      |      ite_pred      |       y_t0       |       y_t1       |        ite         | category | category_pred | category_rej | ite_mistake | ite_reject |         se          |     size_of_ci      |
++-----------+--------------------+--------------------+--------------------+------------------+------------------+--------------------+----------+---------------+--------------+-------------+------------+---------------------+---------------------+
+|    nan    | 6.136499279587069  | 1.6428054820899836 | 4.493693797497086  | 1.32560677118288 | 6.22831668546518 |  4.9027099142823   |   nan    |      nan      |     nan      |     nan     |     R      | 0.16729418379005637 | 1.6301321075903061  |
+|    nan    | 6.911962829837238  | 3.6018871591143933 | 3.3100756707228447 | 3.43286109408072 | 7.7721153212159  |  4.33925422713518  |   nan    |      nan      |     nan      |     nan     |     R      | 1.0592085009789793  | 1.0968374222567912  |
+|    nan    | 7.1584655201153415 | 3.2619726362372434 | 3.896492883878098  | 2.53605509808157 | 5.95670451649266 | 3.4206494184110903 |   nan    |      nan      |     nan      |     nan     |     R      | 0.22642700362765147 | 0.6110412811407357  |
+|    0.0    | 6.062705088001878  | 1.0846167118297783 | 4.978088376172099  | 1.48851288613063 | 5.33171060840986 |  3.84319772227923  |          |               |              |     1.0     |     R      | 1.2879767962933841  | 0.32059932771289645 |
+|    0.0    | 6.019921826107962  | 2.183220891265133  | 3.8367009348428285 | 3.06370113030307 | 6.63241812518479 |  3.56871699488172  |   nan    |      nan      |     nan      |     nan     |     R      | 0.07181539207707906 | 0.1273871620071887  |
++-----------+--------------------+--------------------+--------------------+------------------+------------------+--------------------+----------+---------------+--------------+-------------+------------+---------------------+---------------------+
+# Experiment 0: No Rejector - Baseline Model
+# Experiment 1: Rejection based on Random Forest (confidence interval)
+
+Table of results of the experiments
+╭────────────────────┬──────────┬──────────╮
+│                    │        0 │        1 │
+├────────────────────┼──────────┼──────────┤
+│ Rejection Rate     │   0      │   0.988  │
+├────────────────────┼──────────┼──────────┤
+│ Original RMSE      │   1.4916 │   1.4916 │
+├────────────────────┼──────────┼──────────┤
+│ RMSE               │   1.4916 │   0.8778 │
+├────────────────────┼──────────┼──────────┤
+│ Change of RMSE (%) │   0      │ -41.1487 │
+├────────────────────┼──────────┼──────────┤
+│ RMSE Rejected      │ nan      │   1.4976 │
+├────────────────────┼──────────┼──────────┤
+│ Accuracy           │   0      │   0      │
+╰────────────────────┴──────────┴──────────╯

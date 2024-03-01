@@ -191,66 +191,9 @@ experiment_name =  "Perfect Rejection"
 abbreviation = "Perfect"
 experiment_names.update({experiment_id: f"{experiment_name}"})
 
-# loop over all possible RR
-reject_rates = []
-rmse_accepted = []
-rmse_rejected = []
-change_rmse = []
-
 all_data['se'] = (all_data['ite'] - all_data['ite_pred']) ** 2
-all_data = all_data.sort_values(by='se', ascending=False).copy()
-all_data = all_data.reset_index(drop=True)
 
-for rr in range(1, max_rr*detail_factor):
-    num_to_set = int(rr / (100.0*detail_factor) * len(all_data)) # example: 60/100 = 0.6 * length of the data
-
-    all_data['ite_reject'] = all_data['ite_pred']
-    all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
-    all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
-
-    metrics_result = calculate_performance_metrics('ite', 'ite_reject', all_data, file_path)
-
-    if metrics_result:
-        reject_rates.append(metrics_result.get('Rejection Rate', None))
-        rmse_accepted.append(metrics_result.get('RMSE', None))
-        rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
-        print(f"RR: {rr / (100*detail_factor) }, RR: {metrics_result['Rejection Rate']}")
-    else:
-        reject_rates.append(None)
-        rmse_accepted.append(None)
-        rmse_rejected.append(None)
-
-# Specify the file path
-output_file = "output/perfect_rejection.csv"
-
-rmse_accepted_perfect = rmse_accepted
-rmse_rejected_perfect = rmse_rejected
-rr_perfect = reject_rates
-# Combine the reject_rates and change_rmse lists into a single list of tuples
-data = list(zip(reject_rates, change_rmse))
-
-# Write the data to the file
-with open(output_file, "w", newline="") as file:
-    writer = csv.writer(file)
-    writer.writerow(["Reject Rate", "Change of RMSE (%)"])  # Write the header
-    writer.writerows(data)  # Write the data rows
-
-# Graph with reject rate and rmse_accepted & rmse_rejected
-twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse.png")
-onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
-onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
-
-# optimal model
-min_rmse = min(rmse_accepted)  # Find the minimum
-min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
-optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
-
-all_data['ite_reject'] = all_data['ite_pred']
-all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
-all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
-
-metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=False, print=False)
-metrics_results[experiment_id] = metrics_dict
+rmse_accepted_perfect, metrics_results[experiment_id] = novelty_rejection(0, max_rr, detail_factor, IsolationForest, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation)
 
 #######################################################################################################################
 ## Type 1
@@ -324,6 +267,54 @@ metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, Loc
 # #######################################################################################################################
 # #######################################################################################################################
 # #######################################################################################################################
+# Ambiguity
+# #######################################################################################################################
+# #######################################################################################################################
+# #######################################################################################################################
+
+
+# # https://contrib.scikit-learn.org/forest-confidence-interval/index.html
+# # pip3 install forestci
+# from forestci import random_forest_error
+
+
+# from sklearn.ensemble import RandomForestRegressor
+# forest = RandomForestRegressor(n_estimators=100)
+# forest.fit(pd.concat([train_x, train_t]), train_y)
+
+# # returns An array with the unbiased sampling variance (V_IJ_unbiased)
+# ci = random_forest_error(forest, train_x, test_x, inbag=None, calibrate=True, memory_constrained=False, memory_limit=None)
+
+
+
+# quantile-forest (https://pypi.org/project/quantile-forest/): 
+# This package offers a different approach. Instead of directly calculating confidence intervals, 
+# it provides a RandomForestQuantileRegressor class that allows you to specify quantiles during training. 
+# This enables you to directly estimate the desired quantiles (e.g., 2.5% and 97.5% for a 95% confidence interval) 
+# and build your intervals based on those estimates.
+
+# from quantile_forest import RandomForestQuantileRegressor
+# from sklearn import datasets
+
+# X, y = datasets.fetch_california_housing(return_X_y=True)
+# qrf = RandomForestQuantileRegressor()
+# qrf.fit(X, y)
+# y_pred = qrf.predict(X, quantiles=[0.025, 0.5, 0.975])
+
+
+# forest = RandomForestQuantileRegressor()
+# forest.fit(pd.concat([train_x, train_t]), train_y['observed_outcome'])
+# y_pred = forest.predict(pd.concat([train_x, train_t]), quantiles=[0.025, 0.5, 0.975])
+
+
+
+
+
+
+
+# #######################################################################################################################
+# #######################################################################################################################
+# #######################################################################################################################
 # Propensity score matching
 # #######################################################################################################################
 # #######################################################################################################################
@@ -385,7 +376,6 @@ if dataset == "TWINSC":
     # Rename columns y_t1_prob, y_t0_prob, ite_prob to y_t1_pred, y_t0_pred, ite_pred
     train_set = train_set.rename(columns={'y_t1_prob': 'y_t1_pred', 'y_t0_prob': 'y_t0_pred', 'ite_prob': 'ite_pred'})
 
-
 # Chapter 6: Evaluate overall ITE Model: Costs
 ## Apply the categorization function to create the 'Category' column
 test_set['category'] = test_set.apply(categorize, axis=1, is_pred=False)
@@ -394,7 +384,6 @@ test_set['category_rej'] = test_set.apply(categorize, axis=1)
 test_set['ite_mistake'] = test_set.apply(lambda row: 0 if row['ite_pred']==row['ite'] else 1, axis=1)
 
 #######################################################################################################################
-
 # CHAPTER 7: REJECTION
 ## Output to file
 with open(file_path, 'a') as file:
@@ -563,6 +552,8 @@ experiment_name =  "Rejection based on LocalOutlierFactor - novelty of T (UT) in
 abbreviation = "LOF"
 experiment_names.update({experiment_id: f"{experiment_name}"})
 metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, LocalOutlierFactor, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+
+
 
 
 

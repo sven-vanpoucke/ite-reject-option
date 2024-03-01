@@ -97,12 +97,44 @@ def f(type, contamination, t_x, ut_x, t_data, ut_data, detail_factor, model_name
     return all_data['amount_of_times_rejected_new']
 
 
-def novelty_rejection(type_nr, max_rr, detail_factor,model_name, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect):
+def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect=[]):
     reject_rates = []
     rmse_accepted = []
     rmse_rejected = []
     models = []
     rmse_improve = []
+    if type_nr == 0: # perfect scenario
+
+        all_data = all_data.sort_values(by='se', ascending=False).copy()
+        all_data = all_data.reset_index(drop=True)
+
+        for rr in range(1, max_rr*detail_factor):
+            num_to_set = int(rr / (100.0*detail_factor) * len(all_data)) # example: 60/100 = 0.6 * length of the data
+
+            all_data['ite_reject'] = all_data['ite_pred']
+            all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
+            all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
+
+            metrics_result = calculate_performance_metrics('ite', 'ite_reject', all_data, file_path)
+
+            if metrics_result:
+                reject_rates.append(metrics_result.get('Rejection Rate', None))
+                rmse_accepted.append(metrics_result.get('RMSE', None))
+                rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
+                print(f"RR: {rr / (100*detail_factor) }, RR: {metrics_result['Rejection Rate']}")
+                improvement = ( metrics_result.get('RMSE', None) - metrics_result.get('Original RMSE', None) ) / metrics_result.get('Original RMSE', None) * 100
+                rmse_improve.append(improvement)
+
+            else:
+                reject_rates.append(None)
+                rmse_accepted.append(None)
+                rmse_rejected.append(None)
+                rmse_improve.append(None)
+
+        rmse_accepted_perfect = rmse_accepted
+        rmse_rejected_perfect = rmse_rejected
+        rr_perfect = reject_rates
+
     if type_nr == 1:
         for contamination in range(int(1*detail_factor), int(max_rr*detail_factor)):
             contamination /= (100 * detail_factor) # max of 0.5
@@ -191,13 +223,29 @@ def novelty_rejection(type_nr, max_rr, detail_factor,model_name, x, all_data, fi
     onelinegraph(reject_rates, "Reject Rate", rmse_improve, "Change of RMSE (%)", "green", f"Impact of Reject Rate on change of RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_ChangeRMSE.png")
     onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
     onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
+    
+    if type == 2 or type == 3:
+        plt.hist(all_data['amount_of_times_rejected'])
+        plt.xlabel('Amount of Times Rejected')
+        plt.ylabel('Frequency')
+        plt.title('Histogram of Amount of Times Rejected')
+        plt.show()
+        plt.savefig(f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_histogram.png")
+        plt.close()
+        plt.cla()
 
-    # optimal model
+
+    
+    # optimal model 
     min_rmse = min(rmse_accepted)  # Find the minimum
     min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
     optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
     
-    if type==1:
+    if type==0:
+        all_data['ite_reject'] = all_data['ite_pred']
+        all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
+        all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
+    elif type==1:
         optimal_model = models.index[min_rmse_index]
         all_data['ood'] = pd.Series(optimal_model.predict(x), name='ood')
         all_data['y_reject'] = all_data.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
@@ -222,5 +270,8 @@ def novelty_rejection(type_nr, max_rr, detail_factor,model_name, x, all_data, fi
     mistake_from_perfect_column = [perfect - actual for perfect, actual in zip(rmse_accepted_perfect, rmse_accepted)]
     mistake_from_perfect = sum(mistake_from_perfect_column)
     metrics_dict['2/ Mistake from Perfect'] = round(mistake_from_perfect, 4)
-
-    return metrics_dict
+    
+    if type_nr == 0:
+        return rmse_accepted_perfect, metrics_dict
+    else:
+        return metrics_dict
