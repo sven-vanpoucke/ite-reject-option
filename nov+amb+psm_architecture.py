@@ -1,6 +1,8 @@
 """
 Table of contents:
 
+Chapter 0: Imports
+
 """
 
 # Chapter 0: Imports
@@ -103,24 +105,37 @@ train_treated_x, train_control_x, train_treated_y, train_control_y, test_treated
 test_ite = pd.DataFrame({'ite': test_potential_y["y_t1"] - test_potential_y["y_t0"]})
 train_ite = pd.DataFrame({'ite': train_potential_y["y_t1"] - train_potential_y["y_t0"]})
 
+## Merge the test_set with the train_set !!
+treated_x = pd.concat([train_treated_x, test_treated_x], ignore_index=True).copy()
+treated_y = pd.concat([train_treated_y, test_treated_y], ignore_index=True).copy()
+control_x = pd.concat([train_control_x, test_control_x], ignore_index=True).copy()
+control_y = pd.concat([train_control_y, test_control_y], ignore_index=True).copy()
+
+x = pd.concat([train_x, test_x], ignore_index=True).copy()
+t = pd.concat([train_t, test_t], ignore_index=True).copy()
+y = pd.concat([train_y, test_y], ignore_index=True).copy()
+ite = pd.concat([train_ite, test_ite], ignore_index=True).copy()
+
 # Chapter 3: Training of the ITE Model
-## Output to file
-with open(file_path, 'a') as file:
-    file.write(f"CHAPTER 3: Training of the ITE Model\n\n")
-    file.write("# This section provides details about the model selection, training process, and any hyperparameter tuning.\n")
-    file.write(f"The trained ITE model is a T-LEARNER.\n")
-    file.write(f"The two individually trained models are: {model_class.__name__}\n\n")
 
 ## Training of the ITE Model (T-learner: This model is trained on the treated and control groups separately)
-treated_model, control_model = predictor_t_model(train_treated_x, train_treated_y, train_control_x, train_control_y, model_class, model_params)
+train_treated_model, train_control_model = predictor_t_model(train_treated_x, train_treated_y, train_control_x, train_control_y, model_class, model_params)
+treated_model, control_model = predictor_t_model(treated_x, treated_y, control_x, control_y, model_class, model_params)
 
-# Chapter 4: Predictions
+# Chapter 4: Predictions based on T learner trained on train set
 ## Training and Testing predictions to evaluate individual models
-train_treated_y_pred, train_treated_y_prob, train_control_y_pred, train_control_y_prob = predictor_train_predictions(treated_model, control_model, train_treated_x, train_control_x)
-test_treated_y_pred, test_treated_y_prob, test_control_y_pred, test_control_y_prob = predictor_test_predictions(treated_model, control_model, test_treated_x, test_control_x)
+train_treated_y_pred, train_treated_y_prob, train_control_y_pred, train_control_y_prob = predictor_train_predictions(train_treated_model, train_control_model, train_treated_x, train_control_x)
+test_treated_y_pred, test_treated_y_prob, test_control_y_pred, test_control_y_prob = predictor_test_predictions(train_treated_model, train_control_model, test_treated_x, test_control_x)
 ## Testing Predictions to evaluate ITE
-train_y_t1_pred, train_y_t0_pred, train_y_t1_prob, train_y_t0_prob, train_ite_prob, train_ite_pred = predictor_ite_predictions(treated_model, control_model, train_x)
-test_y_t1_pred, test_y_t0_pred, test_y_t1_prob, test_y_t0_prob, test_ite_prob, test_ite_pred = predictor_ite_predictions(treated_model, control_model, test_x)
+train_y_t1_pred, train_y_t0_pred, train_y_t1_prob, train_y_t0_prob, train_ite_prob, train_ite_pred = predictor_ite_predictions(train_treated_model, train_control_model, train_x)
+test_y_t1_pred, test_y_t0_pred, test_y_t1_prob, test_y_t0_prob, test_ite_prob, test_ite_pred = predictor_ite_predictions(train_treated_model, train_control_model, test_x)
+
+
+# Chapter 4: Predictions based on T learner trained on all data
+## Training and Testing predictions to evaluate individual models
+treated_y_pred, treated_y_prob, control_y_pred, control_y_prob = predictor_train_predictions(treated_model, control_model, treated_x, control_x)
+## Testing Predictions to evaluate ITE
+y_t1_pred, y_t0_pred, y_t1_prob, y_t0_prob, ite_prob, ite_pred = predictor_ite_predictions(treated_model, control_model, x)
 
 ## Merge the different dataframes
 if train_treated_y_prob is not None and not train_treated_y_prob.isna().all():
@@ -141,7 +156,6 @@ if dataset == "TWINSC":
     train_set = train_set.drop(['y_t1_pred', 'y_t0_pred', 'ite_pred'], axis=1)
     # Rename columns y_t1_prob, y_t0_prob, ite_prob to y_t1_pred, y_t0_pred, ite_pred
     train_set = train_set.rename(columns={'y_t1_prob': 'y_t1_pred', 'y_t0_prob': 'y_t0_pred', 'ite_prob': 'ite_pred'})
-
 
 # Chapter 6: Evaluate overall ITE Model: Costs
 ## Apply the categorization function to create the 'Category' column
@@ -308,10 +322,6 @@ metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, Loc
 
 
 
-
-
-
-
 # #######################################################################################################################
 # #######################################################################################################################
 # #######################################################################################################################
@@ -390,14 +400,10 @@ with open(file_path, 'a') as file:
     file.write(f"\nCHAPTER 7: REJECTION \n\n")
     file.write("# This section executes and reports metrics for ITE models with rejection.\n")
 
-## Merge the test_set with the train_set !!
-x = pd.concat([train_x, test_x], ignore_index=True).copy()
-all_data = pd.concat([train_set, test_set], ignore_index=True).copy()
 
 #######################################################################################################################
 # Baseline Model - No Rejection // Experiment 0
 experiment_id += 1
-experiment_names = {}
 experiment_name = "No Rejector - Baseline Model"
 experiment_names.update({experiment_id: f"{experiment_name}"})
 

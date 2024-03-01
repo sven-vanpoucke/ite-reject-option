@@ -58,6 +58,8 @@ def onelinegraph(x, x_label, y, y_label, color, title, folder):
     plt.savefig(folder)
     plt.close()
     plt.cla()
+    print(f"oneline Graph saved as {folder}")
+
 
 def twolinegraph(x, x_label, y, y_label, color, y2, y2_label, color2, title, folder):
     # Graph with reject rate and RMSE of Accepted Samples
@@ -69,6 +71,7 @@ def twolinegraph(x, x_label, y, y_label, color, y2, y2_label, color2, title, fol
     plt.savefig(folder)
     plt.close()
     plt.cla()
+    print(f"twoline Graph saved as {folder}")
 
 def f(type, contamination, t_x, ut_x, t_data, ut_data, detail_factor, model_name, all_data):
     contamination /= (100 * detail_factor)  # max of 0.5
