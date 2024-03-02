@@ -70,10 +70,11 @@ def twolinegraph(x, x_label, y, y_label, color, y2, y2_label, color2, title, fol
     plt.close()
     plt.cla()
 
-def histogram(values, xlabel, ylabel, title, folder):
+def histogram(values, xlabel, ylabel, title, folder, lowest_rejected_value):
     plt.hist(values)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
+    plt.axvline(lowest_rejected_value, color='red', linestyle='dashed', linewidth=2, label='Lowest R')
     plt.title(title)
     plt.savefig(folder)
     plt.close()
@@ -285,9 +286,6 @@ def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, f
     onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
     onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
     
-    if type_nr == 2 or type_nr == 3:
-        filtered_data = all_data[all_data['amount_of_times_rejected'] != 0]
-        histogram(filtered_data['amount_of_times_rejected'], 'Amount of Times Rejected', 'frequency', 'Histogram of Amount of Times Rejected', f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_histogram.png")
 
     # optimal model 
     min_rmse = min(rmse_accepted)  # Find the minimum
@@ -302,7 +300,6 @@ def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, f
         all_data['ood'] = pd.Series(optimal_model.predict(x), name='ood')
         all_data['y_reject'] = all_data.apply(lambda row: True if row['ood'] == -1 else False, axis=1)
         all_data['ite_reject'] = all_data.apply(lambda row: "R" if row['y_reject'] else row['ite_pred'], axis=1)
-        print(f"Type number {type_nr}, experiment: {experiment_id} Optimal RR: {optimal_reject_rate}")
 
     elif type_nr==2 or type_nr==3:
         num_to_set = int(optimal_reject_rate * len(all_data)) # example: 60/100 = 0.6 * length of the data
@@ -310,11 +307,18 @@ def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, f
         all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
         # all_data = all_data.sort_values(by='amount_of_times_rejected', ascending=False).copy()
         all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
-        print(f"Type number {type_nr}, experiment: {experiment_id} Optimal RR: {optimal_reject_rate}; Optimal RMSE: {min_rmse}")
-        print(all_data.head(2))
+
+        lowest_rejected_value = all_data.loc[all_data['ite_reject'] == 'R', 'amount_of_times_rejected'].iloc[-1]
+        count_lowest_rejected_value = len(all_data[all_data['amount_of_times_rejected'] == lowest_rejected_value])
+
+        filtered_data = all_data[all_data['amount_of_times_rejected'] != 0]
+
+        histogram(filtered_data['amount_of_times_rejected'], 'Amount of Times Rejected', 'frequency', 'Histogram of Amount of Times Rejected', f"{folder_path}histogram/{dataset}_{experiment_id}_{abbreviation}_histogram.png", lowest_rejected_value)
+
+        
+
     
     metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, {}, append_metrics_results=False, print=False)
-    print(f"Calculated RR {metrics_dict['Rejection Rate']}, RMSE: {metrics_dict['RMSE']}")
 
     metrics_dict['2/ Optimal RR (%)'] = round(optimal_reject_rate, 4)*100
 
@@ -329,6 +333,9 @@ def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, f
     mistake_from_perfect = sum(mistake_from_perfect_column)
     metrics_dict['2/ Mistake from Perfect'] = round(mistake_from_perfect, 4)
     
+    if type_nr == 2 or type_nr ==3:
+        metrics_dict['3/ Optimal Amount of times Rejected'] = lowest_rejected_value
+        metrics_dict['3/ Count of this Optimal'] = count_lowest_rejected_value
     if type_nr == 0:
         return rmse_accepted, metrics_dict
     else:
