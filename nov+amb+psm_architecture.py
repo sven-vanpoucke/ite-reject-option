@@ -115,6 +115,7 @@ x = pd.concat([train_x, test_x], ignore_index=True).copy()
 t = pd.concat([train_t, test_t], ignore_index=True).copy()
 y = pd.concat([train_y, test_y], ignore_index=True).copy()
 ite = pd.concat([train_ite, test_ite], ignore_index=True).copy()
+potential_y = pd.concat([train_potential_y, test_potential_y], ignore_index=True).copy()
 
 # Chapter 3: Training of the ITE Model
 
@@ -126,25 +127,23 @@ treated_model, control_model = predictor_t_model(treated_x, treated_y, control_x
 ## Training and Testing predictions to evaluate individual models
 train_treated_y_pred, train_treated_y_prob, train_control_y_pred, train_control_y_prob = predictor_train_predictions(train_treated_model, train_control_model, train_treated_x, train_control_x)
 test_treated_y_pred, test_treated_y_prob, test_control_y_pred, test_control_y_prob = predictor_test_predictions(train_treated_model, train_control_model, test_treated_x, test_control_x)
+treated_y_pred, treated_y_prob, control_y_pred, control_y_prob = predictor_train_predictions(treated_model, control_model, treated_x, control_x)
+
 ## Testing Predictions to evaluate ITE
 train_y_t1_pred, train_y_t0_pred, train_y_t1_prob, train_y_t0_prob, train_ite_prob, train_ite_pred = predictor_ite_predictions(train_treated_model, train_control_model, train_x)
 test_y_t1_pred, test_y_t0_pred, test_y_t1_prob, test_y_t0_prob, test_ite_prob, test_ite_pred = predictor_ite_predictions(train_treated_model, train_control_model, test_x)
-
-
-# Chapter 4: Predictions based on T learner trained on all data
-## Training and Testing predictions to evaluate individual models
-treated_y_pred, treated_y_prob, control_y_pred, control_y_prob = predictor_train_predictions(treated_model, control_model, treated_x, control_x)
-## Testing Predictions to evaluate ITE
 y_t1_pred, y_t0_pred, y_t1_prob, y_t0_prob, ite_prob, ite_pred = predictor_ite_predictions(treated_model, control_model, x)
 
 ## Merge the different dataframes
 if train_treated_y_prob is not None and not train_treated_y_prob.isna().all():
     test_set = pd.concat([test_t, test_y_t1_pred, test_y_t1_prob, test_y_t0_pred, test_y_t0_prob, test_ite_pred, test_ite_prob, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
     train_set = pd.concat([test_t, train_y_t1_pred, train_y_t1_prob, train_y_t0_pred, train_y_t0_prob, train_ite_pred, train_ite_prob, train_potential_y["y_t0"], train_potential_y["y_t1"], train_ite], axis=1)
+    set = pd.concat([t, y_t1_pred, y_t1_prob, y_t0_pred, y_t0_prob, ite_pred, ite_prob, potential_y["y_t0"], potential_y["y_t1"], ite], axis=1)
 else:
     test_set = pd.concat([test_t, test_y_t1_pred, test_y_t0_pred, test_ite_pred, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
     train_set = pd.concat([test_t, train_y_t1_pred, train_y_t0_pred, train_ite_pred, train_potential_y["y_t0"], train_potential_y["y_t1"], train_ite], axis=1)
-
+    set = pd.concat([t, y_t1_pred, y_t0_pred, ite_pred, potential_y["y_t0"], potential_y["y_t1"], ite], axis=1)
+    
 ## Make TWINS (binary) to TWINSC (continuous)
 if dataset == "TWINSC":
     # Delete columns y_t1_pred and y_t0_pred, ite_pred
@@ -152,10 +151,11 @@ if dataset == "TWINSC":
     # Rename columns y_t1_prob, y_t0_prob, ite_prob to y_t1_pred, y_t0_pred, ite_pred
     test_set = test_set.rename(columns={'y_t1_prob': 'y_t1_pred', 'y_t0_prob': 'y_t0_pred', 'ite_prob': 'ite_pred'})
 
-    # Delete columns y_t1_pred and y_t0_pred, ite_pred
     train_set = train_set.drop(['y_t1_pred', 'y_t0_pred', 'ite_pred'], axis=1)
-    # Rename columns y_t1_prob, y_t0_prob, ite_prob to y_t1_pred, y_t0_pred, ite_pred
     train_set = train_set.rename(columns={'y_t1_prob': 'y_t1_pred', 'y_t0_prob': 'y_t0_pred', 'ite_prob': 'ite_pred'})
+
+    set = set.drop(['y_t1_pred', 'y_t0_pred', 'ite_pred'], axis=1)
+    set = set.rename(columns={'y_t1_prob': 'y_t1_pred', 'y_t0_prob': 'y_t0_pred', 'ite_prob': 'ite_pred'})
 
 # Chapter 6: Evaluate overall ITE Model: Costs
 ## Apply the categorization function to create the 'Category' column
@@ -172,24 +172,6 @@ with open(file_path, 'a') as file:
     file.write(f"\nCHAPTER 7: REJECTION \n\n")
     file.write("# This section executes and reports metrics for ITE models with rejection.\n")
 
-## Merge the test_set with the train_set !!
-x = pd.concat([train_x, test_x], ignore_index=True).copy()
-all_data = pd.concat([train_set, test_set], ignore_index=True).copy()
-
-#######################################################################################################################
-# Baseline Model - No Rejection // Experiment 0
-experiment_id = 0
-experiment_names = {}
-experiment_name = "No Rejector - Baseline Model"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-
-# Step 4 Apply rejector to the code
-all_data['ite_reject'] = all_data.apply(lambda row: row['ite_pred'], axis=1)
-
-# Step 5 Calculate the performance metrics
-metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=False, print=False)
-metrics_results[experiment_id] = metrics_dict
-
 #######################################################################################################################
 # Architecture Type = Separated
 architecture="Separated Architecture"
@@ -199,90 +181,184 @@ if x_scaling:
     x = pd.DataFrame(scaler.fit_transform(x), columns=x.columns)
 
 #######################################################################################################################
-# Perfect rejection
+# Rejection
+
+# No Rejection
+experiment_id = 0
+experiment_names = {}
+experiment_name = "No Rejector - Baseline Model"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+
+all_data = pd.concat([train_set, test_set], ignore_index=True).copy()
+all_data['ite_reject'] = all_data.apply(lambda row: row['ite_pred'], axis=1)
+
+# Step 5 Calculate the performance metrics
+metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=False, print=False)
+metrics_results[experiment_id] = metrics_dict
+
+# Type 0
 experiment_id += 1
 experiment_name =  "Perfect Rejection"
 abbreviation = "Perfect"
 experiment_names.update({experiment_id: f"{experiment_name}"})
+# all_data['se'] = (all_data['ite'] - all_data['ite_pred']) ** 2
+# rmse_accepted_perfect, metrics_results[experiment_id] = novelty_rejection(0, max_rr, detail_factor, IsolationForest, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation)
+# loop over all possible RR
+reject_rates = []
+rmse_accepted = []
+rmse_rejected = []
+change_rmse = []
 
 all_data['se'] = (all_data['ite'] - all_data['ite_pred']) ** 2
+all_data = all_data.sort_values(by='se', ascending=False).copy()
+all_data = all_data.reset_index(drop=True)
 
-rmse_accepted_perfect, metrics_results[experiment_id] = novelty_rejection(0, max_rr, detail_factor, IsolationForest, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation)
+for rr in range(1, max_rr*detail_factor):
+    num_to_set = int(rr / (100.0*detail_factor) * len(all_data)) # example: 60/100 = 0.6 * length of the data
+
+    all_data['ite_reject'] = all_data['ite_pred']
+    all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
+    all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
+
+    metrics_result = calculate_performance_metrics('ite', 'ite_reject', all_data, file_path)
+
+    if metrics_result:
+        reject_rates.append(metrics_result.get('Rejection Rate', None))
+        rmse_accepted.append(metrics_result.get('RMSE', None))
+        rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
+        print(f"RR: {rr / (100*detail_factor) }, RR: {metrics_result['Rejection Rate']}")
+    else:
+        reject_rates.append(None)
+        rmse_accepted.append(None)
+        rmse_rejected.append(None)
+
+rmse_accepted_perfect = rmse_accepted
+rmse_rejected_perfect = rmse_rejected
+rr_perfect = reject_rates
+
+# Graph with reject rate and rmse_accepted & rmse_rejected
+twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse.png")
+onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
+onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
+
+# optimal model
+min_rmse = min(rmse_accepted)  # Find the minimum
+min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
+optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
+
+all_data['ite_reject'] = all_data['ite_pred']
+all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
+all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
+
+metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=False, print=False)
+metrics_results[experiment_id] = metrics_dict
+
+# Type 1
+for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor], ["IF", "OCSVM", "LOF"]):
+    experiment_id += 1
+    experiment_names[experiment_id] = f"Rejection based on {model.__name__} (train data) - Novelty Type I"
+    metrics_results[experiment_id] = novelty_rejection(1, max_rr, detail_factor, model, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+
+# Type 1
+for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor], ["IF", "OCSVM", "LOF"]):
+    experiment_id += 1
+    experiment_names[experiment_id] = f"Rejection based on {model.__name__} (train data) - Novelty Type II"
+    metrics_results[experiment_id] = novelty_rejection(2, max_rr, detail_factor, model, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+
+# Type 3
+for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor], ["IF", "OCSVM", "LOF"]):
+    experiment_id += 1
+    experiment_names[experiment_id] = f"Rejection based on {model.__name__} (train data) - Novelty Type III"
+    metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, model, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
 
 #######################################################################################################################
-## Type 1
-# Rejection based on Isolation Forest
-experiment_id += 1
-experiment_name =  "Rejection based on IsolationForest - novelty of instance to all data"
-abbreviation = "IF"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(1, max_rr, detail_factor, IsolationForest, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+# T-Learner trained on All Data
+#######################################################################################################################
 
-# Rejection based on OCSVM
+# No Rejection
 experiment_id += 1
-experiment_name =  "Rejection based on OCSVM - novelty of instance to all data"
-abbreviation = "OCSVM"
+experiment_name = "No Rejector - Baseline Model"
 experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(1, max_rr, detail_factor, OneClassSVM, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
 
-# Rejection based on LocalOutlierFactor
-experiment_id += 1
-experiment_name =  "Rejection based on LocalOutlierFactor - novelty of instance to all data"
-abbreviation = "LOF"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(1, max_rr, detail_factor, LocalOutlierFactor, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+set['ite_reject'] = set.apply(lambda row: row['ite_pred'], axis=1)
+# Step 5 Calculate the performance metrics
+metrics_dict = calculate_all_metrics('ite', 'ite_reject', set, file_path, metrics_results, append_metrics_results=False, print=False)
+metrics_results[experiment_id] = metrics_dict
+
+# Type 0 - Perfect
+# loop over all possible RR
+reject_rates = []
+rmse_accepted = []
+rmse_rejected = []
+change_rmse = []
+
+set['se'] = (set['ite'] - set['ite_pred']) ** 2
+set = set.sort_values(by='se', ascending=False).copy()
+set = set.reset_index(drop=True)
+
+for rr in range(1, max_rr*detail_factor):
+    num_to_set = int(rr / (100.0*detail_factor) * len(set)) # example: 60/100 = 0.6 * length of the data
+
+    set['ite_reject'] = set['ite_pred']
+    set['ite_reject'] = set['ite_reject'].astype(object)  # Change dtype of entire column
+    set.loc[:num_to_set -1, 'ite_reject'] = 'R'
+
+    metrics_result = calculate_performance_metrics('ite', 'ite_reject', set, file_path)
+
+    if metrics_result:
+        reject_rates.append(metrics_result.get('Rejection Rate', None))
+        rmse_accepted.append(metrics_result.get('RMSE', None))
+        rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
+        print(f"RR: {rr / (100*detail_factor) }, RR: {metrics_result['Rejection Rate']}")
+    else:
+        reject_rates.append(None)
+        rmse_accepted.append(None)
+        rmse_rejected.append(None)
+
+rmse_accepted_perfect = rmse_accepted
+rmse_rejected_perfect = rmse_rejected
+rr_perfect = reject_rates
+
+# Graph with reject rate and rmse_accepted & rmse_rejected
+twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse.png")
+onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
+onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
+
+# Optimal Model
+min_rmse = min(rmse_accepted)  # Find the minimum
+min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
+optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
+
+set['ite_reject'] = set['ite_pred']
+set['ite_reject'] = set['ite_reject'].astype(object)  # Change dtype of entire column
+set.loc[:num_to_set -1, 'ite_reject'] = 'R'
+
+metrics_dict = calculate_all_metrics('ite', 'ite_reject', set, file_path, metrics_results, append_metrics_results=False, print=False)
+metrics_results[experiment_id] = metrics_dict
+
+# Type 1
+for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor], ["IF", "OCSVM", "LOF"]):
+    experiment_id += 1
+    experiment_names[experiment_id] = f"Rejection based on {model.__name__} (T-Learner trained on all data) - Novelty Type I"
+    metrics_results[experiment_id] = novelty_rejection(1, max_rr, detail_factor, model, x, set, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+
+# Type 1
+for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor], ["IF", "OCSVM", "LOF"]):
+    experiment_id += 1
+    experiment_names[experiment_id] = f"Rejection based on {model.__name__} (T-Learner trained on all data) - Novelty Type II"
+    metrics_results[experiment_id] = novelty_rejection(2, max_rr, detail_factor, model, x, set, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+
+# Type 3
+for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor], ["IF", "OCSVM", "LOF"]):
+    experiment_id += 1
+    experiment_names[experiment_id] = f"Rejection based on {model.__name__} (T-Learner trained on all data) - Novelty Type III"
+    metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, model, x, set, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
 
 #######################################################################################################################
-## Type 2
-# Rejection based on Isolation Forest (comparing T to UT and UT to T)
-experiment_id += 1
-experiment_name =  "Rejection based on IsolationForest - novelty of T (UT) instance to UT (T) instance"
-abbreviation = "IF"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(2, max_rr, detail_factor, IsolationForest, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
 
-# Rejection based on OSCVM (comparing T to UT and UT to T)
-experiment_id += 1
-experiment_name =  "Rejection based on OSCVM - novelty of T (UT) instance to UT (T) instance"
-abbreviation = "OCSVM"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(2, max_rr, detail_factor, OneClassSVM, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
-
-# Rejection based on LocalOutlierFactor (comparing T to UT and UT to T)
-experiment_id += 1
-experiment_name =  "Rejection based on LocalOutlierFactor - novelty of T (UT) instance to UT (T) instance"
-abbreviation = "LOF"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(2, max_rr, detail_factor, LocalOutlierFactor, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
-
-#######################################################################################################################
-## Type 3
-# Rejection based on Isolation Forest (comparing T to T&UT + comparint UT to T&UT)
-experiment_id += 1
-experiment_name =  "Rejection based on IsolationForest - novelty of T (UT) instance to UT (T) instance"
-abbreviation = "IF"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, IsolationForest, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
-
-# Rejection based on OSCVM (comparing T to T&UT + comparint UT to T&UT)
-experiment_id += 1
-experiment_name =  "Rejection based on OSCVM - novelty of T (UT) instance to UT (T) instance"
-abbreviation = "OCSVM"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, OneClassSVM, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
-
-# Rejection based on LocalOutlierFactor (comparing T to T&UT + comparint UT to T&UT)
-experiment_id += 1
-experiment_name =  "Rejection based on LocalOutlierFactor - novelty of T (UT) instance to UT (T) instance"
-abbreviation = "LOF"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, LocalOutlierFactor, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
-
-# #######################################################################################################################
 # #######################################################################################################################
 # #######################################################################################################################
 # Ambiguity
-# #######################################################################################################################
 # #######################################################################################################################
 # #######################################################################################################################
 
@@ -330,11 +406,6 @@ metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, Loc
 # #######################################################################################################################
 # #######################################################################################################################
 
-## Editing of the data
-test_ite = pd.DataFrame({'ite': test_potential_y["y_t1"] - test_potential_y["y_t0"]})
-train_ite = pd.DataFrame({'ite': train_potential_y["y_t1"] - train_potential_y["y_t0"]})
-train_treated_x, train_control_x, train_treated_y, train_control_y, test_treated_x, test_control_x, test_treated_y, test_control_y = preprocessing_split_t_c_data(train_x, train_y, train_t, test_x, test_y, test_t)
-
 # Calculate propensity scores for training data
 train_propensity_scores = calculate_propensity_scores(train_x, train_t)
 test_propensity_scores = calculate_propensity_scores(test_x, test_t)
@@ -368,11 +439,11 @@ test_y_t1_pred, test_y_t0_pred, test_y_t1_prob, test_y_t0_prob, test_ite_prob, t
 
 ## Merge the different dataframes
 if train_treated_y_prob is not None and not train_treated_y_prob.isna().all():
-    test_set = pd.concat([test_t, test_y_t1_pred, test_y_t1_prob, test_y_t0_pred, test_y_t0_prob, test_ite_pred, test_ite_prob, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
-    train_set = pd.concat([test_t, train_y_t1_pred, train_y_t1_prob, train_y_t0_pred, train_y_t0_prob, train_ite_pred, train_ite_prob, train_potential_y["y_t0"], train_potential_y["y_t1"], train_ite], axis=1)
+    test_set = pd.concat([test_t, test_y_t1_pred, test_y_t1_prob, test_y_t0_pred, test_y_t0_prob, test_ite_pred, test_ite_prob, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1).copy()
+    train_set = pd.concat([test_t, train_y_t1_pred, train_y_t1_prob, train_y_t0_pred, train_y_t0_prob, train_ite_pred, train_ite_prob, train_potential_y["y_t0"], train_potential_y["y_t1"], train_ite], axis=1).copy()
 else:
-    test_set = pd.concat([test_t, test_y_t1_pred, test_y_t0_pred, test_ite_pred, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
-    train_set = pd.concat([test_t, train_y_t1_pred, train_y_t0_pred, train_ite_pred, train_potential_y["y_t0"], train_potential_y["y_t1"], train_ite], axis=1)
+    test_set = pd.concat([test_t, test_y_t1_pred, test_y_t0_pred, test_ite_pred, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1).copy()
+    train_set = pd.concat([test_t, train_y_t1_pred, train_y_t0_pred, train_ite_pred, train_potential_y["y_t0"], train_potential_y["y_t1"], train_ite], axis=1).copy()
 
 ## Make TWINS (binary) to TWINSC (continuous)
 if dataset == "TWINSC":
@@ -400,11 +471,10 @@ with open(file_path, 'a') as file:
     file.write(f"\nCHAPTER 7: REJECTION \n\n")
     file.write("# This section executes and reports metrics for ITE models with rejection.\n")
 
-
 #######################################################################################################################
 # Baseline Model - No Rejection // Experiment 0
 experiment_id += 1
-experiment_name = "No Rejector - Baseline Model"
+experiment_name = "No Rejector - Baseline Model (PSM)"
 experiment_names.update({experiment_id: f"{experiment_name}"})
 
 # Step 4 Apply rejector to the code
@@ -423,12 +493,9 @@ if x_scaling:
     x = pd.DataFrame(scaler.fit_transform(x), columns=x.columns)
 
 #######################################################################################################################
-# Perfect rejection
-experiment_id += 1
-experiment_name =  "Perfect Rejection"
-abbreviation = "Perfect"
-experiment_names.update({experiment_id: f"{experiment_name}"})
+# rejection
 
+# Type 0
 # loop over all possible RR
 reject_rates = []
 rmse_accepted = []
@@ -458,27 +525,16 @@ for rr in range(1, max_rr*detail_factor):
         rmse_accepted.append(None)
         rmse_rejected.append(None)
 
-# Specify the file path
-output_file = "output/perfect_rejection.csv"
-
 rmse_accepted_perfect = rmse_accepted
 rmse_rejected_perfect = rmse_rejected
 rr_perfect = reject_rates
-# Combine the reject_rates and change_rmse lists into a single list of tuples
-data = list(zip(reject_rates, change_rmse))
-
-# Write the data to the file
-with open(output_file, "w", newline="") as file:
-    writer = csv.writer(file)
-    writer.writerow(["Reject Rate", "Change of RMSE (%)"])  # Write the header
-    writer.writerows(data)  # Write the data rows
 
 # Graph with reject rate and rmse_accepted & rmse_rejected
 twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse.png")
 onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
 onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
 
-# optimal model
+# Optimal Model
 min_rmse = min(rmse_accepted)  # Find the minimum
 min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
 optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
@@ -490,77 +546,23 @@ all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
 metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=False, print=False)
 metrics_results[experiment_id] = metrics_dict
 
-#######################################################################################################################
-## Type 1
-# Rejection based on Isolation Forest
-experiment_id += 1
-experiment_name =  "Rejection based on IsolationForest - novelty of instance to all data"
-abbreviation = "IF"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(1, max_rr, detail_factor, IsolationForest, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+# Type 1
+for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor], ["IF", "OCSVM", "LOF"]):
+    experiment_id += 1
+    experiment_names[experiment_id] = f"Rejection based on {model.__name__} - Novelty Type I"
+    metrics_results[experiment_id] = novelty_rejection(1, max_rr, detail_factor, model, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
 
-# Rejection based on OCSVM
-experiment_id += 1
-experiment_name =  "Rejection based on OCSVM - novelty of instance to all data"
-abbreviation = "OCSVM"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(1, max_rr, detail_factor, OneClassSVM, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+# Type 1
+for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor], ["IF", "OCSVM", "LOF"]):
+    experiment_id += 1
+    experiment_names[experiment_id] = f"Rejection based on {model.__name__} - Novelty Type II"
+    metrics_results[experiment_id] = novelty_rejection(2, max_rr, detail_factor, model, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
 
-# Rejection based on LocalOutlierFactor
-experiment_id += 1
-experiment_name =  "Rejection based on LocalOutlierFactor - novelty of instance to all data"
-abbreviation = "LOF"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(1, max_rr, detail_factor, LocalOutlierFactor, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
-
-#######################################################################################################################
-## Type 2
-# Rejection based on Isolation Forest (comparing T to UT and UT to T)
-experiment_id += 1
-experiment_name =  "Rejection based on IsolationForest - novelty of T (UT) instance to UT (T) instance"
-abbreviation = "IF"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(2, max_rr, detail_factor, IsolationForest, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
-
-# Rejection based on OSCVM (comparing T to UT and UT to T)
-experiment_id += 1
-experiment_name =  "Rejection based on OSCVM - novelty of T (UT) instance to UT (T) instance"
-abbreviation = "OCSVM"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(2, max_rr, detail_factor, OneClassSVM, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
-
-# Rejection based on LocalOutlierFactor (comparing T to UT and UT to T)
-experiment_id += 1
-experiment_name =  "Rejection based on LocalOutlierFactor - novelty of T (UT) instance to UT (T) instance"
-abbreviation = "LOF"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(2, max_rr, detail_factor, LocalOutlierFactor, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
-
-#######################################################################################################################
-## Type 3
-# Rejection based on Isolation Forest (comparing T to T&UT + comparint UT to T&UT)
-experiment_id += 1
-experiment_name =  "Rejection based on IsolationForest - novelty of T (UT) instance to UT (T) instance"
-abbreviation = "IF"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, IsolationForest, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
-
-# Rejection based on OSCVM (comparing T to T&UT + comparint UT to T&UT)
-experiment_id += 1
-experiment_name =  "Rejection based on OSCVM - novelty of T (UT) instance to UT (T) instance"
-abbreviation = "OCSVM"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, OneClassSVM, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
-
-# Rejection based on LocalOutlierFactor (comparing T to T&UT + comparint UT to T&UT)
-experiment_id += 1
-experiment_name =  "Rejection based on LocalOutlierFactor - novelty of T (UT) instance to UT (T) instance"
-abbreviation = "LOF"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, LocalOutlierFactor, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
-
-
-
+# Type 3
+for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor], ["IF", "OCSVM", "LOF"]):
+    experiment_id += 1
+    experiment_names[experiment_id] = f"Rejection based on {model.__name__} - Novelty Type III"
+    metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, model, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
 
 
 # # Chapter 3: Training of the ITE Model
