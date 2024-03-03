@@ -39,7 +39,7 @@ from models.evaluators.evaluator import calculate_performance_metrics
 from models.rejectors.helper import onelinegraph, twolinegraph
 
 # Rejection
-from models.rejectors.helper import novelty_rejection
+from models.rejectors.helper import novelty_rejection, ambiguity_rejection
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import LocalOutlierFactor
@@ -63,6 +63,9 @@ folder_path = 'output/'
 text_folder_path = 'output/text/'
 timestamp, file_name, file_path = helper_output(dataset, folder_path=text_folder_path)
 metrics_results = {}
+experiment_names = {}
+experiment_id = -1
+
 
 # Chapter 2: Preprocessing
 
@@ -103,13 +106,15 @@ test_ite = pd.DataFrame({'ite': test_potential_y["y_t1"] - test_potential_y["y_t
 train_ite = pd.DataFrame({'ite': train_potential_y["y_t1"] - train_potential_y["y_t0"]})
 
 ## Merge test_set & the train_set
-treated_x = pd.concat([train_treated_x, test_treated_x], ignore_index=True).copy()
+treated_x = pd.concat([train_treated_x, test_treated_x], ignore_index=True).copy() # Under each other
 treated_y = pd.concat([train_treated_y, test_treated_y], ignore_index=True).copy()
 control_x = pd.concat([train_control_x, test_control_x], ignore_index=True).copy()
 control_y = pd.concat([train_control_y, test_control_y], ignore_index=True).copy()
 x = pd.concat([train_x, test_x], ignore_index=True).copy()
 t = pd.concat([train_t, test_t], ignore_index=True).copy()
-xt = pd.concat([x, t], axis=1)
+xt = pd.concat([x, t], axis=1).copy() # Left & right from eachother
+train_xt = pd.concat([train_x, train_t], ignore_index=True).copy()
+test_xt = pd.concat([test_x, test_t], ignore_index=True).copy()
 y = pd.concat([train_y, test_y], ignore_index=True).copy()
 y = pd.DataFrame(y)
 ite = pd.concat([train_ite, test_ite], ignore_index=True).copy()
@@ -120,14 +125,17 @@ if x_scaling:
     x = pd.DataFrame(scaler.fit_transform(x), columns=x.columns)
 
 # Chapter 3: Train ITE Model
-
 ## T-learner: train_set
 train_treated_model, train_control_model = predictor_t_model(train_treated_x, train_treated_y, train_control_x, train_control_y, model_class, model_params)
 
-## T-learner: set
+## T-learner: all_set
 treated_model, control_model = predictor_t_model(treated_x, treated_y, control_x, control_y, model_class, model_params)
 
-## RandomForestQuantileRegressor: set
+## RandomForestQuantileRegressor: train_set
+train_forest_model = RandomForestQuantileRegressor()
+train_forest_model.fit(xt, y.squeeze())
+
+## RandomForestQuantileRegressor: all_set
 forest_model = RandomForestQuantileRegressor()
 forest_model.fit(xt, y.squeeze())
 
@@ -144,38 +152,31 @@ test_y_t1_pred, test_y_t0_pred, test_y_t1_prob, test_y_t0_prob, test_ite_prob, t
 treated_y_pred, treated_y_prob, control_y_pred, control_y_prob = predictor_train_predictions(treated_model, control_model, treated_x, control_x)
 y_t1_pred, y_t0_pred, y_t1_prob, y_t0_prob, ite_prob, ite_pred = predictor_ite_predictions(treated_model, control_model, x)
 
-## T-Learner - set
-# Predict using the fitted model
-y_pred = forest_model.predict(xt, quantiles=[0.5])
+## RandomForestQuantileRegressor - train_set
+train_ite_pred = train_forest_model.predict(train_xt, quantiles=[0.5])
+test_ite_pred = train_forest_model.predict(test_xt, quantiles=[0.5])
 
-# Confidence Interval for Ambiguity Rejection
-def confidence_interval(xt, forest_model):
-    y_lower = forest_model.predict(xt, quantiles=[0.025])
-    y_upper = forest_model.predict(xt, quantiles=[0.975])
-
-    y_lower2 = forest_model.predict(xt, quantiles=[0.05])
-    y_upper2 = forest_model.predict(xt, quantiles=[0.95])
-
-    y_lower3 = forest_model.predict(xt, quantiles=[0.10])
-    y_upper3 = forest_model.predict(xt, quantiles=[0.90])
-
-    y_lower4 = forest_model.predict(xt, quantiles=[0.15])
-    y_upper4 = forest_model.predict(xt, quantiles=[0.85])
-
-    size_of_ci = ((y_upper - y_lower) + (y_upper2 - y_lower2) + (y_upper3 - y_lower3) + (y_upper4 - y_lower4)) /4 # confidence interval
-
-    return size_of_ci
+## RandomForestQuantileRegressor - all_set
+ite_pred = forest_model.predict(xt, quantiles=[0.5])
 
 # Chapter 5: Process Data
 ## Merge Outcomes
 if train_treated_y_prob is not None and not train_treated_y_prob.isna().all():
     test_set = pd.concat([test_t, test_y_t1_pred, test_y_t1_prob, test_y_t0_pred, test_y_t0_prob, test_ite_pred, test_ite_prob, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
     train_set = pd.concat([test_t, train_y_t1_pred, train_y_t1_prob, train_y_t0_pred, train_y_t0_prob, train_ite_pred, train_ite_prob, train_potential_y["y_t0"], train_potential_y["y_t1"], train_ite], axis=1)
-    all_set = pd.concat([t, y_t1_pred, y_t1_prob, y_t0_pred, y_t0_prob, ite_pred, ite_prob, potential_y["y_t0"], potential_y["y_t1"], ite], axis=1)
+    all_set = pd.concat([t, y_t1_pred, y_t1_prob, y_t0_pred, y_t0_prob, ite_pred, ite_prob, potential_y["y_t0"], potential_y["y_t1"], ite], axis=1).copy()
+    
+    train_forest_set = pd.concat([train_t, train_ite_pred, train_ite], axis=1).copy()
+    test_forest_set = pd.concat([test_t, test_ite_pred, test_ite], axis=1).copy()
+    forest_set = pd.concat([t, ite_pred, ite], axis=1).copy()
 else:
     test_set = pd.concat([test_t, test_y_t1_pred, test_y_t0_pred, test_ite_pred, test_potential_y["y_t0"], test_potential_y["y_t1"], test_ite], axis=1)
     train_set = pd.concat([test_t, train_y_t1_pred, train_y_t0_pred, train_ite_pred, train_potential_y["y_t0"], train_potential_y["y_t1"], train_ite], axis=1)
-    all_set = pd.concat([t, y_t1_pred, y_t0_pred, ite_pred, potential_y["y_t0"], potential_y["y_t1"], ite], axis=1)
+    all_set = pd.concat([t, y_t1_pred, y_t0_pred, ite_pred, potential_y["y_t0"], potential_y["y_t1"], ite], axis=1).copy()
+    
+    train_forest_set = pd.concat([train_t, train_ite_pred, train_ite], axis=1).copy()
+    test_forest_set = pd.concat([test_t, test_ite_pred, test_ite], axis=1).copy()
+    forest_set = pd.concat([t, ite_pred, ite], axis=1).copy()
 
 ## Make TWINS (binary) to TWINSC (continuous)
 if dataset == "TWINSC":
@@ -192,6 +193,7 @@ if dataset == "TWINSC":
 
 ## Merge train & test
 all_data = pd.concat([train_set, test_set], ignore_index=True).copy()
+forest_all_data = pd.concat([train_forest_set, test_forest_set], ignore_index=True).copy()
 
 # Chapter 6: Costs Performance
 test_set['category'] = test_set.apply(categorize, axis=1, is_pred=False)
@@ -210,12 +212,10 @@ with open(file_path, 'a') as file:
 #######################################################################################################################
 # Rejection Architecture
 architecture="Separated Architecture"
-experiment_id = -1
 
 #######################################################################################################################
 # No Rejection
 experiment_id += 1
-experiment_names = {}
 experiment_name = "No Rejector - Baseline Model"
 experiment_names.update({experiment_id: f"{experiment_name}"})
 
@@ -306,11 +306,9 @@ for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor
 
 # No Rejection
 experiment_id += 1
-experiment_names = {}
 experiment_name = "No Rejector - Baseline Model"
 experiment_names.update({experiment_id: f"{experiment_name}"})
 
-all_set = pd.concat([train_set, test_set], ignore_index=True).copy()
 all_set['ite_reject'] = all_set.apply(lambda row: row['ite_pred'], axis=1)
 
 # Step 5 Calculate the performance metrics
@@ -399,9 +397,192 @@ for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor
 # #######################################################################################################################
 
 
+# Confidence Interval for Ambiguity Rejection
+def confidence_interval(xt, forest_model):
+    y_lower = forest_model.predict(xt, quantiles=[0.025])
+    y_upper = forest_model.predict(xt, quantiles=[0.975])
+
+    y_lower2 = forest_model.predict(xt, quantiles=[0.05])
+    y_upper2 = forest_model.predict(xt, quantiles=[0.95])
+
+    y_lower3 = forest_model.predict(xt, quantiles=[0.10])
+    y_upper3 = forest_model.predict(xt, quantiles=[0.90])
+
+    y_lower4 = forest_model.predict(xt, quantiles=[0.15])
+    y_upper4 = forest_model.predict(xt, quantiles=[0.85])
+
+    size_of_ci = ((y_upper - y_lower) + (y_upper2 - y_lower2) + (y_upper3 - y_lower3) + (y_upper4 - y_lower4)) /4 # confidence interval
+
+    return size_of_ci
+
+
+#######################################################################################################################
+# Regression Forest
+# quantile-forest (https://pypi.org/project/quantile-forest/): 
+# This package offers a different approach. Instead of directly calculating confidence intervals, 
+# it provides a RandomForestQuantileRegressor class that allows you to specify quantiles during training. 
+# This enables you to directly estimate the desired quantiles (e.g., 2.5% and 97.5% for a 95% confidence interval) 
+# and build your intervals based on those estimates.
+
+#######################################################################################################################
+
+# No Rejection
+experiment_id += 1
+experiment_name = "No Regression - Rejection based on Regression Forest (C.I.)"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+
+forest_set['ite_reject'] = forest_set.apply(lambda row: row['ite_pred'], axis=1)
+
+# Step 5 Calculate the performance metrics
+metrics_dict = calculate_all_metrics('ite', 'ite_reject', forest_set, file_path, metrics_results, append_metrics_results=False, print=False)
+metrics_results[experiment_id] = metrics_dict
+
+# Type 0
+experiment_id += 1
+experiment_name =  "Perfect Rejection"
+abbreviation = "Perfect"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+# forest_set['se'] = (forest_set['ite'] - forest_set['ite_pred']) ** 2
+# rmse_accepted_perfect, metrics_results[experiment_id] = novelty_rejection(0, max_rr, detail_factor, IsolationForest, x, forest_set, file_path, experiment_id, dataset, folder_path, abbreviation)
+# loop over all possible RR
+
+reject_rates = []
+rmse_accepted = []
+rmse_rejected = []
+change_rmse = []
+
+forest_set['se'] = (forest_set['ite'] - forest_set['ite_pred']) ** 2
+forest_set = forest_set.sort_values(by='se', ascending=False).copy()
+forest_set = forest_set.reset_index(drop=True)
+
+for rr in range(1, max_rr*detail_factor):
+    num_to_set = int(rr / (100.0*detail_factor) * len(forest_set)) # example: 60/100 = 0.6 * length of the data
+
+    forest_set['ite_reject'] = forest_set['ite_pred']
+    forest_set['ite_reject'] = forest_set['ite_reject'].astype(object)  # Change dtype of entire column
+    forest_set.loc[:num_to_set -1, 'ite_reject'] = 'R'
+
+    metrics_result = calculate_performance_metrics('ite', 'ite_reject', forest_set, file_path)
+
+    if metrics_result:
+        reject_rates.append(metrics_result.get('Rejection Rate', None))
+        rmse_accepted.append(metrics_result.get('RMSE', None))
+        rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
+    else:
+        reject_rates.append(None)
+        rmse_accepted.append(None)
+        rmse_rejected.append(None)
+
+rmse_accepted_perfect = rmse_accepted
+rmse_rejected_perfect = rmse_rejected
+rr_perfect = reject_rates
+
+# Graph with reject rate and rmse_accepted & rmse_rejected
+twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse.png")
+onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
+onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
+
+# optimal model
+min_rmse = min(rmse_accepted)  # Find the minimum
+min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
+optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
+
+forest_set['ite_reject'] = forest_set['ite_pred']
+forest_set['ite_reject'] = forest_set['ite_reject'].astype(object)  # Change dtype of entire column
+forest_set.loc[:num_to_set -1, 'ite_reject'] = 'R'
+
+metrics_dict = calculate_all_metrics('ite', 'ite_reject', forest_set, file_path, metrics_results, append_metrics_results=False, print=False)
+metrics_results[experiment_id] = metrics_dict
+
+# Type 1
+experiment_id += 1
+model = "RandomForestQuantileRegressor"
+abbreviation = "RFQR"
+experiment_names[experiment_id] = f"Rejection based on RandomForestQuantileRegressor - Ambiguity Type I"
+metrics_results[experiment_id] = ambiguity_rejection(1, max_rr, detail_factor, model, x, forest_set, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+
+# #######################################################################################################################
+
+# No Rejection
+experiment_id += 1
+experiment_name = "No Regression (Trained DATA) - Rejection based on Regression Forest (C.I.)"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+
+forest_set['ite_reject'] = forest_set.apply(lambda row: row['ite_pred'], axis=1)
+
+# Step 5 Calculate the performance metrics
+metrics_dict = calculate_all_metrics('ite', 'ite_reject', forest_set, file_path, metrics_results, append_metrics_results=False, print=False)
+metrics_results[experiment_id] = metrics_dict
+
+# Type 0
+experiment_id += 1
+experiment_name =  "Perfect Rejection"
+abbreviation = "Perfect"
+experiment_names.update({experiment_id: f"{experiment_name}"})
+# forest_all_data['se'] = (forest_all_data['ite'] - forest_all_data['ite_pred']) ** 2
+# rmse_accepted_perfect, metrics_results[experiment_id] = novelty_rejection(0, max_rr, detail_factor, IsolationForest, x, forest_all_data, file_path, experiment_id, dataset, folder_path, abbreviation)
+# loop over all possible RR
+
+reject_rates = []
+rmse_accepted = []
+rmse_rejected = []
+change_rmse = []
+
+forest_all_data['se'] = (forest_all_data['ite'] - forest_all_data['ite_pred']) ** 2
+forest_all_data = forest_all_data.sort_values(by='se', ascending=False).copy()
+forest_all_data = forest_all_data.reset_index(drop=True)
+
+for rr in range(1, max_rr*detail_factor):
+    num_to_set = int(rr / (100.0*detail_factor) * len(forest_all_data)) # example: 60/100 = 0.6 * length of the data
+
+    forest_all_data['ite_reject'] = forest_all_data['ite_pred']
+    forest_all_data['ite_reject'] = forest_all_data['ite_reject'].astype(object)  # Change dtype of entire column
+    forest_all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
+
+    metrics_result = calculate_performance_metrics('ite', 'ite_reject', forest_all_data, file_path)
+
+    if metrics_result:
+        reject_rates.append(metrics_result.get('Rejection Rate', None))
+        rmse_accepted.append(metrics_result.get('RMSE', None))
+        rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
+    else:
+        reject_rates.append(None)
+        rmse_accepted.append(None)
+        rmse_rejected.append(None)
+
+rmse_accepted_perfect = rmse_accepted
+rmse_rejected_perfect = rmse_rejected
+rr_perfect = reject_rates
+
+# Graph with reject rate and rmse_accepted & rmse_rejected
+twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse.png")
+onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
+onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
+
+# optimal model
+min_rmse = min(rmse_accepted)  # Find the minimum
+min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
+optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
+
+forest_all_data['ite_reject'] = forest_all_data['ite_pred']
+forest_all_data['ite_reject'] = forest_all_data['ite_reject'].astype(object)  # Change dtype of entire column
+forest_all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
+
+metrics_dict = calculate_all_metrics('ite', 'ite_reject', forest_all_data, file_path, metrics_results, append_metrics_results=False, print=False)
+metrics_results[experiment_id] = metrics_dict
+
+# Type 1
+experiment_id += 1
+model = "RandomForestQuantileRegressor"
+abbreviation = "RFQR"
+experiment_names[experiment_id] = f"Rejection based on RandomForestQuantileRegressor - Ambiguity Type I"
+metrics_results[experiment_id] = ambiguity_rejection(1, max_rr, detail_factor, model, x, forest_all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+
+# #######################################################################################################################
 # # # https://contrib.scikit-learn.org/forest-confidence-interval/index.html
 # # # pip3 install forestci
 # from forestci import random_forest_error
+# #######################################################################################################################
 
 # from sklearn.ensemble import RandomForestRegressor
 # forest = RandomForestRegressor(n_estimators=100)
@@ -410,24 +591,6 @@ for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor
 # # # returns An array with the unbiased sampling variance (V_IJ_unbiased)
 # ci = random_forest_error(forest, train_x, test_x, inbag=None, calibrate=True, memory_constrained=False, memory_limit=None)
 
-# quantile-forest (https://pypi.org/project/quantile-forest/): 
-# This package offers a different approach. Instead of directly calculating confidence intervals, 
-# it provides a RandomForestQuantileRegressor class that allows you to specify quantiles during training. 
-# This enables you to directly estimate the desired quantiles (e.g., 2.5% and 97.5% for a 95% confidence interval) 
-# and build your intervals based on those estimates.
-
-# from quantile_forest import RandomForestQuantileRegressor
-# from sklearn import datasets
-
-# X, y = datasets.fetch_california_housing(return_X_y=True)
-# qrf = RandomForestQuantileRegressor()
-# qrf.fit(X, y)
-# y_pred = qrf.predict(X, quantiles=[0.025, 0.5, 0.975])
-
-
-# forest = RandomForestQuantileRegressor()
-# forest.fit(pd.concat([train_x, train_t]), train_y['observed_outcome'])
-# y_pred = forest.predict(pd.concat([train_x, train_t]), quantiles=[0.025, 0.5, 0.975])
 
 # #######################################################################################################################
 # #######################################################################################################################
