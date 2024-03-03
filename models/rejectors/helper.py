@@ -286,7 +286,6 @@ def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, f
     onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
     onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
     
-
     # optimal model 
     min_rmse = min(rmse_accepted)  # Find the minimum
     min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE

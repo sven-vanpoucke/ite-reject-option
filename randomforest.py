@@ -261,7 +261,6 @@ y_upper4 = forest.predict(xt, quantiles=[0.85])
 
 # all_data['size_of_ci'] = y_upper - y_lower # confidence interval
 
-all_data['size_of_ci'] = ((y_upper - y_lower) + (y_upper2 - y_lower2) + (y_upper3 - y_lower3) + (y_upper4 - y_lower4)) /4 # confidence interval
 
 # Rejection based on Random Forest
 experiment_id += 1
