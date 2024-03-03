@@ -313,9 +313,7 @@ def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, f
 
         filtered_data = all_data[all_data['amount_of_times_rejected'] != 0]
 
-        histogram(filtered_data['amount_of_times_rejected'], 'Amount of Times Rejected', 'frequency', 'Histogram of Amount of Times Rejected', f"{folder_path}histogram/{dataset}_{experiment_id}_{abbreviation}_histogram.png", lowest_rejected_value)
-
-        
+        histogram(filtered_data['amount_of_times_rejected'], 'Novelty Scores', 'Frequency', 'Histogram of Frequency by Novelty Scores', f"{folder_path}histogram/{dataset}_{experiment_id}_{abbreviation}_histogram.png", lowest_rejected_value)
 
     
     metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, {}, append_metrics_results=False, print=False)

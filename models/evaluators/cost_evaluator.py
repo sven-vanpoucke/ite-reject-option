@@ -41,6 +41,22 @@ def categorize(row, is_pred=True):
         return 'Persuadable' # (can be rescued)
     elif y_t0 == 1 and y_t1 == 1:
         return 'Sure Thing'
+    
+
+def categorize_ite(row, is_pred=True):
+    ite = row['y_t0_pred']
+    ite_pred = row['y_t1_pred']
+
+    # In case of a -<ITE<+ 
+    if ite <= 0 and ite_pred <= 0:
+        return 'Lost Cause' # BOTH ITE ARE NEGATIVE
+    elif ite >= 0 and ite_pred >= 0:
+        return 'Sleeping Dog' # ITE IS NEGATIVE; but we predict POSITIVE
+    elif ite == 0 and ite_pred <= 0:
+        return 'Persuadable' # ITE IS POSITIVE; but we predict NEGATIVE
+    elif ite >= 0 and ite_pred >= 0:
+        return 'Sure Thing' # BOTH ITE ARE POSITIVE
+
 
 def define_cost_matrix(cost_correct=0, cost_same_treatment=0, cost_wasted_treatment=5, cost_potential_improvement=30):
     cost_matrix = {

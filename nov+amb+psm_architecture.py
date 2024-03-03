@@ -62,11 +62,6 @@ text_folder_path = 'output/text/'
 timestamp, file_name, file_path = helper_output(dataset, folder_path=text_folder_path)
 metrics_results = {}
 
-### Outdated
-rejection_architecture = 'dependent' # dependent_rejector or separated_rejector
-prob_reject_upper_bound = 0.55
-prob_reject_under_bound = 0.45
-
 # Chapter 2: Preprocessing
 
 ## Output to file
@@ -226,7 +221,6 @@ for rr in range(1, max_rr*detail_factor):
         reject_rates.append(metrics_result.get('Rejection Rate', None))
         rmse_accepted.append(metrics_result.get('RMSE', None))
         rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
-        print(f"RR: {rr / (100*detail_factor) }, RR: {metrics_result['Rejection Rate']}")
     else:
         reject_rates.append(None)
         rmse_accepted.append(None)
@@ -309,7 +303,6 @@ for rr in range(1, max_rr*detail_factor):
         reject_rates.append(metrics_result.get('Rejection Rate', None))
         rmse_accepted.append(metrics_result.get('RMSE', None))
         rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
-        print(f"RR: {rr / (100*detail_factor) }, RR: {metrics_result['Rejection Rate']}")
     else:
         reject_rates.append(None)
         rmse_accepted.append(None)
@@ -354,7 +347,6 @@ for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor
     experiment_names[experiment_id] = f"Rejection based on {model.__name__} (T-Learner trained on all data) - Novelty Type III"
     metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, model, x, set, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
 
-#######################################################################################################################
 
 # #######################################################################################################################
 # #######################################################################################################################
@@ -365,17 +357,14 @@ for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor
 
 # # https://contrib.scikit-learn.org/forest-confidence-interval/index.html
 # # pip3 install forestci
-# from forestci import random_forest_error
+from forestci import random_forest_error
 
-
-# from sklearn.ensemble import RandomForestRegressor
-# forest = RandomForestRegressor(n_estimators=100)
-# forest.fit(pd.concat([train_x, train_t]), train_y)
+from sklearn.ensemble import RandomForestRegressor
+forest = RandomForestRegressor(n_estimators=100)
+forest.fit(pd.concat([train_x, train_t]), train_y)
 
 # # returns An array with the unbiased sampling variance (V_IJ_unbiased)
-# ci = random_forest_error(forest, train_x, test_x, inbag=None, calibrate=True, memory_constrained=False, memory_limit=None)
-
-
+ci = random_forest_error(forest, train_x, test_x, inbag=None, calibrate=True, memory_constrained=False, memory_limit=None)
 
 # quantile-forest (https://pypi.org/project/quantile-forest/): 
 # This package offers a different approach. Instead of directly calculating confidence intervals, 
@@ -519,7 +508,6 @@ for rr in range(1, max_rr*detail_factor):
         reject_rates.append(metrics_result.get('Rejection Rate', None))
         rmse_accepted.append(metrics_result.get('RMSE', None))
         rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
-        print(f"RR: {rr / (100*detail_factor) }, RR: {metrics_result['Rejection Rate']}")
     else:
         reject_rates.append(None)
         rmse_accepted.append(None)
