@@ -273,10 +273,12 @@ def ambiguity_rejection(type_nr, max_rr, detail_factor, model, xt, all_data, fil
         metrics_dict['3/ Optimal Amount of times Rejected'] = lowest_rejected_value
         metrics_dict['3/ Count of this Optimal'] = count_lowest_rejected_value
     
-    return metrics_dict
+    if give_details==True:
+        return metrics_dict, reject_rates, rmse_accepted, rmse_rank_accepted, sign_error_accepted, rmse_rank_weighted_accepted
+    else:
+        return metrics_dict    
     
-    
-def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect=[]):
+def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect=[], give_details=False):
     reject_rates = []
     rmse_accepted = []
     rmse_rejected = []
@@ -288,38 +290,6 @@ def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, f
 
     min_rmse = float('inf')  # Set to positive infinity initially
     optimal_model = None
-
-    if type_nr == 0: # perfect scenario
-        
-        all_data['se'] = (all_data['ite'] - all_data['ite_pred']) ** 2
-        all_data = all_data.sort_values(by='se', ascending=False).copy()
-        all_data = all_data.reset_index(drop=True)
-
-        for rr in range(1, max_rr*detail_factor):
-            num_to_set = int(rr / (100.0*detail_factor) * len(all_data)) # example: 60/100 = 0.6 * length of the data
-
-            all_data['ite_reject'] = all_data['ite_pred']
-            all_data['ite_reject'] = all_data['ite_reject'].astype(object)  # Change dtype of entire column
-            all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
-
-            metrics_result = calculate_performance_metrics('ite', 'ite_reject', all_data, file_path)
-
-            if metrics_result:
-                reject_rates.append(metrics_result.get('Rejection Rate', None))
-                rmse_accepted.append(metrics_result.get('RMSE Accepted', None))
-                rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
-                improvement = ( metrics_result.get('RMSE Accepted', None) - metrics_result.get('RMSE Original', None) ) / metrics_result.get('RMSE Original', None) * 100
-                rmse_improve.append(improvement)
-
-            else:
-                reject_rates.append(None)
-                rmse_accepted.append(None)
-                rmse_rejected.append(None)
-                rmse_improve.append(None)
-
-        rmse_accepted_perfect = rmse_accepted.copy()
-        rmse_rejected_perfect = rmse_rejected
-        rr_perfect = reject_rates
 
     if type_nr == 1:
         for contamination in range(int(1*detail_factor), int(max_rr*detail_factor)):
@@ -481,7 +451,7 @@ def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, f
     if type_nr == 2 or type_nr ==3:
         metrics_dict['3/ Optimal Amount of times Rejected'] = lowest_rejected_value
         metrics_dict['3/ Count of this Optimal'] = count_lowest_rejected_value
-    if type_nr == 0:
-        return rmse_accepted, metrics_dict
+    if give_details==True:
+        return metrics_dict, reject_rates, rmse_accepted, rmse_rank_accepted, sign_error_accepted, rmse_rank_weighted_accepted
     else:
         return metrics_dict

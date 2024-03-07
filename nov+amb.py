@@ -55,7 +55,7 @@ dataset = "IHDP" # Choose out of TWINS or TWINSC (if you want TWINS to be treate
 psm = False
 ### Rejection
 detail_factor = 1 # 1 (no extra detail) or 10 (extra detail)
-max_rr = 40 # (number between 1 and 49)
+max_rr = 15 # (number between 1 and 49)
 x_scaling = False # True or False
 
 ### Not to choose
@@ -281,24 +281,74 @@ all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
 
 metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, metrics_results, append_metrics_results=False, print=False)
 metrics_results[experiment_id] = metrics_dict
+list_results = []
+
+reject_rates_list = []
+rmse_rank_accepted_list = []
+rmse_rank_weighted_accepted_list = []
+sign_error_accepted_list = []
+signerror_weighted_accepted_list = []
+experiment_ids_list = []
+rmse_accepted_list = []
+
+def plot_summary(reject_rates_list, rmse_rank_accepted_list, experiment_ids_list, dataset, folder_path, plot_title, file_name):
+    plt.figure(figsize=(10, 6))
+
+    for i in range(len(reject_rates_list)):
+        plt.plot(reject_rates_list[i], rmse_rank_accepted_list[i], label=f"Experiment {experiment_ids_list[i]}")
+
+    plt.xlabel('Reject Rate')
+    plt.ylabel(f'{file_name}')
+    plt.title(f'{plot_title} for {dataset}')
+    plt.legend()
+    plt.grid(True)
+
+    plt.savefig(f"{folder_path}graph/{dataset}_All_{file_name}.png")
+    plt.close()
+    plt.cla()
+
+
 
 # Type 1
 for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor], ["IF", "OCSVM", "LOF"]):
     experiment_id += 1
     experiment_names[experiment_id] = f"Rejection based on {model.__name__} (train data) - Novelty Type I"
-    metrics_results[experiment_id] = novelty_rejection(1, max_rr, detail_factor, model, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+    metrics_results[experiment_id], reject_rates, rmse_accepted, rmse_rank_accepted, sign_error_accepted, rmse_rank_weighted_accepted = novelty_rejection(1, max_rr, detail_factor, model, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect, give_details=True)
+    # Store the data for later plotting
+    reject_rates_list.append(reject_rates)
+    rmse_accepted_list.append(rmse_accepted)
+    rmse_rank_accepted_list.append(rmse_rank_accepted)
+    sign_error_accepted_list.append(sign_error_accepted)
+    rmse_rank_weighted_accepted_list.append(rmse_rank_weighted_accepted)
+    experiment_ids_list.append(experiment_id)
 
-# Type 1
+
+# Type 2
 for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor], ["IF", "OCSVM", "LOF"]):
     experiment_id += 1
     experiment_names[experiment_id] = f"Rejection based on {model.__name__} (train data) - Novelty Type II"
-    metrics_results[experiment_id] = novelty_rejection(2, max_rr, detail_factor, model, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+    metrics_results[experiment_id], reject_rates, rmse_accepted, rmse_rank_accepted, sign_error_accepted, rmse_rank_weighted_accepted = novelty_rejection(2, max_rr, detail_factor, model, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect, give_details=True)
+    # Store the data for later plotting
+    reject_rates_list.append(reject_rates)
+    rmse_accepted_list.append(rmse_accepted)
+    rmse_rank_accepted_list.append(rmse_rank_accepted)
+    sign_error_accepted_list.append(sign_error_accepted)
+    rmse_rank_weighted_accepted_list.append(rmse_rank_weighted_accepted)
+    experiment_ids_list.append(experiment_id)
 
 # Type 3
 for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor], ["IF", "OCSVM", "LOF"]):
     experiment_id += 1
     experiment_names[experiment_id] = f"Rejection based on {model.__name__} (train data) - Novelty Type III"
-    metrics_results[experiment_id] = novelty_rejection(3, max_rr, detail_factor, model, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+    metrics_results[experiment_id], reject_rates, rmse_accepted, rmse_rank_accepted, sign_error_accepted, rmse_rank_weighted_accepted = novelty_rejection(3, max_rr, detail_factor, model, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect, give_details=True)
+    # Store the data for later plotting
+    reject_rates_list.append(reject_rates)
+    rmse_accepted_list.append(rmse_accepted)
+    rmse_rank_accepted_list.append(rmse_rank_accepted)
+    sign_error_accepted_list.append(sign_error_accepted)
+    rmse_rank_weighted_accepted_list.append(rmse_rank_weighted_accepted)
+    experiment_ids_list.append(experiment_id)
+
 
 # #######################################################################################################################
 # #######################################################################################################################
@@ -341,7 +391,21 @@ experiment_id += 1
 model = "RandomForestQuantileRegressor"
 abbreviation = "RFQR"
 experiment_names[experiment_id] = f"Rejection based on RandomForestQuantileRegressor - Ambiguity Type I"
-metrics_results[experiment_id] = ambiguity_rejection(1, max_rr, detail_factor, train_forest_model, xt, forest_all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
+metrics_results[experiment_id], reject_rates, rmse_accepted, rmse_rank_accepted, sign_error_accepted, rmse_rank_weighted_accepted = ambiguity_rejection(1, max_rr, detail_factor, train_forest_model, xt, forest_all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect, give_details=True)
+# Store the data for later plotting
+reject_rates_list.append(reject_rates)
+rmse_accepted_list.append(rmse_accepted)
+rmse_rank_accepted_list.append(rmse_rank_accepted)
+sign_error_accepted_list.append(sign_error_accepted)
+rmse_rank_weighted_accepted_list.append(rmse_rank_weighted_accepted)
+experiment_ids_list.append(experiment_id)
+
+# #######################################################################################################################
+
+plot_summary(reject_rates_list, rmse_rank_accepted_list, experiment_ids_list, dataset, folder_path, "Impact RR on RMSE Rank Accepted", "RMSERankAccepted")
+plot_summary(reject_rates_list, sign_error_accepted_list, experiment_ids_list, dataset, folder_path, "Impact RR on Sign Error Accepted", "SignErrorAccepted")
+plot_summary(reject_rates_list, rmse_rank_weighted_accepted_list, experiment_ids_list, dataset, folder_path, "Impact RR on RMSE Rank Weighted Accepted", "RMSERankWeightedAccepted")
+plot_summary(reject_rates_list, sign_error_accepted_list, experiment_ids_list, dataset, folder_path, "Impact RR on Sign Error Accepted", "SignErrorAccepted")
 
 # #######################################################################################################################
 
