@@ -51,7 +51,7 @@ from sklearn.svm import OneClassSVM
 
 ## Parameters
 ### To choose
-dataset = "IHDP" # Choose out of TWINS or TWINSC (if you want TWINS to be treated as continuous instead of classification) or LALONDE or IHDP
+dataset = "TWINSC" # Choose out of TWINS or TWINSC (if you want TWINS to be treated as continuous instead of classification) or LALONDE or IHDP
 psm = False
 ### Rejection
 detail_factor = 1 # 1 (no extra detail) or 10 (extra detail)
@@ -391,7 +391,7 @@ experiment_id += 1
 model = "RandomForestQuantileRegressor"
 abbreviation = "RFQR"
 experiment_names[experiment_id] = f"Rejection based on RandomForestQuantileRegressor - Ambiguity Type I"
-metrics_results[experiment_id], reject_rates, rmse_accepted, rmse_rank_accepted, sign_error_accepted, rmse_rank_weighted_accepted = ambiguity_rejection(1, max_rr, detail_factor, train_forest_model, xt, forest_all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect, give_details=True)
+metrics_results[experiment_id], reject_rates, rmse_accepted, rmse_rank_accepted, sign_error_accepted, rmse_rank_weighted_accepted = ambiguity_rejection(1, max_rr, detail_factor, train_forest_model, xt, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect, give_details=True)
 # Store the data for later plotting
 reject_rates_list.append(reject_rates)
 rmse_accepted_list.append(rmse_accepted)
@@ -402,10 +402,10 @@ experiment_ids_list.append(experiment_id)
 
 # #######################################################################################################################
 
+plot_summary(reject_rates_list, rmse_accepted_list, experiment_ids_list, dataset, folder_path, "Impact RR on RMSE Accepted", "RMSEAccepted")
 plot_summary(reject_rates_list, rmse_rank_accepted_list, experiment_ids_list, dataset, folder_path, "Impact RR on RMSE Rank Accepted", "RMSERankAccepted")
 plot_summary(reject_rates_list, sign_error_accepted_list, experiment_ids_list, dataset, folder_path, "Impact RR on Sign Error Accepted", "SignErrorAccepted")
 plot_summary(reject_rates_list, rmse_rank_weighted_accepted_list, experiment_ids_list, dataset, folder_path, "Impact RR on RMSE Rank Weighted Accepted", "RMSERankWeightedAccepted")
-plot_summary(reject_rates_list, sign_error_accepted_list, experiment_ids_list, dataset, folder_path, "Impact RR on Sign Error Accepted", "SignErrorAccepted")
 
 # #######################################################################################################################
 

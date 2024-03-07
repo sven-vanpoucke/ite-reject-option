@@ -157,7 +157,7 @@ def perfect_rejection(max_rr, detail_factor, x, all_data, file_path, experiment_
 
     return rmse_accepted, metrics_dict
 
-def ambiguity_rejection(type_nr, max_rr, detail_factor, model, xt, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect=[]):
+def ambiguity_rejection(type_nr, max_rr, detail_factor, model, xt, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect=[], give_details=False):
     reject_rates = []
     rmse_accepted = []
     rmse_rejected = []
@@ -171,7 +171,6 @@ def ambiguity_rejection(type_nr, max_rr, detail_factor, model, xt, all_data, fil
 
 
     if type_nr == 1:
-        # split the data
 
         y_lower = model.predict(xt, quantiles=[0.025])
         y_upper = model.predict(xt, quantiles=[0.975])
