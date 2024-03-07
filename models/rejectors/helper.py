@@ -70,11 +70,15 @@ def twolinegraph(x, x_label, y, y_label, color, y2, y2_label, color2, title, fol
     plt.close()
     plt.cla()
 
-def histogram(values, xlabel, ylabel, title, folder, lowest_rejected_value):
+def histogram(values, xlabel, ylabel, title, folder, lowest_rejected_value, mean, plusstd, plus2std):
     plt.hist(values)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
+    # plt.axvline(mean, color='blue', linestyle='dashed', linewidth=2, label='Mean')
     plt.axvline(lowest_rejected_value, color='red', linestyle='dashed', linewidth=2, label='Lowest R')
+    plt.axvline(plusstd, color='green', linestyle='dashed', linewidth=2, label='Mean + 1 Std Dev')
+    # plt.axvline(plus2std, color='green', linestyle='dashed', linewidth=2, label='Mean + 2 Std Dev')
+    plt.legend()
     plt.title(title)
     plt.savefig(folder)
     plt.close()
@@ -153,7 +157,7 @@ def perfect_rejection(max_rr, detail_factor, x, all_data, file_path, experiment_
 
     return rmse_accepted, metrics_dict
 
-def ambiguity_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect=[]):
+def ambiguity_rejection(type_nr, max_rr, detail_factor, model, xt, all_data, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect=[]):
     reject_rates = []
     rmse_accepted = []
     rmse_rejected = []
@@ -164,17 +168,17 @@ def ambiguity_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data,
     if type_nr == 1:
         # split the data
 
-        y_lower = forest_model.predict(xt, quantiles=[0.025])
-        y_upper = forest_model.predict(xt, quantiles=[0.975])
+        y_lower = model.predict(xt, quantiles=[0.025])
+        y_upper = model.predict(xt, quantiles=[0.975])
 
-        y_lower2 = forest_model.predict(xt, quantiles=[0.05])
-        y_upper2 = forest_model.predict(xt, quantiles=[0.95])
+        y_lower2 = model.predict(xt, quantiles=[0.05])
+        y_upper2 = model.predict(xt, quantiles=[0.95])
 
-        y_lower3 = forest_model.predict(xt, quantiles=[0.10])
-        y_upper3 = forest_model.predict(xt, quantiles=[0.90])
+        y_lower3 = model.predict(xt, quantiles=[0.10])
+        y_upper3 = model.predict(xt, quantiles=[0.90])
 
-        y_lower4 = forest_model.predict(xt, quantiles=[0.15])
-        y_upper4 = forest_model.predict(xt, quantiles=[0.85])
+        y_lower4 = model.predict(xt, quantiles=[0.15])
+        y_upper4 = model.predict(xt, quantiles=[0.85])
 
         size_of_ci = ((y_upper - y_lower) + (y_upper2 - y_lower2) + (y_upper3 - y_lower3) + (y_upper4 - y_lower4)) /4 # confidence interval
         
@@ -224,14 +228,18 @@ def ambiguity_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data,
         # all_data = all_data.sort_values(by='amount_of_times_rejected', ascending=False).copy()
         all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
 
-        lowest_rejected_value = all_data.loc[all_data['ite_reject'] == 'R', 'amount_of_times_rejected'].iloc[-1]
-        count_lowest_rejected_value = len(all_data[all_data['amount_of_times_rejected'] == lowest_rejected_value])
+        lowest_rejected_value = all_data.loc[all_data['ite_reject'] == 'R', 'size_of_ci'].iloc[-1]
+        count_lowest_rejected_value = len(all_data[all_data['size_of_ci'] == lowest_rejected_value])
 
-        filtered_data = all_data[all_data['amount_of_times_rejected'] != 0]
+        filtered_data = all_data[all_data['size_of_ci'] != 0]
+        std_dev = filtered_data['size_of_ci'].std()
+        mean = filtered_data['size_of_ci'].mean()
+        plusstd = filtered_data['size_of_ci'].mean() + std_dev
+        plus2std = filtered_data['size_of_ci'].mean() + 2* std_dev
 
-        histogram(filtered_data['amount_of_times_rejected'], 'Novelty Scores', 'Frequency', 'Histogram of Frequency by Novelty Scores', f"{folder_path}histogram/{dataset}_{experiment_id}_{abbreviation}_histogram.png", lowest_rejected_value)
+        histogram(filtered_data['size_of_ci'], 'Ambiguity Scores', 'Frequency', 'Histogram of Frequency by Ambiguity Scores', f"{folder_path}histogram/{dataset}_{experiment_id}_{abbreviation}_histogram.png", lowest_rejected_value, mean, plusstd, plus2std)
 
-    
+
     metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, {}, append_metrics_results=False, print=False)
 
     metrics_dict['2/ Optimal RR (%)'] = round(optimal_reject_rate, 4)*100
@@ -411,9 +419,10 @@ def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, f
         lowest_rejected_value = all_data.loc[all_data['ite_reject'] == 'R', 'amount_of_times_rejected'].iloc[-1]
         count_lowest_rejected_value = len(all_data[all_data['amount_of_times_rejected'] == lowest_rejected_value])
 
-        filtered_data = all_data[all_data['amount_of_times_rejected'] != 0]
+        # filtered_data = all_data[all_data['amount_of_times_rejected'] != 0]
+        filtered_data = all_data
 
-        histogram(filtered_data['amount_of_times_rejected'], 'Novelty Scores', 'Frequency', 'Histogram of Frequency by Novelty Scores', f"{folder_path}histogram/{dataset}_{experiment_id}_{abbreviation}_histogram.png", lowest_rejected_value)
+        histogram(filtered_data['amount_of_times_rejected'], 'Novelty Scores', 'Frequency', 'Histogram of Frequency by Novelty Scores', f"{folder_path}histogram/{dataset}_{experiment_id}_{abbreviation}_histogram.png", lowest_rejected_value,0,0,0)
 
     
     metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, {}, append_metrics_results=False, print=False)
