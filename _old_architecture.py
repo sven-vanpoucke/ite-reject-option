@@ -365,7 +365,7 @@ model_class_name = "Rejection based on GridsearchCV Prediction of Rejection"
 custom_scorer = make_scorer(f1_score)
 # Define a custom scorer using the calculated metric
 metrics_dict = calculate_performance_metrics('ite', 'ite_reject', train_set, file_path)
-custom_metric_train = metrics_dict['RMSE']
+custom_metric_train = metrics_dict['RMSE Accepted']
 
 custom_scorer = make_scorer(lambda y_true, y_pred: custom_metric_train, greater_is_better=True)
 

@@ -55,7 +55,7 @@ dataset = "IHDP" # Choose out of TWINS or TWINSC (if you want TWINS to be treate
 psm = False
 ### Rejection
 detail_factor = 1 # 1 (no extra detail) or 10 (extra detail)
-max_rr = 15 # (number between 1 and 49)
+max_rr = 40 # (number between 1 and 49)
 x_scaling = False # True or False
 
 ### Not to choose
@@ -254,7 +254,7 @@ for rr in range(1, max_rr*detail_factor):
 
     if metrics_result:
         reject_rates.append(metrics_result.get('Rejection Rate', None))
-        rmse_accepted.append(metrics_result.get('RMSE', None))
+        rmse_accepted.append(metrics_result.get('RMSE Accepted', None))
         rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
     else:
         reject_rates.append(None)
@@ -335,83 +335,6 @@ def confidence_interval(xt, forest_model):
 # and build your intervals based on those estimates.
 
 #######################################################################################################################
-
-# Type 1
-experiment_id += 1
-model = "RandomForestQuantileRegressor"
-abbreviation = "RFQR"
-experiment_names[experiment_id] = f"Rejection based on RandomForestQuantileRegressor - Ambiguity Type I"
-metrics_results[experiment_id] = ambiguity_rejection(1, max_rr, detail_factor, forest_model, xt, forest_set, file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect)
-
-# #######################################################################################################################
-
-# No Rejection
-experiment_id += 1
-experiment_name = "No Rejection - Regression (Trained DATA) - Rejection based on Regression Forest (C.I.)"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-
-forest_set['ite_reject'] = forest_set.apply(lambda row: row['ite_pred'], axis=1)
-
-# Step 5 Calculate the performance metrics
-metrics_dict = calculate_all_metrics('ite', 'ite_reject', forest_set, file_path, metrics_results, append_metrics_results=False, print=False)
-metrics_results[experiment_id] = metrics_dict
-
-# Type 0 - Perfect Rejection
-experiment_id += 1
-experiment_name =  "Perfect Rejection"
-abbreviation = "Perfect"
-experiment_names.update({experiment_id: f"{experiment_name}"})
-# forest_all_data['se'] = (forest_all_data['ite'] - forest_all_data['ite_pred']) ** 2
-# rmse_accepted_perfect, metrics_results[experiment_id] = novelty_rejection(0, max_rr, detail_factor, IsolationForest, x, forest_all_data, file_path, experiment_id, dataset, folder_path, abbreviation)
-# loop over all possible RR
-
-reject_rates = []
-rmse_accepted = []
-rmse_rejected = []
-change_rmse = []
-
-forest_all_data['se'] = (forest_all_data['ite'] - forest_all_data['ite_pred']) ** 2
-forest_all_data = forest_all_data.sort_values(by='se', ascending=False).copy()
-forest_all_data = forest_all_data.reset_index(drop=True)
-
-for rr in range(1, max_rr*detail_factor):
-    num_to_set = int(rr / (100.0*detail_factor) * len(forest_all_data)) # example: 60/100 = 0.6 * length of the data
-
-    forest_all_data['ite_reject'] = forest_all_data['ite_pred']
-    forest_all_data['ite_reject'] = forest_all_data['ite_reject'].astype(object)  # Change dtype of entire column
-    forest_all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
-
-    metrics_result = calculate_performance_metrics('ite', 'ite_reject', forest_all_data, file_path)
-
-    if metrics_result:
-        reject_rates.append(metrics_result.get('Rejection Rate', None))
-        rmse_accepted.append(metrics_result.get('RMSE', None))
-        rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
-    else:
-        reject_rates.append(None)
-        rmse_accepted.append(None)
-        rmse_rejected.append(None)
-
-rmse_accepted_perfect = rmse_accepted
-rmse_rejected_perfect = rmse_rejected
-rr_perfect = reject_rates
-
-# Graph with reject rate and rmse_accepted & rmse_rejected
-twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse.png")
-onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
-onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
-
-# optimal model
-min_rmse = min(rmse_accepted)  # Find the minimum
-min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
-optimal_reject_rate = reject_rates[min_rmse_index]  # Get the rejection rate at the same index
-
-forest_all_data['ite_reject'] = forest_all_data['ite_pred']
-forest_all_data['ite_reject'] = forest_all_data['ite_reject'].astype(object)  # Change dtype of entire column
-forest_all_data.loc[:num_to_set -1, 'ite_reject'] = 'R'
-
-metrics_dict = calculate_all_metrics('ite', 'ite_reject', forest_all_data, file_path, metrics_results, append_metrics_results=False, print=False)
-metrics_results[experiment_id] = metrics_dict
 
 # Type 1
 experiment_id += 1

@@ -131,7 +131,7 @@ def perfect_rejection(max_rr, detail_factor, x, all_data, file_path, experiment_
 
         if metrics_result:
             reject_rates.append(metrics_result.get('Rejection Rate', None))
-            rmse_accepted.append(metrics_result.get('RMSE', None))
+            rmse_accepted.append(metrics_result.get('RMSE Accepted', None))
             rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
         else:
             reject_rates.append(None)
@@ -164,6 +164,11 @@ def ambiguity_rejection(type_nr, max_rr, detail_factor, model, xt, all_data, fil
     rmse_improve = []
     min_rmse = float('inf')  # Set to positive infinity initially
     optimal_model = None
+
+    sign_error_accepted = []
+    rmse_rank_accepted = []
+    rmse_rank_weighted_accepted = []
+
 
     if type_nr == 1:
         # split the data
@@ -199,10 +204,14 @@ def ambiguity_rejection(type_nr, max_rr, detail_factor, model, xt, all_data, fil
 
             if metrics_result:
                 reject_rates.append(metrics_result.get('Rejection Rate', None))
-                rmse_accepted.append(metrics_result.get('RMSE', None))
+                rmse_accepted.append(metrics_result.get('RMSE Accepted', None))
                 rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
-                improvement = ( metrics_result.get('RMSE', None) - metrics_result.get('Original RMSE', None) ) / metrics_result.get('Original RMSE', None) * 100
+                improvement = ( metrics_result.get('RMSE Accepted', None) - metrics_result.get('RMSE Original', None) ) / metrics_result.get('RMSE Original', None) * 100
                 rmse_improve.append(improvement)
+
+                sign_error_accepted.append(metrics_result.get('Sign Error Accepted (%)', None))
+                rmse_rank_accepted.append(metrics_result.get('RMSE Rank Accepted', None))
+                rmse_rank_weighted_accepted.append(metrics_result.get('RMSE Rank Weighted Accepted', None))
 
             else:
                 reject_rates.append(None)
@@ -210,12 +219,17 @@ def ambiguity_rejection(type_nr, max_rr, detail_factor, model, xt, all_data, fil
                 rmse_rejected.append(None)
 
     # Graph with reject rate and rmse_accepted & rmse_rejected
-    twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse.png")
-    twolinegraph(reject_rates, "Reject Rate", rmse_accepted, f"Experiment {experiment_id} ", "blue", rmse_accepted_perfect, "Perfect Rejection", "green", f"RMSE of Accepted Samples ({dataset})", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_PerfRMSEe.png")
-    onelinegraph(reject_rates, "Reject Rate", rmse_improve, "Change of RMSE (%)", "green", f"Impact of Reject Rate on change of RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_ChangeRMSE.png")
+    twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
+    # twolinegraph(reject_rates, "Reject Rate", rmse_accepted, f"Experiment {experiment_id} ", "blue", rmse_accepted_perfect, "Perfect Rejection", "green", f"RMSE of Accepted Samples ({dataset})", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_PerfRMSEe.png")
+    # onelinegraph(reject_rates, "Reject Rate", rmse_improve, "Change of RMSE (%)", "green", f"Impact of Reject Rate on change of RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_ChangeRMSE.png")
     onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
     onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
     
+    # Graph with reject rate and rmse_accepted & rmse_rejected
+    onelinegraph(reject_rates, "Reject Rate", sign_error_accepted, "Sign Error Accepted (%)", "green", f"Impact of Reject Rate on Sign Error {dataset} ({experiment_id})", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_SignError_accepted.png")
+    onelinegraph(reject_rates, "Reject Rate", rmse_rank_accepted, "RMSE Rank Accepted", "green", f"Impact of Reject Rate on Rank Error {dataset} ({experiment_id})", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_RankError_accepted.png")
+    onelinegraph(reject_rates, "Reject Rate", rmse_rank_weighted_accepted, "RMSE Rank Weighted Accepted", "green", f"Impact of Reject Rate on Weighted Rank Error {dataset} ({experiment_id})", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_RankWeightedError_accepted.png")
+
     # optimal model 
     min_rmse = min(rmse_accepted)  # Find the minimum
     min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
@@ -244,7 +258,7 @@ def ambiguity_rejection(type_nr, max_rr, detail_factor, model, xt, all_data, fil
 
     metrics_dict['2/ Optimal RR (%)'] = round(optimal_reject_rate, 4)*100
 
-    original_rmse = metrics_dict.get('Original RMSE', None)
+    original_rmse = metrics_dict.get('RMSE Original', None)
     metrics_dict['2/ Original RMSE ()'] = original_rmse
     metrics_dict['2/ Minimum RMSE'] = round(min_rmse, 4)
 
@@ -267,6 +281,11 @@ def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, f
     rmse_accepted = []
     rmse_rejected = []
     rmse_improve = []
+    
+    sign_error_accepted = []
+    rmse_rank_accepted = []
+    rmse_rank_weighted_accepted = []
+
     min_rmse = float('inf')  # Set to positive infinity initially
     optimal_model = None
 
@@ -287,9 +306,9 @@ def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, f
 
             if metrics_result:
                 reject_rates.append(metrics_result.get('Rejection Rate', None))
-                rmse_accepted.append(metrics_result.get('RMSE', None))
+                rmse_accepted.append(metrics_result.get('RMSE Accepted', None))
                 rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
-                improvement = ( metrics_result.get('RMSE', None) - metrics_result.get('Original RMSE', None) ) / metrics_result.get('Original RMSE', None) * 100
+                improvement = ( metrics_result.get('RMSE Accepted', None) - metrics_result.get('RMSE Original', None) ) / metrics_result.get('RMSE Original', None) * 100
                 rmse_improve.append(improvement)
 
             else:
@@ -331,10 +350,15 @@ def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, f
 
             if metrics_result:
                 reject_rates.append(metrics_result.get('Rejection Rate', None))
-                current_rmse = metrics_result.get('RMSE', None)
-                rmse_accepted.append(metrics_result.get('RMSE', None))
+                current_rmse = metrics_result.get('RMSE Accepted', None)
+                rmse_accepted.append(metrics_result.get('RMSE Accepted', None))
                 rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
-                improvement = ( metrics_result.get('RMSE', None) - metrics_result.get('Original RMSE', None) ) / metrics_result.get('Original RMSE', None) * 100
+                improvement = ( metrics_result.get('RMSE Accepted', None) - metrics_result.get('RMSE Original', None) ) / metrics_result.get('RMSE Original', None) * 100
+                
+                sign_error_accepted.append(metrics_result.get('Sign Error Accepted (%)', None))
+                rmse_rank_accepted.append(metrics_result.get('RMSE Rank Accepted', None))
+                rmse_rank_weighted_accepted.append(metrics_result.get('RMSE Rank Weighted Accepted', None))
+
                 rmse_improve.append(improvement)
             else:
                 reject_rates.append(None)
@@ -378,10 +402,14 @@ def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, f
 
             if metrics_result:
                 reject_rates.append(metrics_result.get('Rejection Rate', None))
-                rmse_accepted.append(metrics_result.get('RMSE', None))
+                rmse_accepted.append(metrics_result.get('RMSE Accepted', None))
                 rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
-                improvement = ( metrics_result.get('RMSE', None) - metrics_result.get('Original RMSE', None) ) / metrics_result.get('Original RMSE', None) * 100
+                improvement = ( metrics_result.get('RMSE Accepted', None) - metrics_result.get('RMSE Original', None) ) / metrics_result.get('RMSE Original', None) * 100
                 rmse_improve.append(improvement)
+                
+                sign_error_accepted.append(metrics_result.get('Sign Error Accepted (%)', None))
+                rmse_rank_accepted.append(metrics_result.get('RMSE Rank Accepted', None))
+                rmse_rank_weighted_accepted.append(metrics_result.get('RMSE Rank Weighted Accepted', None))
 
             else:
                 reject_rates.append(None)
@@ -390,11 +418,16 @@ def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, f
 
     # Graph with reject rate and rmse_accepted & rmse_rejected
     twolinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse.png")
-    twolinegraph(reject_rates, "Reject Rate", rmse_accepted, f"Experiment {experiment_id} ", "blue", rmse_accepted_perfect, "Perfect Rejection", "green", f"RMSE of Accepted Samples ({dataset})", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_PerfRMSEe.png")
-    onelinegraph(reject_rates, "Reject Rate", rmse_improve, "Change of RMSE (%)", "green", f"Impact of Reject Rate on change of RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_ChangeRMSE.png")
+    # twolinegraph(reject_rates, "Reject Rate", rmse_accepted, f"Experiment {experiment_id} ", "blue", rmse_accepted_perfect, "Perfect Rejection", "green", f"RMSE of Accepted Samples ({dataset})", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_PerfRMSEe.png")
+    # onelinegraph(reject_rates, "Reject Rate", rmse_improve, "Change of RMSE (%)", "green", f"Impact of Reject Rate on change of RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_ChangeRMSE.png")
     onelinegraph(reject_rates, "Reject Rate", rmse_accepted, "RMSE of Accepted Samples", "green", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_accepted.png")
     onelinegraph(reject_rates, "Reject Rate", rmse_rejected, "RMSE of Rejected Samples", "red", f"Impact of Reject Rate on RMSE for {dataset}", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_rmse_rejected.png")
     
+    # Graph with reject rate and rmse_accepted & rmse_rejected
+    onelinegraph(reject_rates, "Reject Rate", sign_error_accepted, "Sign Error Accepted (%)", "green", f"Impact of Reject Rate on Sign Error {dataset} ({experiment_id})", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_SignError_accepted.png")
+    onelinegraph(reject_rates, "Reject Rate", rmse_rank_accepted, "RMSE Rank Accepted", "green", f"Impact of Reject Rate on Rank Error {dataset} ({experiment_id})", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_RankError_accepted.png")
+    onelinegraph(reject_rates, "Reject Rate", rmse_rank_weighted_accepted, "RMSE Rank Weighted Accepted", "green", f"Impact of Reject Rate on Weighted Rank Error {dataset} ({experiment_id})", f"{folder_path}graph/{dataset}_{experiment_id}_{abbreviation}_RankWeightedError_accepted.png")
+
     # optimal model 
     min_rmse = min(rmse_accepted)  # Find the minimum
     min_rmse_index = rmse_accepted.index(min_rmse)  # Find the index of the minimum RMSE
@@ -419,17 +452,22 @@ def novelty_rejection(type_nr, max_rr, detail_factor, model_name, x, all_data, f
         lowest_rejected_value = all_data.loc[all_data['ite_reject'] == 'R', 'amount_of_times_rejected'].iloc[-1]
         count_lowest_rejected_value = len(all_data[all_data['amount_of_times_rejected'] == lowest_rejected_value])
 
-        # filtered_data = all_data[all_data['amount_of_times_rejected'] != 0]
-        filtered_data = all_data
+        all_data['Novelty Score'] = all_data['amount_of_times_rejected']
 
-        histogram(filtered_data['amount_of_times_rejected'], 'Novelty Scores', 'Frequency', 'Histogram of Frequency by Novelty Scores', f"{folder_path}histogram/{dataset}_{experiment_id}_{abbreviation}_histogram.png", lowest_rejected_value,0,0,0)
+        # filtered_data = all_data[all_data['amount_of_times_rejected'] != 0]
+
+        histogram(all_data['Novelty Score'], 'Novelty Scores', 'Frequency', 'Histogram of Frequency by Novelty Scores', f"{folder_path}histogram/{dataset}_{experiment_id}_{abbreviation}_histogram.png", lowest_rejected_value,0,0,0)
+        all_data['Novelty Score Normalized'] = (all_data['Novelty Score'] - all_data['Novelty Score'].min()) / (all_data['Novelty Score'].max() - all_data['Novelty Score'].min())
+        lowest_rejected_value = all_data.loc[all_data['ite_reject'] == 'R', 'Novelty Score Normalized'].iloc[-1]
+
+        histogram(all_data['Novelty Score Normalized'], 'Novelty Scores Normalized', 'Frequency', 'Histogram of Frequency by Novelty Scores (Normalized)', f"{folder_path}histogram/{dataset}_{experiment_id}_{abbreviation}_histogram_normalized.png", lowest_rejected_value,0,0,0)
 
     
     metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, {}, append_metrics_results=False, print=False)
 
     metrics_dict['2/ Optimal RR (%)'] = round(optimal_reject_rate, 4)*100
 
-    original_rmse = metrics_dict.get('Original RMSE', None)
+    original_rmse = metrics_dict.get('RMSE Original', None)
     metrics_dict['2/ Original RMSE ()'] = original_rmse
     metrics_dict['2/ Minimum RMSE'] = round(min_rmse, 4)
 

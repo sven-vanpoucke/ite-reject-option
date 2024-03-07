@@ -254,7 +254,7 @@ for rr in range(1, max_rr*detail_factor):
 
     if metrics_result:
         reject_rates.append(metrics_result.get('Rejection Rate', None))
-        rmse_accepted.append(metrics_result.get('RMSE', None))
+        rmse_accepted.append(metrics_result.get('RMSE Accepted', None))
         rmse_rejected.append(metrics_result.get('RMSE Rejected', None))
     else:
         reject_rates.append(None)

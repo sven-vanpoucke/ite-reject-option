@@ -191,35 +191,102 @@ def calculate_performance_metrics(value, value_pred, data, file_path, print=Fals
     rr = calculate_rejection_rate(data)        
     metrics_dict['Rejection Rate'] = rr
 
-    # RMSE of original ite
+    # Split up the data
+    data_not_rejected = data[data['ite_reject'] != 'R'].copy()
+    data_rejected = data[data['ite_reject'] == 'R'].copy()
+
+    # RMSE
     data['se'] = (data['ite'] - data['ite_pred']) ** 2
     mse = data['se'].mean()
     rmse = sqrt(mse)
-    metrics_dict['Original RMSE'] = rmse
+    metrics_dict['RMSE Original'] = rmse
 
-    # RMSE of not Accepted Instances
-    data_not_rejected = data[data['ite_reject'] != 'R'].copy()
     data_not_rejected['se'] = (data_not_rejected['ite'] - data_not_rejected['ite_reject']) ** 2
     mse_not_rejected = data_not_rejected['se'].mean()
     rmse_not_rejected = sqrt(mse_not_rejected)
+    metrics_dict['RMSE Accepted'] = rmse_not_rejected
 
-    metrics_dict['RMSE'] = rmse_not_rejected
+    metrics_dict['RMSE Change (%)'] =  (rmse_not_rejected - rmse) / rmse * 100
 
-    # improvement of the RMSE (%)
-    metrics_dict['Change of RMSE (%)'] =  (rmse_not_rejected - rmse) / rmse * 100
-
-
-    # RMSE of not Rejected Instances
-
-    data_rejected = data[data['ite_reject'] == 'R'].copy()
-    data_rejected['se'] = (data_rejected['ite'] - data_rejected['ite_pred']) ** 2
     data_rejected['se'] = (data_rejected['ite'] - data_rejected['ite_pred']) ** 2
     mse_rejected = data_rejected['se'].mean()
     rmse_rejected = sqrt(mse_rejected)
     metrics_dict['RMSE Rejected'] = rmse_rejected
 
+    # Average Sign Error
+    data['Sign Error Original'] = ( ( data['ite']/abs(data['ite']) - data['ite_pred']/abs(data['ite_pred']) ) / 2 ) ** 2
+    mean_sign_error = data['Sign Error Original'].mean()
+    metrics_dict['Sign Error Original (%)'] = mean_sign_error*100
+    
+    data_not_rejected['Sign Error Accepted'] = ( ( data_not_rejected['ite']/abs(data_not_rejected['ite']) - data_not_rejected['ite_pred']/abs(data_not_rejected['ite_pred']) ) / 2 ) ** 2
+    mean_sign_error_not_rejected = data_not_rejected['Sign Error Accepted'].mean()
+    metrics_dict['Sign Error Accepted (%)'] = mean_sign_error_not_rejected*100
 
-    metrics_dict['Accuracy'] = 0
+    metrics_dict['Sign Error Change (%)'] =  (mean_sign_error_not_rejected - mean_sign_error) / mean_sign_error * 100
+
+    data_rejected['Sign Error Rejected'] = ( ( data_rejected['ite']/abs(data_rejected['ite']) - data_rejected['ite_pred']/abs(data_rejected['ite_pred']) ) / 2 ) ** 2
+    mean_sign_error_rejected = data_rejected['Sign Error Rejected'].mean()
+    metrics_dict['Sign Error Rejected (%)'] = mean_sign_error_rejected*100
+
+    # RMSE of Rank
+    data['rank'] = data['ite'].rank()
+    data['rank_pred'] = data['ite_pred'].rank()
+    data['rank_weight'] = 1/data['rank']
+    
+    data_not_rejected['rank'] = data_not_rejected['ite'].rank()
+    data_not_rejected['rank_pred'] = data_not_rejected['ite_pred'].rank()
+    data_not_rejected['rank_weight'] = 1/data['rank']
+
+    data_rejected['rank'] = data_rejected['ite'].rank()
+    data_rejected['rank_pred'] = data_rejected['ite_pred'].rank()
+    data_rejected['rank_weight'] = 1/data['rank']
+
+    data['se_rank'] = (data['rank'] - data['rank_pred']) ** 2
+    mse = data['se_rank'].mean()
+    rmse = sqrt(mse)
+    metrics_dict['RMSE Rank Original'] = rmse
+
+    data_not_rejected['se_rank'] = (data_not_rejected['rank'] - data_not_rejected['rank_pred']) ** 2
+    mse_not_rejected = data_not_rejected['se_rank'].mean()
+    rmse_not_rejected = sqrt(mse_not_rejected)
+    metrics_dict['RMSE Rank Accepted'] = rmse_not_rejected
+
+    metrics_dict['RMSE Rank Change (%)'] =  (rmse_not_rejected - rmse) / rmse * 100
+
+    data_rejected['se_rank'] = (data_rejected['rank'] - data_rejected['rank_pred']) ** 2
+    mse_rejected = data_rejected['se_rank'].mean()
+    rmse_rejected = sqrt(mse_rejected)
+    metrics_dict['RMSE Rank Rejected'] = rmse_rejected
+
+    # RMSE Weighted of Rank
+    data['rank'] = data['ite'].rank()
+    data['rank_pred'] = data['ite_pred'].rank()
+    data['rank_weight'] = 1/data['rank']
+    
+    data_not_rejected['rank'] = data_not_rejected['ite'].rank()
+    data_not_rejected['rank_pred'] = data_not_rejected['ite_pred'].rank()
+    data_not_rejected['rank_weight'] = 1/data_not_rejected['rank']
+
+    data_rejected['rank'] = data_rejected['ite'].rank()
+    data_rejected['rank_pred'] = data_rejected['ite_pred'].rank()
+    data_rejected['rank_weight'] = 1/data_rejected['rank']
+
+    data['se_rank'] = data['rank_weight'] * (data['rank'] - data['rank_pred']) ** 2
+    mse = data['se_rank'].mean()
+    rmse = sqrt(mse)
+    metrics_dict['RMSE Rank Weighted Original'] = rmse
+
+    data_not_rejected['se_rank'] = data_not_rejected['rank_weight'] * (data_not_rejected['rank'] - data_not_rejected['rank_pred']) ** 2
+    mse_not_rejected = data_not_rejected['se_rank'].mean()
+    rmse_not_rejected = sqrt(mse_not_rejected)
+    metrics_dict['RMSE Rank Weighted Accepted'] = rmse_not_rejected
+
+    metrics_dict['RMSE Rank Change (%)'] =  (rmse_not_rejected - rmse) / rmse * 100
+
+    data_rejected['se_rank'] = data_rejected['rank_weight'] * (data_rejected['rank'] - data_rejected['rank_pred']) ** 2
+    mse_rejected = data_rejected['se_rank'].mean()
+    rmse_rejected = sqrt(mse_rejected)
+    metrics_dict['RMSE Rank Weighted Rejected'] = rmse_rejected
 
     if 'y_t1_prob' in data.columns:
         # Step 1: Calculate the metrics (including rejected instances)
@@ -256,7 +323,7 @@ def calculate_performance_metrics(value, value_pred, data, file_path, print=Fals
             #classificationreport_df = pd.DataFrame.from_dict(classification_report(data[value], data[value_pred], output_dict=True, zero_division=np.nan))
 
             metrics_dict['Accuracy'] = accurancy
-            metrics_dict['RMSE'] = rmse
+            metrics_dict['RMSE Accepted'] = rmse
             metrics_dict['ATE Accuracy'] = ate_accuracy
             metrics_dict['Rejection Rate'] = rr
             metrics_dict['Micro TPR'] = micro_tpr

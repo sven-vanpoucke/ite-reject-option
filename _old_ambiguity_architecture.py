@@ -360,8 +360,8 @@ for rr in range(0, 6*detail_factor):
     else:
         reject_rates.append(None)
 
-    if metrics_result is not None and 'RMSE' in metrics_result:
-        rmse_accepted.append(metrics_result['RMSE'])
+    if metrics_result is not None and 'RMSE Accepted' in metrics_result:
+        rmse_accepted.append(metrics_result['RMSE Accepted'])
     else:
         rmse_accepted.append(None)
 

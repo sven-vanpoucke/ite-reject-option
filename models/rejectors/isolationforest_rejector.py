@@ -80,8 +80,8 @@ def execute_if_experiment(train_x, model_class, test_x, bounds, test_set, train_
             false_rejected.append(metrics_result['False Rejected'])
         else:
             false_rejected.append(None)
-        if metrics_result is not None and 'RMSE' in metrics_result:
-            rmse.append(metrics_result['RMSE'])
+        if metrics_result is not None and 'RMSE Accepted' in metrics_result:
+            rmse.append(metrics_result['RMSE Accepted'])
         else:
             rmse.append(None)
 
