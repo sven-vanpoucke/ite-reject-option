@@ -281,7 +281,7 @@ def calculate_performance_metrics(value, value_pred, data, file_path, print=Fals
     rmse_not_rejected = sqrt(mse_not_rejected)
     metrics_dict['RMSE Rank Weighted Accepted'] = rmse_not_rejected
 
-    metrics_dict['RMSE Rank Change (%)'] =  (rmse_not_rejected - rmse) / rmse * 100
+    metrics_dict['RMSE Rank Weighted Change (%)'] =  (rmse_not_rejected - rmse) / rmse * 100
 
     data_rejected['se_rank'] = data_rejected['rank_weight'] * (data_rejected['rank'] - data_rejected['rank_pred']) ** 2
     mse_rejected = data_rejected['se_rank'].mean()
