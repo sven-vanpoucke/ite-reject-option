@@ -68,7 +68,7 @@ def merge_test_train(train_treated_x, train_treated_y, train_control_x, train_co
 def plot_summary(reject_rates_list, rmse_rank_accepted_list, experiment_ids_list, dataset, folder_path, plot_title, file_name):
     plt.figure(figsize=(10, 6))
 
-    for i in range(len(reject_rates_list)):
+    for i in range(1,10):
         plt.plot(reject_rates_list[i], rmse_rank_accepted_list[i], label=f"Experiment {experiment_ids_list[i]}")
 
     plt.xlabel('Reject Rate')
@@ -89,10 +89,10 @@ def plot_canvas(reject_rates_list, rmse_rank_accepted_list, experiment_ids_list,
         plt.subplot(3, 3, i)
 
         # Plot the corresponding graph
-        plt.plot(reject_rates_list[i-1], rmse_rank_accepted_list[i-1], label=f"Experiment {experiment_ids_list[i-1]}")
+        plt.plot(reject_rates_list[i], rmse_rank_accepted_list[i], label=f"Experiment {experiment_ids_list[i]}")
         plt.xlabel('Reject Rate')
         plt.ylabel(f'{file_name}')
-        plt.title(f'Experiment {experiment_ids_list[i-1]}')
+        plt.title(f'Experiment {experiment_ids_list[i]}')
         plt.legend()
         plt.grid(True)
 
@@ -112,20 +112,20 @@ def canvas_change(reject_rates_list, metric_list, experiment_ids_list, dataset, 
         plt.subplot(3, 3, i)
 
         # Plot the corresponding graph
-        plt.plot([rate * 100 for rate in reject_rates_list[i-1]], metric_list[i-1], label=f"Experiment {experiment_ids_list[i-1]}")
+        plt.plot([rate * 100 for rate in reject_rates_list[i]], metric_list[i], label=f"Experiment {experiment_ids_list[i]}")
 
         plt.ylim(y_min, y_max)  # Set x-axis range from 0 to 6
         plt.axhline(y=0, color='red', linestyle='--', linewidth=0.5)
         
-        if heuristic_cutoff_list[i-1]*100 < 15:
-            plt.axvline(x=heuristic_cutoff_list[i-1]*100, color='green', linestyle='-', linewidth=1, label='Heuristic Optimal RR') # this line is the heuristical cut-off point
+        if heuristic_cutoff_list[i]*100 < 15:
+            plt.axvline(x=heuristic_cutoff_list[i]*100, color='green', linestyle='-', linewidth=1, label='Heuristic Optimal RR') # this line is the heuristical cut-off point
             # Add text label for the vertical line
-            plt.text(heuristic_cutoff_list[i-1]*100+0.25, -4, 'Heuristic Optimal RR', rotation=90, color='green', verticalalignment='center')
+            plt.text(heuristic_cutoff_list[i]*100+0.25, -4, 'Heuristic Optimal RR', rotation=90, color='green', verticalalignment='center')
         
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         
-        plt.title(f'Experiment {experiment_ids_list[i-1]}')
+        plt.title(f'Experiment {experiment_ids_list[i]}')
         # plt.legend()
         # plt.grid(True)
 
@@ -137,7 +137,7 @@ def canvas_change(reject_rates_list, metric_list, experiment_ids_list, dataset, 
     plt.close()
     plt.cla()
     
-def canvas_change_loop(reject_rates_list, metric_list, experiment_ids_list, dataset, folder_path, heuristic_cutoff_list, xlabel, ylabel, folder, y_min, y_max, title):
+def canvas_change_loop(reject_rates_list, metric_list, experiment_ids_list, dataset, folder_path, heuristic_cutoff_list, xlabel, ylabel, folder, y_min, y_max, title, datasets):
     plt.figure(figsize=(15, 15))  # Increase the figure size for a 3x3 grid
     
     # Create a 3x3 grid of subplots
@@ -145,37 +145,34 @@ def canvas_change_loop(reject_rates_list, metric_list, experiment_ids_list, data
         plt.subplot(3, 3, i)
         plt.ylim(y_min, y_max)  # Set x-axis range from 0 to 6
         plt.axhline(y=0, color='red', linestyle='--', linewidth=0.5)
-
-        # Plot the corresponding graph
-        plt.plot([rate * 100 for rate in reject_rates_list[0][i-1]], metric_list[0][i-1], color="green", label=f"Experiment {experiment_ids_list[0][i-1]}")
-        if heuristic_cutoff_list[i-1]*100 < 15:
-            plt.axvline(x=heuristic_cutoff_list[0][i-1]*100, color='green', linestyle='-', linewidth=1, label='Heuristic Optimal RR') # this line is the heuristical cut-off point
-            plt.text(heuristic_cutoff_list[0][i-1]*100+0.25, -4, 'Heuristic Optimal RR', rotation=90, color='green', verticalalignment='center')
         
-        # Plot the corresponding graph
-        plt.plot([rate * 100 for rate in reject_rates_list[0][i-1]], metric_list[0][i-1], color="blue", label=f"Experiment {experiment_ids_list[0][i-1]}")
-        if heuristic_cutoff_list[i-1]*100 < 15:
-            plt.axvline(x=heuristic_cutoff_list[0][i-1]*100, color='blue', linestyle='-', linewidth=1, label='Heuristic Optimal RR') # this line is the heuristical cut-off point
-            plt.text(heuristic_cutoff_list[0][i-1]*100+0.25, -4, 'Heuristic Optimal RR', rotation=90, color='blue', verticalalignment='center')
+        for dataset in datasets:
+            # Plot the graph for the green color
+            if dataset=="TWINSC":
+                color = "green"
+            else:
+                color = "blue"
+            plt.plot([rate * 100 for rate in reject_rates_list[dataset][i]], metric_list[dataset][i], color=color, label=f"{dataset}")
+
+            # Check if heuristic cutoff is less than 15
+            if heuristic_cutoff_list[dataset][i] * 100 < 15:
+                plt.axvline(x=heuristic_cutoff_list[dataset][i]*100, color=color, linestyle=':', linewidth=1)
+                plt.text(heuristic_cutoff_list[dataset][i]*100 + 0.25, -4, 'Heuristic Optimal RR', rotation=90, color=color, verticalalignment='center')
 
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         
-        plt.title(f'Experiment {experiment_ids_list[i-1]}')
-        # plt.legend()
+        plt.title(f'Experiment {experiment_ids_list[dataset][i]}')
         # plt.grid(True)
+        plt.legend()
 
     plt.suptitle(title, fontsize=16)
     plt.tight_layout(rect=[0, 0, 1, 0.96])  # Adjust subplot layout
 
     # Save the combined plot as an image
-    plt.savefig(f"{folder_path}overleaf/{folder}/{dataset}_All.png")
+    plt.savefig(f"{folder_path}overleaf/{folder}/All_All.png")
     plt.close()
     plt.cla()
-
-
-
-
 
 # Confidence Interval for Ambiguity Rejection
 def confidence_interval(xt, forest_model):
@@ -516,25 +513,28 @@ for dataset in datasets:
     rmse_rank_change_accepted_list[dataset].update({experiment_id: rmse_rank_change_accepted})
 
 #######################################################################################################################
+canvas_change_loop(reject_rates_list, rmse_change_accepted_list, experiment_ids_list, dataset, folder_path, heuristic_cutoff_list, 'Reject Rate (%)','RMSE Deviation from No-Rejection (%)', 'rmse', -11, 3, f'Impact of Rejection on the RMSE of the TE', datasets)
+
 i = -1
 for dataset in datasets:
     i += 1
-    plot_summary(reject_rates_list[i], rmse_accepted_list[i], experiment_ids_list[i], dataset, folder_path, "Impact RR on RMSE Accepted", "RMSEAccepted")
-    plot_summary(reject_rates_list[i], rmse_rank_accepted_list[i], experiment_ids_list[i], dataset, folder_path, "Impact RR on RMSE Rank Accepted", "RMSERankAccepted")
-    plot_summary(reject_rates_list[i], sign_error_accepted_list[i], experiment_ids_list[i], dataset, folder_path, "Impact RR on Sign Error Accepted", "SignErrorAccepted")
-    plot_summary(reject_rates_list[i], rmse_rank_weighted_accepted_list[i], experiment_ids_list[i], dataset, folder_path, "Impact RR on RMSE Rank Weighted Accepted", "RMSERankWeightedAccepted")
-    plot_canvas(reject_rates_list[i], rmse_accepted_list[i], experiment_ids_list[i], dataset, folder_path, "Impact RR on RMSE Accepted", "RMSEAccepted")
+    # plot_summary(reject_rates_list[dataset], rmse_accepted_list[dataset], experiment_ids_list[dataset], dataset, folder_path, "Impact RR on RMSE Accepted", "RMSEAccepted")
+    # plot_summary(reject_rates_list[dataset], rmse_rank_accepted_list[dataset], experiment_ids_list[dataset], dataset, folder_path, "Impact RR on RMSE Rank Accepted", "RMSERankAccepted")
+    # plot_summary(reject_rates_list[dataset], sign_error_accepted_list[dataset], experiment_ids_list[dataset], dataset, folder_path, "Impact RR on Sign Error Accepted", "SignErrorAccepted")
+    # plot_summary(reject_rates_list[dataset], rmse_rank_weighted_accepted_list[dataset], experiment_ids_list[dataset], dataset, folder_path, "Impact RR on RMSE Rank Weighted Accepted", "RMSERankWeightedAccepted")
+    # plot_canvas(reject_rates_list[dataset], rmse_accepted_list[dataset], experiment_ids_list[dataset], dataset, folder_path, "Impact RR on RMSE Accepted", "RMSEAccepted")
 
-    # 9x9 plots:
-    canvas_change(reject_rates_list[i], rmse_change_accepted_list[i], experiment_ids_list[i], dataset, folder_path, heuristic_cutoff_list[i], 'Reject Rate (%)','RMSE Deviation from No-Rejection (%)', 'rmse', -9, 3, f'Impact of Rejection on the RMSE of the TE ({dataset})')
-    canvas_change(reject_rates_list[i], sign_error_change_accepted_list[i], experiment_ids_list[i], dataset, folder_path, heuristic_cutoff_list[i], 'Reject Rate (%)','Sign Error Deviation from No-Rejection (%)', 'sign_error',-30, 20, f'Impact of Rejection on the Sign Error of the TE ({dataset})')
-    canvas_change(reject_rates_list[i], rmse_rank_weighted_change_accepted_list[i], experiment_ids_list[i], dataset, folder_path, heuristic_cutoff_list[i], 'Reject Rate (%)','Weighted RMSE Rank Deviation from No-Rejection (%)', 'rank_weighted',-20, 20, f'Impact of Rejection on the weighted RMSE of the Rank of the TE ({dataset})')
-    canvas_change(reject_rates_list[i], rmse_rank_change_accepted_list[i], experiment_ids_list[i], dataset, folder_path, heuristic_cutoff_list[i], 'Reject Rate (%)','RMSE Rank Deviation from No-Rejection (%)', 'rank',-20, 20, f'Impact of Rejection on the RMSE of the Rank of the TE ({dataset})')
-    canvas_change_loop(reject_rates_list, rmse_change_accepted_list, experiment_ids_list, dataset, folder_path, heuristic_cutoff_list, 'Reject Rate (%)','RMSE Deviation from No-Rejection (%)', 'rmse', -9, 3, f'Impact of Rejection on the RMSE of the TE ({dataset})')
+    # # 9x9 plots:
+    # canvas_change(reject_rates_list[dataset], rmse_change_accepted_list[dataset], experiment_ids_list[dataset], dataset, folder_path, heuristic_cutoff_list[dataset], 'Reject Rate (%)','RMSE Deviation from No-Rejection (%)', 'rmse', -9, 3, f'Impact of Rejection on the RMSE of the TE ({dataset})')
+    # canvas_change(reject_rates_list[dataset], sign_error_change_accepted_list[dataset], experiment_ids_list[dataset], dataset, folder_path, heuristic_cutoff_list[dataset], 'Reject Rate (%)','Sign Error Deviation from No-Rejection (%)', 'sign_error',-30, 20, f'Impact of Rejection on the Sign Error of the TE ({dataset})')
+    # canvas_change(reject_rates_list[dataset], rmse_rank_weighted_change_accepted_list[dataset], experiment_ids_list[dataset], dataset, folder_path, heuristic_cutoff_list[dataset], 'Reject Rate (%)','Weighted RMSE Rank Deviation from No-Rejection (%)', 'rank_weighted',-20, 20, f'Impact of Rejection on the weighted RMSE of the Rank of the TE ({dataset})')
+    # canvas_change(reject_rates_list[dataset], rmse_rank_change_accepted_list[dataset], experiment_ids_list[dataset], dataset, folder_path, heuristic_cutoff_list[dataset], 'Reject Rate (%)','RMSE Rank Deviation from No-Rejection (%)', 'rank',-20, 20, f'Impact of Rejection on the RMSE of the Rank of the TE ({dataset})')
+    
     #######################################################################################################################
 
-    metrics_results[i] = pd.DataFrame(metrics_results)
-
+    metrics_results[dataset] = pd.DataFrame(data=metrics_results[dataset], index=[0])
+    print(metrics_results[dataset])
+    
     # Chapter 8: Output to file
     with open(file_path, 'a') as file:
 
@@ -546,4 +546,4 @@ for dataset in datasets:
             file.write(f"# Experiment {exp_number}: {description}\n")
 
         file.write("\nTable of results of the experiments\n")
-        file.write(tabulate(metrics_results[i], headers='keys', tablefmt='rounded_grid', showindex=True))
+        file.write(tabulate(metrics_results[dataset], headers='keys', tablefmt='rounded_grid', showindex=True))

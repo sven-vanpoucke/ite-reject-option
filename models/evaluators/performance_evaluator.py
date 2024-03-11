@@ -213,6 +213,20 @@ def calculate_performance_metrics(value, value_pred, data, file_path, print=Fals
     rmse_rejected = sqrt(mse_rejected)
     metrics_dict['RMSE Rejected'] = rmse_rejected
 
+    # Group 20% Error
+    top_20_ite = data.nlargest(int(0.2 * len(data)), 'ite')
+    top_20_ite_pred = data.nlargest(int(0.2 * len(data)), 'ite_pred')
+    intersection_set = set(top_20_ite.index) & set(top_20_ite_pred.index)
+    num_samples_in_intersection = len(intersection_set)
+
+    metrics_dict['Correct Group 20% Original'] = num_samples_in_intersection
+
+    top_20_ite_pred = data_not_rejected.nlargest(int(0.2 * len(data)), 'ite_pred')
+    intersection_set = set(top_20_ite.index) & set(top_20_ite_pred.index)
+    num_samples_in_intersection = len(intersection_set)
+
+    metrics_dict['Correct Group 20% Accepted'] = num_samples_in_intersection
+
     # Average Sign Error
     data['Sign Error Original'] = ( ( data['ite']/abs(data['ite']) - data['ite_pred']/abs(data['ite_pred']) ) / 2 ) ** 2
     mean_sign_error = data['Sign Error Original'].mean()
