@@ -191,56 +191,134 @@ def calculate_performance_metrics(value, value_pred, data, file_path, print=Fals
     rr = calculate_rejection_rate(data)        
     metrics_dict['Rejection Rate'] = rr
 
+    # Add extra data to data
+    data['ite_sign'] = data['ite']/abs(data['ite']) # -1 or +1
+    data['ite_pred_sign'] = data['ite_pred']/abs(data['ite_pred']) # -1 or +1
+    data['se'] = (data['ite'] - data['ite_pred']) ** 2
+    data['Sign Error'] = ( ( data['ite']/abs(data['ite']) - data['ite_pred']/abs(data['ite_pred']) ) / 2 ) ** 2
     # Split up the data
     data_not_rejected = data[data['ite_reject'] != 'R'].copy()
     data_rejected = data[data['ite_reject'] == 'R'].copy()
 
     # RMSE
-    data['se'] = (data['ite'] - data['ite_pred']) ** 2
     mse = data['se'].mean()
     rmse = sqrt(mse)
     metrics_dict['RMSE Original'] = rmse
 
-    data_not_rejected['se'] = (data_not_rejected['ite'] - data_not_rejected['ite_reject']) ** 2
     mse_not_rejected = data_not_rejected['se'].mean()
     rmse_not_rejected = sqrt(mse_not_rejected)
     metrics_dict['RMSE Accepted'] = rmse_not_rejected
 
     metrics_dict['RMSE Change (%)'] =  (rmse_not_rejected - rmse) / rmse * 100
 
-    data_rejected['se'] = (data_rejected['ite'] - data_rejected['ite_pred']) ** 2
     mse_rejected = data_rejected['se'].mean()
     rmse_rejected = sqrt(mse_rejected)
     metrics_dict['RMSE Rejected'] = rmse_rejected
 
-    # Group 20% Error
-    top_20_ite = data.nlargest(int(0.2 * len(data)), 'ite')
-    top_20_ite_pred = data.nlargest(int(0.2 * len(data)), 'ite_pred')
-    intersection_set = set(top_20_ite.index) & set(top_20_ite_pred.index)
-    num_samples_in_intersection = len(intersection_set)
-
-    metrics_dict['Correct Group 20% Original'] = num_samples_in_intersection
-
-    top_20_ite_pred = data_not_rejected.nlargest(int(0.2 * len(data)), 'ite_pred')
-    intersection_set = set(top_20_ite.index) & set(top_20_ite_pred.index)
-    num_samples_in_intersection = len(intersection_set)
-
-    metrics_dict['Correct Group 20% Accepted'] = num_samples_in_intersection
-
-    # Average Sign Error
-    data['Sign Error Original'] = ( ( data['ite']/abs(data['ite']) - data['ite_pred']/abs(data['ite_pred']) ) / 2 ) ** 2
-    mean_sign_error = data['Sign Error Original'].mean()
-    metrics_dict['Sign Error Original (%)'] = mean_sign_error*100
+    # Sign Accuracy
+    mean_sign_error = data['Sign Error'].mean()
+    metrics_dict['Sign Accuracy Original (%)'] = (1 - mean_sign_error)*100
     
-    data_not_rejected['Sign Error Accepted'] = ( ( data_not_rejected['ite']/abs(data_not_rejected['ite']) - data_not_rejected['ite_pred']/abs(data_not_rejected['ite_pred']) ) / 2 ) ** 2
-    mean_sign_error_not_rejected = data_not_rejected['Sign Error Accepted'].mean()
-    metrics_dict['Sign Error Accepted (%)'] = mean_sign_error_not_rejected*100
+    mean_sign_error_not_rejected = data_not_rejected['Sign Error'].mean()
+    metrics_dict['Sign Accuracy Accepted (%)'] = (1-mean_sign_error_not_rejected) *100
 
-    metrics_dict['Sign Error Change (%)'] =  (mean_sign_error_not_rejected - mean_sign_error) / mean_sign_error * 100
+    metrics_dict['Sign Accuracy Change (%)'] =  ( (1-mean_sign_error_not_rejected) - (1-mean_sign_error) ) / (1-mean_sign_error) * 100
 
-    data_rejected['Sign Error Rejected'] = ( ( data_rejected['ite']/abs(data_rejected['ite']) - data_rejected['ite_pred']/abs(data_rejected['ite_pred']) ) / 2 ) ** 2
-    mean_sign_error_rejected = data_rejected['Sign Error Rejected'].mean()
-    metrics_dict['Sign Error Rejected (%)'] = mean_sign_error_rejected*100
+    mean_sign_error_rejected = data_rejected['Sign Error'].mean()
+    metrics_dict['Sign Accuracy Rejected (%)'] = (1-mean_sign_error_rejected)*100
+
+    # Positive Potential Accuracy
+    metrics_dict['Adverse Effect Accuracy (%)'] =  1
+    
+    # Positive Potential Accuracy
+    positive_potential_data = data[data['ite_sign']==+1]
+    total = len(positive_potential_data)
+    correct = len(positive_potential_data[positive_potential_data['ite_sign']==positive_potential_data['ite_pred_sign']])
+    metrics_dict['Positive Potential Accuracy Original (%)'] = correct / total if total != 0 else 0
+
+    positive_potential_data = data_not_rejected[data_not_rejected['ite_sign']==1]
+    total = len(positive_potential_data)
+    correct = len(positive_potential_data[positive_potential_data['ite_sign']==positive_potential_data['ite_pred_sign']])
+    metrics_dict['Positive Potential Accuracy Accepted (%)'] = correct / total if total != 0 else 0
+
+    positive_potential_data = data_rejected[data_rejected['ite_sign']==1]
+    total = len(positive_potential_data)
+    correct = len(positive_potential_data[positive_potential_data['ite_sign']==positive_potential_data['ite_pred_sign']])
+    metrics_dict['Positive Potential Accuracy Rejected (%)'] = correct / total if total != 0 else 0
+
+    metrics_dict['Positive Potential Accuracy Change (%)'] = (metrics_dict['Positive Potential Accuracy Accepted (%)'] - metrics_dict['Positive Potential Accuracy Original (%)'] ) / metrics_dict['Positive Potential Accuracy Original (%)'] * 100 if metrics_dict['Positive Potential Accuracy Original (%)'] != 0 else 0
+
+    # Adverse Effect Accuracy
+    adverse_data = data[data['ite_sign']==-1]
+    total = len(adverse_data)
+    correct = len(adverse_data[adverse_data['ite_sign']==adverse_data['ite_pred_sign']])
+    metrics_dict['Adverse Effect Accuracy Original (%)'] = correct / total if total != 0 else 0
+    
+    adverse_data = data_not_rejected[data_not_rejected['ite_sign']==-1]
+    total = len(adverse_data)
+    correct = len(adverse_data[adverse_data['ite_sign']==adverse_data['ite_pred_sign']])
+    metrics_dict['Adverse Effect Accuracy Accepted (%)'] = correct / total if total != 0 else 0
+
+    adverse_data = data_rejected[data_rejected['ite_sign']==-1]
+    total = len(adverse_data)
+    correct = len(adverse_data[adverse_data['ite_sign']==adverse_data['ite_pred_sign']])
+    metrics_dict['Adverse Effect Accuracy Rejected (%)'] = correct / total if total != 0 else 0
+
+    metrics_dict['Adverse Effect Accuracy Change (%)'] = (metrics_dict['Adverse Effect Accuracy Accepted (%)'] - metrics_dict['Adverse Effect Accuracy Original (%)'] ) / metrics_dict['Adverse Effect Accuracy Original (%)'] * 100 if metrics_dict['Adverse Effect Accuracy Original (%)'] != 0 else 0
+
+    # Sign Accuracy
+    mean_sign_error = (data['ite']*data['Sign Error']).sum() / data['ite'].sum()
+    metrics_dict['Weighted Sign Accuracy Original (%)'] = (1 - mean_sign_error)*100
+    
+    mean_sign_error_not_rejected = (data_not_rejected['ite']*data_not_rejected['Sign Error']).sum() / data_not_rejected['ite'].sum()
+    metrics_dict['Weighted Sign Accuracy Accepted (%)'] = (1-mean_sign_error_not_rejected) *100
+
+    metrics_dict['Weighted Sign Accuracy Change (%)'] =  ( (1-mean_sign_error_not_rejected) - (1-mean_sign_error) ) / (1-mean_sign_error) * 100
+
+    mean_sign_error_rejected = (data_rejected['ite']*data_rejected['Sign Error']).sum() / data_rejected['ite'].sum()
+    metrics_dict['Weighted Sign Accuracy Rejected (%)'] = (1-mean_sign_error_rejected)*100
+
+    # Average Sign Error -- OLD
+    # data['Sign Error Original'] = ( ( data['ite']/abs(data['ite']) - data['ite_pred']/abs(data['ite_pred']) ) / 2 ) ** 2
+    # mean_sign_error = data['Sign Error Original'].mean()
+    # metrics_dict['Sign Error Original (%)'] = mean_sign_error*100
+    
+    # data_not_rejected['Sign Error Accepted'] = ( ( data_not_rejected['ite']/abs(data_not_rejected['ite']) - data_not_rejected['ite_pred']/abs(data_not_rejected['ite_pred']) ) / 2 ) ** 2
+    # mean_sign_error_not_rejected = data_not_rejected['Sign Error Accepted'].mean()
+    # metrics_dict['Sign Error Accepted (%)'] = mean_sign_error_not_rejected*100
+
+    # metrics_dict['Sign Error Change (%)'] =  (mean_sign_error_not_rejected - mean_sign_error) / mean_sign_error * 100
+
+    # data_rejected['Sign Error Rejected'] = ( ( data_rejected['ite']/abs(data_rejected['ite']) - data_rejected['ite_pred']/abs(data_rejected['ite_pred']) ) / 2 ) ** 2
+    # mean_sign_error_rejected = data_rejected['Sign Error Rejected'].mean()
+    # metrics_dict['Sign Error Rejected (%)'] = mean_sign_error_rejected*100
+
+    # Similarity f%
+    percentages = [0.1, 0.2, 0.3, 0.4, 0.5]
+
+    for percentage in percentages:
+        # Calculate the top percentage for 'ite'
+        top_ite = data.nlargest(int(percentage * len(data)), 'ite')
+        total_samples = len(top_ite)
+
+        # Calculate the top percentage for 'ite_pred'
+        top_ite_pred = data.nlargest(int(percentage * len(data)), 'ite_pred')
+
+        # Calculate the intersection for 'ite' and 'ite_pred'
+        intersection_set = set(top_ite.index) & set(top_ite_pred.index)
+        num_samples_in_intersection = len(intersection_set)
+        metrics_dict[f'Similarity {int(percentage * 100)}% Original (%)'] = num_samples_in_intersection/total_samples*100
+
+        top_ite_pred = data_not_rejected.nlargest(int(percentage * len(data)), 'ite_pred')
+        intersection_set = set(top_ite.index) & set(top_ite_pred.index)
+        num_samples_in_intersection = len(intersection_set)
+        metrics_dict[f'Similarity {int(percentage * 100)}% Accepted (%)'] = num_samples_in_intersection/total_samples*100
+
+        metrics_dict[f'Similarity {int(percentage * 100)}% Improved (%)'] = (metrics_dict[f'Similarity {int(percentage * 100)}% Accepted (%)']-metrics_dict[f'Similarity {int(percentage * 100)}% Original (%)'])/metrics_dict[f'Similarity {int(percentage * 100)}% Original (%)']
+
+        intersection_set = set(top_ite.index) & set(data_rejected.index)
+        num_samples_in_intersection = len(intersection_set)
+        metrics_dict[f'Similarity {int(percentage * 100)}% Rejected (%)'] = num_samples_in_intersection/total_samples*100
 
     # RMSE of Rank
     data['rank'] = data['ite'].rank()
