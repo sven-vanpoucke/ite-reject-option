@@ -105,7 +105,7 @@ def plot_canvas(reject_rates_list, rmse_rank_accepted_list, experiment_ids_list,
     plt.close()
     plt.cla()
 
-def canvas_change(reject_rates_list, metric_list, experiment_ids_list, dataset, folder_path, heuristic_cutoff_list, xlabel, ylabel, folder, y_min, y_max, title):
+def canvas_change(reject_rates_list, metric_list, metric_list2, experiment_ids_list, dataset, folder_path, heuristic_cutoff_list, xlabel, ylabel, folder, y_min, y_max, title):
     plt.figure(figsize=(15, 15))  # Increase the figure size for a 3x3 grid
     
     # Create a 3x3 grid of subplots
@@ -113,7 +113,9 @@ def canvas_change(reject_rates_list, metric_list, experiment_ids_list, dataset, 
         plt.subplot(3, 3, i)
 
         # Plot the corresponding graph
-        plt.plot([rate * 100 for rate in reject_rates_list[i]], metric_list[i], label=f"Experiment {experiment_ids_list[i]}")
+        plt.plot([rate * 100 for rate in reject_rates_list[i]], metric_list[i], color="green", label=f"Accepted Observations")
+
+        plt.plot([rate * 100 for rate in reject_rates_list[i]], metric_list2[i], color="red", label=f"Rejected Observations")
 
         plt.ylim(y_min, y_max)  # Set x-axis range from 0 to 6
         plt.axhline(y=0, color='red', linestyle='--', linewidth=0.5)
@@ -138,12 +140,52 @@ def canvas_change(reject_rates_list, metric_list, experiment_ids_list, dataset, 
     plt.close()
     plt.cla()
     
+
 def canvas_change_loop(reject_rates_list, metric_list, metric_name, experiment_ids_list, dataset, folder_path, heuristic_cutoff_list, xlabel, ylabel, folder, y_min, y_max, title, datasets):
     plt.figure(figsize=(15, 15))  # Increase the figure size for a 3x3 grid
     
     # Create a 3x3 grid of subplots
     for i in range(1, 10):
         plt.subplot(3, 3, i)
+        plt.ylim(y_min, y_max)  # Set x-axis range from 0 to 6
+        plt.axhline(y=0, color='red', linestyle='--', linewidth=0.5)
+        
+        for dataset in datasets:
+            # Plot the graph for the green color
+            if dataset=="TWINSC":
+                color = "green"
+            else:
+                color = "blue"
+            plt.plot([rate * 100 for rate in reject_rates_list[dataset][i]], [result.get(metric_name, None) for result in metric_list[dataset][i]], color=color, label=f"{dataset}")
+
+            # Check if heuristic cutoff is less than 15
+            if heuristic_cutoff_list[dataset][i] * 100 < 15:
+                plt.axvline(x=heuristic_cutoff_list[dataset][i]*100, color=color, linestyle=':', linewidth=1)
+                plt.text(heuristic_cutoff_list[dataset][i]*100 + 0.25, y_min+(y_max-y_min)*0.25, 'Heuristic Optimal RR', rotation=90, color=color, verticalalignment='center')
+
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        
+        plt.title(f'Experiment {experiment_ids_list[dataset][i]}')
+        # plt.grid(True)
+        plt.legend()
+
+    plt.suptitle(title, fontsize=16)
+    plt.tight_layout(rect=[0, 0, 1, 0.96])  # Adjust subplot layout
+
+    # Save the combined plot as an image
+    plt.savefig(f"{folder_path}overleaf/{folder}/All_All.png")
+    plt.close()
+    plt.cla()
+
+    plt.figure(figsize=(15, 15))  # Increase the figure size for a 2x1 grid
+
+    # Create a 2x1 grid of subplots
+    x = 0
+    for i in [5,6,7,10]:
+        x += 1
+        plt.subplot(2, 2, x)  # Configure subplot as 2x1
+    
         plt.ylim(y_min, y_max)  # Set x-axis range from 0 to 6
         plt.axhline(y=0, color='red', linestyle='--', linewidth=0.5)
         
@@ -171,9 +213,10 @@ def canvas_change_loop(reject_rates_list, metric_list, metric_name, experiment_i
     plt.tight_layout(rect=[0, 0, 1, 0.96])  # Adjust subplot layout
 
     # Save the combined plot as an image
-    plt.savefig(f"{folder_path}overleaf/{folder}/All_All.png")
+    plt.savefig(f"{folder_path}overleaf/{folder}/Nov_vs_Amb.png")
     plt.close()
     plt.cla()
+
 
 # Confidence Interval for Ambiguity Rejection
 def confidence_interval(xt, forest_model):
@@ -439,29 +482,17 @@ for dataset in datasets:
     for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor], ["IF", "OCSVM", "LOF"]):
         experiment_id += 1
         experiment_names[experiment_id] = f"Rejection based on {model.__name__} (train data) - Novelty Type I"
-        # metrics_dict, reject_rates, rmse_accepted, rmse_rank_accepted, sign_error_accepted, rmse_rank_weighted_accepted, rmse_change_accepted, heuristic_cutoff, sign_error_change_accepted, rmse_rank_weighted_change_accepted, rmse_rank_change_accepted = novelty_rejection(1, max_rr, detail_factor, model, x_list[i], all_data_list[i], file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect, give_details=True)
         metrics_dict, reject_rates, heuristic_cutoff, metrics_results_list = novelty_rejection(1, max_rr, detail_factor, model, x_list[i], all_data_list[i], file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect, give_details=True)
         metrics_results[dataset].update({experiment_id: metrics_dict})
         reject_rates_list[dataset].update({experiment_id: reject_rates})
         heuristic_cutoff_list[dataset].update({experiment_id: heuristic_cutoff})
         metrics_results_list_global[dataset].update({experiment_id: metrics_results_list})
         experiment_ids_list[dataset].update({experiment_id: experiment_id})
-
-        # Store the data for later plotting
-        # rmse_accepted_list[dataset].update({experiment_id: rmse_accepted})
-        # rmse_rank_accepted_list[dataset].update({experiment_id: rmse_rank_accepted})
-        # sign_error_accepted_list[dataset].update({experiment_id: sign_error_accepted})
-        # rmse_rank_weighted_accepted_list[dataset].update({experiment_id: rmse_rank_weighted_accepted})
-        # rmse_change_accepted_list[dataset].update({experiment_id: rmse_change_accepted})
-        # sign_error_change_accepted_list[dataset].update({experiment_id: sign_error_change_accepted})
-        # rmse_rank_weighted_change_accepted_list[dataset].update({experiment_id: rmse_rank_weighted_change_accepted})
-        # rmse_rank_change_accepted_list[dataset].update({experiment_id: rmse_rank_change_accepted})
     
     # Type 2
     for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor], ["IF", "OCSVM", "LOF"]):
         experiment_id += 1
         experiment_names[experiment_id] = f"Rejection based on {model.__name__} (train data) - Novelty Type II"
-        # metrics_dict, reject_rates, rmse_accepted, rmse_rank_accepted, sign_error_accepted, rmse_rank_weighted_accepted, rmse_change_accepted, heuristic_cutoff, sign_error_change_accepted, rmse_rank_weighted_change_accepted, rmse_rank_change_accepted = 
         metrics_dict, reject_rates, heuristic_cutoff, metrics_results_list = novelty_rejection(2, max_rr, detail_factor, model, x_list[i], all_data_list[i], file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect, give_details=True)
         metrics_results[dataset].update({experiment_id: metrics_dict})
         reject_rates_list[dataset].update({experiment_id: reject_rates})
@@ -469,26 +500,11 @@ for dataset in datasets:
         metrics_results_list_global[dataset].update({experiment_id: metrics_results_list})
         experiment_ids_list[dataset].update({experiment_id: experiment_id})
 
-        # metrics_results[dataset].update({experiment_id: metrics_dict})
-        
-        # # Store the data for later plotting
-        # reject_rates_list[dataset].update({experiment_id: rr_perfect})
-        # rmse_accepted_list[dataset].update({experiment_id: rmse_accepted})
-        # rmse_rank_accepted_list[dataset].update({experiment_id: rmse_rank_accepted})
-        # sign_error_accepted_list[dataset].update({experiment_id: sign_error_accepted})
-        # rmse_rank_weighted_accepted_list[dataset].update({experiment_id: rmse_rank_weighted_accepted})
-        # experiment_ids_list[dataset].update({experiment_id:experiment_id})
-        # rmse_change_accepted_list[dataset].update({experiment_id: rmse_change_accepted})
-        # heuristic_cutoff_list[dataset].update({experiment_id: heuristic_cutoff})
-        # sign_error_change_accepted_list[dataset].update({experiment_id: sign_error_change_accepted})
-        # rmse_rank_weighted_change_accepted_list[dataset].update({experiment_id: rmse_rank_weighted_change_accepted})
-        # rmse_rank_change_accepted_list[dataset].update({experiment_id: rmse_rank_change_accepted})
 
     # Type 3
     for model, abbreviation in zip([IsolationForest, OneClassSVM, LocalOutlierFactor], ["IF", "OCSVM", "LOF"]):
         experiment_id += 1
         experiment_names[experiment_id] = f"Rejection based on {model.__name__} (train data) - Novelty Type III"
-        # metrics_dict, reject_rates, rmse_accepted, rmse_rank_accepted, sign_error_accepted, rmse_rank_weighted_accepted, rmse_change_accepted, heuristic_cutoff, sign_error_change_accepted, rmse_rank_weighted_change_accepted, rmse_rank_change_accepted = novelty_rejection(3, max_rr, detail_factor, model, x_list[i], all_data_list[i], file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect, give_details=True)
         metrics_dict, reject_rates, heuristic_cutoff, metrics_results_list = novelty_rejection(3, max_rr, detail_factor, model, x_list[i], all_data_list[i], file_path, experiment_id, dataset, folder_path, abbreviation, rmse_accepted_perfect, give_details=True)
         metrics_results[dataset].update({experiment_id: metrics_dict})
         reject_rates_list[dataset].update({experiment_id: reject_rates})
@@ -496,20 +512,6 @@ for dataset in datasets:
         metrics_results_list_global[dataset].update({experiment_id: metrics_results_list})
         experiment_ids_list[dataset].update({experiment_id: experiment_id})
 
-        # metrics_results[dataset].update({experiment_id: metrics_dict})
-
-        # # Store the data for later plotting
-        # reject_rates_list[dataset].update({experiment_id: rr_perfect})
-        # rmse_accepted_list[dataset].update({experiment_id: rmse_accepted})
-        # rmse_rank_accepted_list[dataset].update({experiment_id: rmse_rank_accepted})
-        # sign_error_accepted_list[dataset].update({experiment_id: sign_error_accepted})
-        # rmse_rank_weighted_accepted_list[dataset].update({experiment_id: rmse_rank_weighted_accepted})
-        # experiment_ids_list[dataset].update({experiment_id:experiment_id})
-        # rmse_change_accepted_list[dataset].update({experiment_id: rmse_change_accepted})
-        # heuristic_cutoff_list[dataset].update({experiment_id: heuristic_cutoff})
-        # sign_error_change_accepted_list[dataset].update({experiment_id: sign_error_change_accepted})
-        # rmse_rank_weighted_change_accepted_list[dataset].update({experiment_id: rmse_rank_weighted_change_accepted})
-        # rmse_rank_change_accepted_list[dataset].update({experiment_id: rmse_rank_change_accepted})
 
     #######################################################################################################################
     # Ambiguity
@@ -532,9 +534,7 @@ for dataset in datasets:
 
 #######################################################################################################################
 canvas_change_loop(reject_rates_list, metrics_results_list_global, "RMSE Change (%)", experiment_ids_list, dataset, folder_path, heuristic_cutoff_list, 'Reject Rate (%)','RMSE Deviation from No-Rejection (%)', 'rmse', -11, 3, f'Impact of Rejection on the RMSE of the TE', datasets)
-canvas_change_loop(reject_rates_list, metrics_results_list_global, "Sign Accuracy Change (%)", experiment_ids_list, dataset, folder_path, heuristic_cutoff_list, 'Reject Rate (%)','Sign Accuracy Deviation from No-Rejection (%)', 'signaccuracy', -11, 3, f'Impact of Rejection on the Sign Accuracy of the TE', datasets)
-canvas_change_loop(reject_rates_list, metrics_results_list_global, "Weighted Sign Accuracy Change (%)", experiment_ids_list, dataset, folder_path, heuristic_cutoff_list, 'Reject Rate (%)','Weighted Sign Accuracy Deviation from No-Rejection (%)', 'weightedsignaccuracy', -11, 3, f'Impact of Rejection on the Weighted Sign Accuracy of the TE', datasets)
-canvas_change_loop(reject_rates_list, metrics_results_list_global, "Similarity 50% Improved (%)", experiment_ids_list, dataset, folder_path, heuristic_cutoff_list, 'Reject Rate (%)','Similarity Deviation from No-Rejection (%)', 'similarity', -11, 3, f'Impact of Rejection on the similarity of the TE', datasets)
+canvas_change_loop(reject_rates_list, metrics_results_list_global, "Similarity 50% Improved (%)", experiment_ids_list, dataset, folder_path, heuristic_cutoff_list, 'Reject Rate (%)','Similarity Deviation from No-Rejection (%)', 'similarity', -10, 6, f'Impact of Rejection on the similarity of the TE', datasets)
 
 i = -1
 for dataset in datasets:
@@ -546,10 +546,14 @@ for dataset in datasets:
     # plot_summary(reject_rates_list[dataset], rmse_rank_weighted_accepted_list[dataset], experiment_ids_list[dataset], dataset, folder_path, "Impact RR on RMSE Rank Weighted Accepted", "RMSERankWeightedAccepted")
     # plot_canvas(reject_rates_list[dataset], rmse_accepted_list[dataset], experiment_ids_list[dataset], dataset, folder_path, "Impact RR on RMSE Accepted", "RMSEAccepted")
     # # 9x9 plots:
-    # canvas_change(reject_rates_list[dataset], [result.get('RMSE Accepted', None) for result in metrics_results_list_global[dataset]], experiment_ids_list[dataset], dataset, folder_path, heuristic_cutoff_list[dataset], 'Reject Rate (%)','RMSE Deviation from No-Rejection (%)', 'rmse', -9, 3, f'Impact of Rejection on the RMSE of the TE ({dataset})')
-    # canvas_change(reject_rates_list[dataset], sign_error_change_accepted_list[dataset], experiment_ids_list[dataset], dataset, folder_path, heuristic_cutoff_list[dataset], 'Reject Rate (%)','Sign Error Deviation from No-Rejection (%)', 'sign_error',-30, 20, f'Impact of Rejection on the Sign Error of the TE ({dataset})')
-    # canvas_change(reject_rates_list[dataset], rmse_rank_weighted_change_accepted_list[dataset], experiment_ids_list[dataset], dataset, folder_path, heuristic_cutoff_list[dataset], 'Reject Rate (%)','Weighted RMSE Rank Deviation from No-Rejection (%)', 'rank_weighted',-20, 20, f'Impact of Rejection on the weighted RMSE of the Rank of the TE ({dataset})')
-    # canvas_change(reject_rates_list[dataset], rmse_rank_change_accepted_list[dataset], experiment_ids_list[dataset], dataset, folder_path, heuristic_cutoff_list[dataset], 'Reject Rate (%)','RMSE Rank Deviation from No-Rejection (%)', 'rank',-20, 20, f'Impact of Rejection on the RMSE of the Rank of the TE ({dataset})')
+    # canvas_change(reject_rates_list[dataset], [result.get('RMSE Change (%)', None) for result in metrics_results_list_global[dataset]], [result.get('RMSE Change (%)', None) for result in metrics_results_list_global[dataset]], experiment_ids_list[dataset], dataset, folder_path, heuristic_cutoff_list[dataset], 'Reject Rate (%)','RMSE Deviation from No-Rejection (%)', 'rmse', -9, 3, f'Impact of Rejection on the RMSE of the TE ({dataset})')
+    
+    canvas_change(reject_rates_list[dataset], [result.get('Similarity 50% Accepted (%)', None) for result in metrics_results_list_global[dataset]], [result.get('Similarity 50% Rejected (%)', None) for result in metrics_results_list_global[dataset]], experiment_ids_list[dataset], dataset, folder_path, heuristic_cutoff_list[dataset], 'Reject Rate (%)','RMSE Deviation from No-Rejection (%)', 'signaccuracy', 0, 100, f'Impact of Rejection on the RMSE of the TE ({dataset})')
+    canvas_change(reject_rates_list[dataset], [result.get('Sign Accuracy Accepted (%)', None) for result in metrics_results_list_global[dataset]], [result.get('Sign Accuracy Rejected (%)', None) for result in metrics_results_list_global[dataset]], experiment_ids_list[dataset], dataset, folder_path, heuristic_cutoff_list[dataset], 'Reject Rate (%)','RMSE Deviation from No-Rejection (%)', 'similarity', 0, 100, f'Impact of Rejection on the RMSE of the TE ({dataset})')
+    canvas_change(reject_rates_list[dataset], [result.get('Weighted Sign Accuracy Accepted (%)', None) for result in metrics_results_list_global[dataset]],[result.get('Weighted Sign Accuracy Rejected (%)', None) for result in metrics_results_list_global[dataset]], experiment_ids_list[dataset], dataset, folder_path, heuristic_cutoff_list[dataset], 'Reject Rate (%)','RMSE Deviation from No-Rejection (%)', 'weightedsignaccuracy', 0, 100, f'Impact of Rejection on the RMSE of the TE ({dataset})')
+    canvas_change(reject_rates_list[dataset], [result.get('Adverse Effect Accuracy Accepted (%)', None) for result in metrics_results_list_global[dataset]],[result.get('Adverse Effect Accuracy Rejected (%)', None) for result in metrics_results_list_global[dataset]], experiment_ids_list[dataset], dataset, folder_path, heuristic_cutoff_list[dataset], 'Reject Rate (%)','RMSE Deviation from No-Rejection (%)', 'adverseeffect', 0, 100, f'Impact of Rejection on the RMSE of the TE ({dataset})')
+    canvas_change(reject_rates_list[dataset], [result.get('Positive Potential Accuracy Accepted (%)', None) for result in metrics_results_list_global[dataset]],[result.get('Positive Potential Accuracy Rejected (%)', None) for result in metrics_results_list_global[dataset]], experiment_ids_list[dataset], dataset, folder_path, heuristic_cutoff_list[dataset], 'Reject Rate (%)','RMSE Deviation from No-Rejection (%)', 'positivepotential', 0, 100, f'Impact of Rejection on the RMSE of the TE ({dataset})')
+
 
 
 
@@ -591,7 +595,6 @@ for dataset in datasets:
 
 
     #######################################################################################################################
-    print(metrics_results[dataset])
     metrics_results[dataset] = pd.DataFrame.from_dict(metrics_results[dataset], orient='index')
 
     # Chapter 8: Output to file

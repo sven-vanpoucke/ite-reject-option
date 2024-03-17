@@ -149,13 +149,6 @@ def ambiguity_rejection(type_nr, max_rr, detail_factor, model, xt, all_data, fil
     # rmse_rank_weighted_change_accepted = []
     # rmse_rank_change_accepted = []
     if type_nr == 1:
-        quantiles = [0.025, 0.05, 0.10, 0.15]
-        y_values = [model.predict(xt, quantiles=[q]) for q in quantiles]
-        size_of_ci = sum([(y[1] - y[0]) for y in y_values]) / len(quantiles)
-        all_data['size_of_ci'] = size_of_ci
-        all_data = all_data.sort_values(by='size_of_ci', ascending=False).reset_index(drop=True)
-        all_data['Ambiguity Score'] = all_data['size_of_ci']
-        all_data['Ambiguity Score Normalized'] = (all_data['Ambiguity Score'] - all_data['Ambiguity Score'].min()) / (all_data['Ambiguity Score'].max() - all_data['Ambiguity Score'].min())
 
         # y_lower = model.predict(xt, quantiles=[0.025])
         # y_upper = model.predict(xt, quantiles=[0.975])
@@ -174,6 +167,15 @@ def ambiguity_rejection(type_nr, max_rr, detail_factor, model, xt, all_data, fil
         # all_data['size_of_ci'] = size_of_ci
         # all_data = all_data.sort_values(by='size_of_ci', ascending=False).copy()
         # all_data = all_data.reset_index(drop=True)
+
+        quantiles = [0.025, 0.05, 0.10, 0.15]
+        y_values = [model.predict(xt, quantiles=[q]) for q in quantiles]
+        size_of_ci = sum([(y[1] - y[0]) for y in y_values]) / len(quantiles)
+        all_data['size_of_ci'] = size_of_ci
+        all_data = all_data.sort_values(by='size_of_ci', ascending=False).reset_index(drop=True)
+
+        all_data['Ambiguity Score'] = all_data['size_of_ci']
+        all_data['Ambiguity Score Normalized'] = (all_data['Ambiguity Score'] - all_data['Ambiguity Score'].min()) / (all_data['Ambiguity Score'].max() - all_data['Ambiguity Score'].min())
 
         for rr in range(1, max_rr * detail_factor):
             num_to_set = int(rr / (100.0 * detail_factor) * len(all_data)) # example: 60/100 = 0.6 * length of the data
@@ -250,14 +252,12 @@ def ambiguity_rejection(type_nr, max_rr, detail_factor, model, xt, all_data, fil
         all_data[all_data['Ambiguity Score Normalized'] >= plusstd_normalized]
 
     metrics_dict = calculate_all_metrics('ite', 'ite_reject', all_data, file_path, {}, append_metrics_results=False, print=False)
-    metrics_dict = {
-        '2/ Optimal RR (%)': round(optimal_reject_rate * 100, 4),
-        '2/ Original RMSE': metrics_dict.get('RMSE Original', None),
-        '2/ Minimum RMSE': round(min_rmse, 4),
-        '2/ Change of RMSE (%)': (min_rmse - metrics_dict.get('RMSE Original', None)) / metrics_dict.get('RMSE Original', None) * 100,
-        '2/ Improvement of RMSE (%)': -((min_rmse - metrics_dict.get('RMSE Original', None)) / metrics_dict.get('RMSE Original', None)) * 100,
-        '2/ Mistake from Perfect': round(sum([perfect - actual for perfect, actual in zip(rmse_accepted_perfect, rmse_accepted)]), 4),
-    }
+    metrics_dict['2/ Optimal RR (%)'] = round(optimal_reject_rate * 100, 4)
+    metrics_dict['2/ Original RMSE'] = metrics_dict.get('RMSE Original', None)
+    metrics_dict['2/ Minimum RMSE'] = round(min_rmse, 4)
+    metrics_dict['2/ Change of RMSE (%)'] = (min_rmse - metrics_dict.get('RMSE Original', None)) / metrics_dict.get('RMSE Original', None) * 100
+    metrics_dict['2/ Improvement of RMSE (%)'] = -((min_rmse - metrics_dict.get('RMSE Original', None)) / metrics_dict.get('RMSE Original', None)) * 100
+    metrics_dict['2/ Mistake from Perfect'] = round(sum([perfect - actual for perfect, actual in zip(rmse_accepted_perfect, rmse_accepted)]), 4)
 
     if type_nr == 1:
         metrics_dict['3/ Optimal Amount of times Rejected'] = lowest_rejected_value

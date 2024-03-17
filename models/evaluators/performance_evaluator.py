@@ -217,12 +217,14 @@ def calculate_performance_metrics(value, value_pred, data, file_path, print=Fals
 
     # Sign Accuracy
     mean_sign_error = data['Sign Error'].mean()
+    original = (1 - mean_sign_error)*100
     metrics_dict['Sign Accuracy Original (%)'] = (1 - mean_sign_error)*100
     
     mean_sign_error_not_rejected = data_not_rejected['Sign Error'].mean()
+    new = (1-mean_sign_error_not_rejected) *100
     metrics_dict['Sign Accuracy Accepted (%)'] = (1-mean_sign_error_not_rejected) *100
 
-    metrics_dict['Sign Accuracy Change (%)'] =  ( (1-mean_sign_error_not_rejected) - (1-mean_sign_error) ) / (1-mean_sign_error) * 100
+    metrics_dict['Sign Accuracy Change (%)'] =  (new - original ) / original * 100
 
     mean_sign_error_rejected = data_rejected['Sign Error'].mean()
     metrics_dict['Sign Accuracy Rejected (%)'] = (1-mean_sign_error_rejected)*100
@@ -268,12 +270,14 @@ def calculate_performance_metrics(value, value_pred, data, file_path, print=Fals
 
     # Sign Accuracy
     mean_sign_error = (data['ite']*data['Sign Error']).sum() / data['ite'].sum()
+    original = (1 - mean_sign_error)*100
     metrics_dict['Weighted Sign Accuracy Original (%)'] = (1 - mean_sign_error)*100
     
     mean_sign_error_not_rejected = (data_not_rejected['ite']*data_not_rejected['Sign Error']).sum() / data_not_rejected['ite'].sum()
+    new = (1 - mean_sign_error_not_rejected)*100
     metrics_dict['Weighted Sign Accuracy Accepted (%)'] = (1-mean_sign_error_not_rejected) *100
 
-    metrics_dict['Weighted Sign Accuracy Change (%)'] =  ( (1-mean_sign_error_not_rejected) - (1-mean_sign_error) ) / (1-mean_sign_error) * 100
+    metrics_dict['Weighted Sign Accuracy Change (%)'] =  (new - original ) / original * 100
 
     mean_sign_error_rejected = (data_rejected['ite']*data_rejected['Sign Error']).sum() / data_rejected['ite'].sum()
     metrics_dict['Weighted Sign Accuracy Rejected (%)'] = (1-mean_sign_error_rejected)*100
@@ -307,14 +311,16 @@ def calculate_performance_metrics(value, value_pred, data, file_path, print=Fals
         # Calculate the intersection for 'ite' and 'ite_pred'
         intersection_set = set(top_ite.index) & set(top_ite_pred.index)
         num_samples_in_intersection = len(intersection_set)
-        metrics_dict[f'Similarity {int(percentage * 100)}% Original (%)'] = num_samples_in_intersection/total_samples*100
+        original = num_samples_in_intersection/total_samples*100
+        metrics_dict[f'Similarity {int(percentage * 100)}% Original (%)'] = original
 
         top_ite_pred = data_not_rejected.nlargest(int(percentage * len(data)), 'ite_pred')
         intersection_set = set(top_ite.index) & set(top_ite_pred.index)
         num_samples_in_intersection = len(intersection_set)
-        metrics_dict[f'Similarity {int(percentage * 100)}% Accepted (%)'] = num_samples_in_intersection/total_samples*100
+        new = num_samples_in_intersection/total_samples*100
+        metrics_dict[f'Similarity {int(percentage * 100)}% Accepted (%)'] = new
 
-        metrics_dict[f'Similarity {int(percentage * 100)}% Improved (%)'] = (metrics_dict[f'Similarity {int(percentage * 100)}% Accepted (%)']-metrics_dict[f'Similarity {int(percentage * 100)}% Original (%)'])/metrics_dict[f'Similarity {int(percentage * 100)}% Original (%)']
+        metrics_dict[f'Similarity {int(percentage * 100)}% Improved (%)'] = (new - original) / original * 100
 
         intersection_set = set(top_ite.index) & set(data_rejected.index)
         num_samples_in_intersection = len(intersection_set)
